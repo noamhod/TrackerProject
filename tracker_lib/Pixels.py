@@ -21,21 +21,21 @@ from tracker_lib.objects import Hit
 #     ROOT.gROOT.ProcessLine("struct event  { Int_t trg_n; Double_t ts_begin; Double_t ts_end; std::vector<stave> st_ev_buffer; };" )
 
 
-def get_all_pixles(evt,hPixMatrix,ROI={}):
+def get_all_pixels(evt,hPixMatrix,ROI={}):
     cfg = config.Config().map
-    
+
     ispreproc = utils.is_preprocessed()
-    
-    staves = evt.event.st_ev_buffer
-    pixels = {}
-    raws   = {}
-    ids2d  = {}
-    for det in cfg["detectors"]:
-        pixels.update({det:[]})
-        raws.update({det:[]})
-        ids2d.update({det:[]})
+
+
+    pixels = {det: [] for det in cfg["detectors"]}
+    raws   = {det: [] for det in cfg["detectors"]}
+    ids2d  = {det: [] for det in cfg["detectors"]}
+
     n_active_staves = 0
     n_active_chips  = 0
+
+    staves = evt.event.st_ev_buffer
+
     for istv in range(staves.size()):
         staveid  = staves[istv].stave_id
         chips    = staves[istv].ch_ev_buffer
@@ -55,42 +55,18 @@ def get_all_pixles(evt,hPixMatrix,ROI={}):
             for ipix in range(nhits):
                 ix = -1
                 iy = -1
-                xFake = 0
-                yFake = 0
-                Azx   = 0
-                Bzx   = 0
-                Azy   = 0
-                Bzy   = 0
-                Vx    = 0
-                Vy    = 0
-                Vz    = 0
                 if(not cfg["isMC"] and not ispreproc):
                     ### EUDAQ
                     ix,iy = chips[ichp].hits[ipix]
                 if(ispreproc):
                     ### preprocessed EUDAQ
-                    ix = chips[ichp].hits[ipix].ix 
+                    ix = chips[ichp].hits[ipix].ix
                     iy = chips[ichp].hits[ipix].iy
                 if(cfg["isMC"] and not cfg["isFakeMC"]):
                     ### AllPix converted to EUDAQ
-                    ix = chips[ichp].hits[ipix].ix 
+                    ix = chips[ichp].hits[ipix].ix
                     iy = chips[ichp].hits[ipix].iy
-                if(cfg["isMC"] and cfg["isFakeMC"]):
-                    ### fake mc converted to EUDAQ
-                    ix = chips[ichp].hits[ipix].ix 
-                    iy = chips[ichp].hits[ipix].iy
-                    xOrig = chips[ichp].hits[ipix].xOrig
-                    yOrig = chips[ichp].hits[ipix].yOrig
-                    xFake = chips[ichp].hits[ipix].xFake
-                    yFake = chips[ichp].hits[ipix].yFake
-                    Azx   = chips[ichp].hits[ipix].Azx
-                    Bzx   = chips[ichp].hits[ipix].Bzx
-                    Azy   = chips[ichp].hits[ipix].Azy
-                    Bzy   = chips[ichp].hits[ipix].Bzy
-                    Vx    = chips[ichp].hits[ipix].Vx
-                    Vy    = chips[ichp].hits[ipix].Vy
-                    Vz    = chips[ichp].hits[ipix].Vz
-                    
+
                 if(len(ROI)>0):
                     if(("ix" in ROI) and (ix<ROI["ix"]["min"] or ix>ROI["ix"]["max"])): continue
                     if(("iy" in ROI) and (iy<ROI["iy"]["min"] or iy>ROI["iy"]["max"])): continue
@@ -101,7 +77,7 @@ def get_all_pixles(evt,hPixMatrix,ROI={}):
                     raws[detector].append(raw)
                     pixels[detector].append( Hit(detector,ix,iy,raw) if(not cfg["isFakeMC"]) else Hit(detector,ix,iy,raw,xOrig,yOrig,xFake,yFake,Azx,Bzx,Azy,Bzy,Vx,Vy,Vz) )
             n_active_staves += (isactivestave)
-        
+
         tdm_counter = np.zeros(cfg["layers"],dtype=int)
         for det in cfg["detectors"]:
             tdm = cfg["det2tdm"][det]
@@ -109,5 +85,87 @@ def get_all_pixles(evt,hPixMatrix,ROI={}):
             if(len(pixels[det])>0): tdm_counter[tdm] = int(1)
         n_active_tandem_layers = 0
         for n in tdm_counter: n_active_tandem_layers += n
-        
+
     return n_active_tandem_layers,n_active_staves,n_active_chips,pixels
+
+
+
+
+
+
+# def get_all_pixels(evt, hPixMatrix, ROI={}):
+#     ### Optimized pixel reader using NumPy vectorization to minimize Python-C++ overhead.
+#
+#     # 1. Access the singleton configuration locally
+#     cfg = config.Config().map
+#
+#     # 2. Identify data source characteristics
+#     ispreproc = utils.is_preprocessed()
+#     is_mc = cfg.get("isMC", False)
+#     is_fake_mc = cfg.get("isFakeMC", False)
+#
+#     # 3. Initialize containers
+#     pixels = {det: [] for det in cfg["detectors"]}
+#     ids2d = {det: set() for det in cfg["detectors"]} # Use set for O(1) lookups
+#     n_active_staves = 0
+#     n_active_chips = 0
+#
+#     # 4. Access the main stave buffer
+#     st_buffer = evt.event.st_ev_buffer
+#
+#     for stave in st_buffer:
+#         staveid = stave.stave_id
+#         is_active_stave = False
+#
+#         for chip in stave.ch_ev_buffer:
+#             chipid = chip.chip_id
+#             stvchp = (staveid, chipid)
+#
+#             # Skip chips not defined in current geometry
+#             if(stvchp not in cfg["stvchps"]): continue
+#
+#             detector = cfg["stvchp2det"][stvchp]
+#             nhits = chip.hits.size()
+#
+#             # Occupancy protection: skip noisy frames
+#             if(nhits > 0.05 * cfg["npix_x"] * cfg["npix_y"]):
+#                 print(f"Event {evt.event.trg_n} high occupancy ({nhits}) in {detector} -> skipping chip")
+#                 continue
+#
+#             if(nhits>0):
+#                 n_active_chips += 1
+#                 is_active_stave = True
+#
+#                 # OPTIMIZATION: Convert C++ hit vector to NumPy array in one call
+#                 # This is much faster than looping over 'ipix' in Python
+#                 hits_array = np.array(chip.hits)
+#
+#                 for i in range(nhits):
+#                     # Access hit data; format depends on C++ struct definition
+#                     ix, iy = hits_array[i]
+#
+#                     # Apply Region of Interest (ROI) cuts
+#                     if ROI:
+#                         if "ix" in ROI and (ix < ROI["ix"]["min"] or ix > ROI["ix"]["max"]): continue
+#                         if "iy" in ROI and (iy < ROI["iy"]["min"] or iy > ROI["iy"]["max"]): continue
+#
+#                     # Ensure uniqueness for this detector in this event
+#                     if((ix, iy) not in ids2d[detector]):
+#                         ids2d[detector].add((ix, iy))
+#                         raw_bin = hPixMatrix[detector].FindBin(ix, iy)
+#
+#                         # Instantiate Hit with relevant metadata
+#                         if not is_fake_mc:
+#                             pixels[detector].append(Hit(detector, ix, iy, raw_bin))
+#
+#         if(is_active_stave):
+#             n_active_staves += 1
+#
+#     # 5. Calculate active tandem layers
+#     tdm_counter = np.zeros(cfg["layers"], dtype=int)
+#     for det in cfg["detectors"]:
+#         if(pixels[det]):
+#             tdm = cfg["det2tdm"][det]
+#             tdm_counter[tdm] = 1
+#
+#     return sum(tdm_counter), n_active_staves, n_active_chips, pixels

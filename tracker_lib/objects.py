@@ -11,6 +11,8 @@ _s12_  = math.sqrt(12.)
 _1s12_ = 1./_s12_
 
 class Hit:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('x', 'y', 'q', 'xmm', 'ymm', 'zmm', 'xTmm', 'yTmm', 'zTmm')
     def __init__(self,det,x,y,q=-1,xOrig=0,yOrig=0,xFake=0,yFake=0,Azx=0,Bzx=0,Azy=0,Bzy=0,Vx=0,Vy=0,Vz=0):
         cfg = config.Config().map
         self.x = x
@@ -27,23 +29,16 @@ class Hit:
         self.xTmm = rT0[0]
         self.yTmm = rT0[1]
         self.zTmm = rT0[2]
-        if(cfg["isMC"] and cfg["isFakeMC"]):
-            self.xOrig = xOrig
-            self.yOrig = yOrig
-            self.xFake = xFake
-            self.yFake = yFake
-            self.Azx   = Azx
-            self.Bzx   = Bzx
-            self.Azy   = Azy
-            self.Bzy   = Bzy
-            self.Vx    = Vx
-            self.Vy    = Vy
-            self.Vz    = Vz
         
     def __str__(self):
         return f"Pixel: x={self.x}, y={self.y}, q={self.q}, r=({self.xmm,self.ymm,self.zmm}) [mm]"
 
 class Cls:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('det','SID','CID','DID','TID','pixels',
+                'n','x','y','dx','dy','nx','ny','dxmm','dymm','xsizemm','ysizemm','xmm','ymm','zmm',
+                'xTmm','yTmm','zTmm','dxTmm','dyTmm','xTsizemm','yTsizemm',
+                'xTnoGmm','yTnoGmm','zTnoGmm','dxTnoGmm','dyTnoGmm','xTnoGsizemm','yTnoGsizemm')
     def __init__(self,det,pixels,CID):
         cfg = config.Config().map
         self.det = det
@@ -61,9 +56,6 @@ class Cls:
         self.xmm = self.x*cfg["pix_x"]-cfg["chipX"]/2. ### original x
         self.ymm = self.y*cfg["pix_y"]-cfg["chipY"]/2. ### original y
         self.zmm  = cfg["rdetectors"][det][2]
-        if(cfg["isFakeMC"]):
-            self.xmm = pixels[0].xFake 
-            self.ymm = pixels[0].yFake
         ####################################
         ### trasformed to the real space ###
         ### includes the alignmet and    ###
@@ -127,6 +119,8 @@ class Cls:
         return f"Cluster: xy={self.x,self.y} [pixels], r={self.xmm,self.ymm,self.zmm} [mm], size={self.n}"
 
 class MCparticle:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('pdg', 'pos1', 'pos2')
     def __init__(self,det,pdg,loc_start,loc_end):
         cfg = config.Config().map
         self.pdg = pdg
@@ -136,6 +130,8 @@ class MCparticle:
         return f"MCparticle: pdg={self.pdg}, pos1=({self.pos1.X(),self.pos1.Y(),self.pos1.Z()}), pos2=({self.pos2.X(),self.loc_end.Y(),self.pos2.Z()})"
 
 class FakeMCparticle:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('slp', 'itp', 'vtx')
     def __init__(self,slp,itp,vtx):
         self.slp = slp
         self.itp = itp
@@ -144,6 +140,8 @@ class FakeMCparticle:
         return f"FakeMCparticle: slp={self.slp}, itp={self.itp}, vtx={vtx}"
 
 class TrackSeed:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('detectors', 'clsids', 'tunnelid', 'hough_coords', 'x','y','z','dx','dy','xsize','ysize')
     def __init__(self,seed,tunnelid,hough_coords,clusters):
         self.detectors    = list(seed.keys())
         self.clsids       = seed
@@ -168,6 +166,9 @@ class TrackSeed:
         return f"TrackSeed: "
 
 class Track:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('detectors', 'trkcls', 'points', 'errors', 'chisq', 'ndof', 'chi2ndof',
+                 'direction', 'centroid', 'params', 'success', 'hough_coords', 'theta', 'phi', 'maxcls')
     def __init__(self,detectors,trkcls,points,errors,chisq,ndof,direction,centroid,params,success,hough_coords={}):
         self.detectors = detectors
         self.trkcls = trkcls
@@ -199,6 +200,8 @@ class Track:
         return f"Track: chisq={self.chisq}, ndof={self.ndof}, chi2ndof={self.chi2ndof}"
 
 class Meta:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('run', 'start', 'end', 'dur')
     def __init__(self,run,start,end,dur):
         self.run = run
         self.start = start
@@ -208,6 +211,8 @@ class Meta:
         return f"Meta: "
         
 class Magnets:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('ThetaB', 'dipole', 'quad0','quad1','quad2','m12','m34','zobj','zimg','xcor')
     def __init__(self,dipole_in_GeV,quad0,quad1,quad2,m12,m34,zobj,zimg,xcor):
         cfg = config.Config().map
         self.ThetaB = 0.006 ### mrad
@@ -228,6 +233,10 @@ class Magnets:
         return f"Magnets: Dipole={self.dipole} [T], Q0={self.quad0} [kG/m], Q1={self.quad1} [kG/m], Q2={self.quad2} [kG/m], M12={self.m12}, M34={self.m34}, XCOR={self.xcor}"
 
 class Event:
+    # Explicitly define allowed attributes to save memory
+    __slots__ = ('saveprimitive', 'meta', 'trigger', 'timestamp_bgn', 'timestamp_end', 'magnets', 'errors',
+                 'pixels', 'npixels', 'clusters', 'nclusters', 'ntunnels', 'hough_space',
+                 'seeds', 'tracks', 'misalignment')
     def __init__(self,meta,trigger,timestamp_bgn,timestamp_end,magnets,saveprimitive=True):
         cfg = config.Config().map 
         self.saveprimitive   = saveprimitive
@@ -245,8 +254,6 @@ class Event:
         self.hough_space     = {} 
         self.seeds           = []
         self.tracks          = []
-        self.mcparticles     = []
-        self.fakemcparticles = []
         self.misalignment    = cfg["misalignment"]
     def __str__(self):
         return f"Event: npixels={self.npixels}, tracks={self.tracks}"
@@ -267,10 +274,6 @@ class Event:
         self.hough_space = hough_space
     def set_event_tracks(self,tracks):
         self.tracks = tracks
-    def set_event_mcparticles(self,mcparticles):
-        self.mcparticles = mcparticles
-    def set_event_fakemcparticles(self,fakemcparticles):
-        self.fakemcparticles = fakemcparticles
         
 class MinimalEvent:
     def __init__(self,trigger,tracks):

@@ -76,7 +76,7 @@ def RunNoiseScan(tfilename,tfnoisename):
             continue
 
         ### get the pixels
-        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixles(evt,h2D_noise)
+        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(evt,h2D_noise)
         
         for det in cfg["detectors"]:
             for pix in pixels[det]:

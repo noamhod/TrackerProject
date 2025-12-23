@@ -178,7 +178,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
 
 
         ### get the pixels
-        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixles(ttree,hPixMatix)
+        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix)
         histos["h_nStaves"].Fill(n_active_staves)
         histos["h_nDetectors"].Fill(n_active_chips)
         histos["h_nTandemLayers"].Fill(n_active_tandem_layers)
@@ -229,7 +229,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         
         ### spatial ROI cut
         # ROI = { "ix":{"min":cfg["cut_ROI_xmin"],"max":cfg["cut_ROI_xmax"]}, "iy":{"min":cfg["cut_ROI_ymin"],"max":cfg["cut_ROI_ymax"]} }
-        # n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixles(ttree,hPixMatix,ROI)
+        # n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix,ROI)
         # sprnt = f"ievt={ievt} in_ROI_chips={n_active_chips} -->"
         # for det in cfg["detectors"]:
         #     sprnt += f" Npixels[{det}]={len(pixels[det])},"
@@ -426,8 +426,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             if(cfg["dbg"]): print(f"after track fill_trk2vtx_residuals")
         
         eventslist[out_event_index].set_event_tracks(tracks)
-        if(cfg["isMC"] and cfg["isFakeMC"]):
-            eventslist[out_event_index].set_event_fakemcparticles(fakemcparticles)
         
         histos["h_nTracks"].Fill( n_tracks )
         histos["h_nTracks_log"].Fill( n_tracks if(n_tracks>0) else 0.11 )

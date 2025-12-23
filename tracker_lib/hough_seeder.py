@@ -291,7 +291,6 @@ class HoughSeeder:
         # thetay,rhoy = self.find_waves_intersect(CA.yTmm,CA.zTmm,CB.yTmm,CB.zTmm)
         thetax,rhox = self.find_waves_intersect(CA.xTnoGmm,CA.zTnoGmm,CB.xTnoGmm,CB.zTnoGmm)
         thetay,rhoy = self.find_waves_intersect(CA.yTnoGmm,CA.zTnoGmm,CB.yTnoGmm,CB.zTnoGmm)
-        
         # if(cfg["dbg"]):
         #     print(f"normal: CAxz={CA.xTnoGmm,CA.zTnoGmm} CBxz={CB.xTnoGmm,CB.zTnoGmm}")
         #     print(f"normal: CAyz={CA.yTnoGmm,CA.zTnoGmm} CByz={CB.yTnoGmm,CB.zTnoGmm}")
