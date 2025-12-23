@@ -21,7 +21,7 @@ detevtlib        = 20252302
 
 ### run502 (Be window in):
 first2process = 357
-nmax2process  = 100
+nmax2process  = 10
 inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
 
 # ### run503 (beam-only, focusing on foil, 6h-long)
@@ -136,9 +136,9 @@ cut_dk_algn_dymax = -0.02
 cut_maxcls  = 4
 cut_allow_shared_clusters = 0
 cut_allow_negative_yz_slope = 0
-cut_windowaprtr = 1
-cut_flangeaprtr = 1
-cut_dipoleaprtr = 1
+cut_windowaprtr = 0
+cut_flangeaprtr = 0
+cut_dipoleaprtr = 0
 cut_spot          = 0
 cut_spot_xcenter  = 0
 cut_spot_ycenter  = 0
@@ -174,12 +174,12 @@ use_large_clserr_for_algnmnt = 1
 
 #####################################
 ### DEFAULT MISALIGNMENT (before doing the alignment procedure):
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
+misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
 #####################################
 
 #####################################
 ### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 8<CHI2<20 USING ALPIDE_0 AS REF (May 3)
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-02,dy=3.95E-02,theta=-1.72E-03 ALPIDE_2:dx=2.86E-02,dy=-4.27E-02,theta=1.53E-03 ALPIDE_3:dx=6.74E-02,dy=-6.58E-02,theta=-1.53E-03 ALPIDE_4:dx=-1.88E-02,dy=1.29E-02,theta=3.77E-04
+# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-02,dy=3.95E-02,theta=-1.72E-03 ALPIDE_2:dx=2.86E-02,dy=-4.27E-02,theta=1.53E-03 ALPIDE_3:dx=6.74E-02,dy=-6.58E-02,theta=-1.53E-03 ALPIDE_4:dx=-1.88E-02,dy=1.29E-02,theta=3.77E-04
 #####################################
 
 minchi2align  = 0.01
@@ -300,18 +300,12 @@ yFlangeMax         = +31.752
 ### thetax rotates the blob up/down vertically and thetay rotates the blob horizontally.
 ### thetay in !!!degrees!!! is "found" from the dipole exit plane
 thetay = 0:0
-# thetax = 0:0.2216
 thetax = 0:0
 thetaz = 0:+90
 ### from global alignment:
-# xOffset0 = -10.1
-# yOffset0 = 1.2
-# zOffset0 = 0
 xOffset0 = 0
 yOffset0 = 0
 zOffset0 = 0
-### this was true for Nov 2024 shifts: box is ~1cm above the beampipe (stage is at 78mm):
-# yPipeTop2BoxBot = 9.525
 ### this is used for the Feb 2025 shifts: box is ~2mm above the beampipe (stage is at 86mm):
 yPipeTop2BoxBot = 1.525
 yMidChip2BoxBot = 36.85
