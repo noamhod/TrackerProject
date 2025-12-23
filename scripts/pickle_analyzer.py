@@ -19,15 +19,22 @@ import pickle
 from pathlib import Path
 import ctypes
 import random
+from line_profiler import LineProfiler
 
 import argparse
 parser = argparse.ArgumentParser(description='serial_analyzer.py...')
 parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
 parser.add_argument('-mult', metavar='multi run?',  required=False, help='is this a multirun? [0/1]')
+parser.add_argument('-wave', metavar='fill waves?', required=False, help='fill wave histos? [0/1]')
+parser.add_argument('-eudq', metavar='fill eudaq?', required=False, help='fill eudaq tree? [0/1]')
 argus = parser.parse_args()
 configfile = argus.conf
 ismutirun  = argus.mult if(argus.mult is not None and int(argus.mult)==1) else False
+iswavehst  = argus.wave if(argus.wave is not None and int(argus.wave)==1) else False
+weudaqout  = argus.eudq if(argus.eudq is not None and int(argus.eudq)==1) else False
 print(f"ismutirun={ismutirun}")
+print(f"iswavehst={iswavehst}")
+print(f"weudaqout={weudaqout}")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
@@ -268,79 +275,9 @@ def get_edges_from_theta_rho_corners(det,theta_x,rho_x,theta_y,rho_y):
 
 
 
-if __name__ == "__main__":
-    # get the start time
-    st = time.time()
-    
-    
-    #############################################
-    ### Initialize Config in the main process ###
-    config.init_config(configfile, False)
+
+def book_histos():
     cfg = config.Config().map
-    # config.show_config() # print config once
-    print(cfg) # print config once
-    #############################################
-    
-    
-    B  = cfg["fDipoleTesla"]
-    LB = cfg["zDipoleLenghMeters"]
-    
-    
-    ### get all the files
-    tfilenamein = ""
-    files = []
-    if(ismutirun):
-        tfilenamein,files = utils.make_multirun_dir(cfg["inputfile"],cfg["runnums"])
-    else:
-        tfilenamein = utils.make_run_dirs(cfg["inputfile"])
-        files = utils.getfiles(tfilenamein)
-    files = [fx for fx in files if '_BadTriggers' not in fx and os.path.getsize(fx) > 0]
-    for f in files: print(f)
-    
-    
-    ispreproc = ("preprocessed" in cfg["inputfile"])
-    
-    
-    ### read production config
-    fpklcfgname = tfilenamein.replace("tree_","config_used/tree_").replace(".root","_config.pkl")
-    fpklconfig = open(fpklcfgname,'rb')
-    prod_cfg = pickle.load(fpklconfig)
-    fpklconfig.close()
-    ### was it aligned during production?
-    isAlignedAtProd = False
-    for det in prod_cfg["detectors"]:
-        for axis,value in prod_cfg["misalignment"][det].items():
-            if(value!=0):
-                isAlignedAtProd = True
-                break
-        if(isAlignedAtProd): break
-    ### should we apply misalignemnt here?
-    isNon0Mislaignment = False
-    for det in cfg["detectors"]:
-        for axis,value in cfg["misalignment"][det].items():
-            if(value!=0):
-                isNon0Mislaignment = True
-                break
-        if(isNon0Mislaignment): break
-    
-    
-    
-    ### bad triggers
-    fpkltrgname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_BadTriggers.pkl")
-    badtriggers = []
-    if(not cfg["isMC"] and not cfg["runtype"]=="cosmics"):
-        fpkltrigger = open(fpkltrgname,'rb')
-        badtriggers = pickle.load(fpkltrigger)
-        fpkltrigger.close()
-    nbadtrigs = len(badtriggers)
-    print(f"Found {nbadtrigs} bad triggers in the entire run")
-    
-    
-    
-    ### counters
-    counters.init_global_counters()
-    Ndet = len(cfg["detectors"])
-    
     
     ### some histos
     histos = {}
@@ -492,6 +429,11 @@ if __name__ == "__main__":
     ####################################################
     for hname,hist in histos.items(): hist.Sumw2() #####
     ####################################################
+    return histos
+
+
+def book_shapes():
+    cfg = config.Config().map
     
     dipole = ROOT.TPolyLine()
     xMinD = cfg["xDipoleExitMin"]
@@ -532,36 +474,122 @@ if __name__ == "__main__":
     window.SetLineColor(ROOT.kBlue)
     window.SetLineWidth(1)
     
+    return dipole, flange, window
+
+
+
+
+
+
+##################################################
+##################################################
+##################################################
+
+
+if __name__ == "__main__":
+    # get the start time
+    st = time.time()
+    
+    #############################################
+    ### Initialize Config in the main process ###
+    config.init_config(configfile, False)
+    cfg = config.Config().map
+    config.show_config(cfg)
+    #############################################
+    
+    
+    B  = cfg["fDipoleTesla"]
+    LB = cfg["zDipoleLenghMeters"]
+    
+    
+    ### get all the files
+    tfilenamein = ""
+    files = []
+    if(ismutirun):
+        tfilenamein,files = utils.make_multirun_dir(cfg["inputfile"],cfg["runnums"])
+    else:
+        tfilenamein = utils.make_run_dirs(cfg["inputfile"])
+        files = utils.getfiles(tfilenamein)
+    files = [fx for fx in files if '_BadTriggers' not in fx and os.path.getsize(fx) > 0]
+    for f in files: print(f)
+    
+    runnum = utils.get_run_from_file(cfg["inputfile"])
+    
+    ispreproc = ("preprocessed" in cfg["inputfile"])
+    
+    
+    ### read production config
+    fpklcfgname = tfilenamein.replace("tree_","config_used/tree_").replace(".root","_config.pkl")
+    fpklconfig = open(fpklcfgname,'rb')
+    prod_cfg = pickle.load(fpklconfig)
+    fpklconfig.close()
+    ### was it aligned during production?
+    isAlignedAtProd = False
+    for det in prod_cfg["detectors"]:
+        for axis,value in prod_cfg["misalignment"][det].items():
+            if(value!=0):
+                isAlignedAtProd = True
+                break
+        if(isAlignedAtProd): break
+    ### should we apply misalignemnt here?
+    isNon0Mislaignment = False
+    for det in cfg["detectors"]:
+        for axis,value in cfg["misalignment"][det].items():
+            if(value!=0):
+                isNon0Mislaignment = True
+                break
+        if(isNon0Mislaignment): break
+    
+    
+    
+    ### bad triggers
+    fpkltrgname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_BadTriggers.pkl")
+    badtriggers = []
+    if(not cfg["isMC"] and not cfg["runtype"]=="cosmics"):
+        fpkltrigger = open(fpkltrgname,'rb')
+        badtriggers = pickle.load(fpkltrigger)
+        fpkltrigger.close()
+    nbadtrigs = len(badtriggers)
+    print(f"Found {nbadtrigs} bad triggers in the entire run")
+    
+    
+    
+    ### counters
+    counters.init_global_counters()
+    Ndet = len(cfg["detectors"])
+    
+    ### histograms and shapes
+    histos = book_histos()
+    dipole, flange, window = book_shapes()
     print(f"Done booking histos")
     
     #################################
     ### prepare for eudaq writeup ###
     #################################
-    ### declare the data tree and its classes
-    ROOT.gROOT.ProcessLine("struct pixel  { Int_t ix; Int_t iy; };" )
-    ROOT.gROOT.ProcessLine("struct chip   { Int_t chip_id; std::vector<pixel> hits; std::vector<TVector3> cls0; std::vector<TVector3> cls1; std::vector<TVector3> cls2; std::vector<TVector3> cls3; };" )
-    ROOT.gROOT.ProcessLine("struct stave  { Int_t stave_id; std::vector<chip> ch_ev_buffer; };" )
-    ROOT.gROOT.ProcessLine("struct event  { Int_t trg_n; Double_t ts_begin; Double_t ts_end; std::vector<stave> st_ev_buffer; };" )
-    ### declare the meta-data tree and its classes
-    ROOT.gROOT.ProcessLine("struct run_meta_data  { Int_t run_number; Double_t run_start; Double_t run_end; };" )
-    ### the main root gile
-    runnum = utils.get_run_from_file(cfg["inputfile"])
-    fEUDAQout = ROOT.TFile.Open(f"tree_with_HT_selected_tracks_only_Run{runnum}.root", "RECREATE")
-    ### data tree
-    tEUDAQout = ROOT.TTree("MyTree","")
-    eudaq_event = ROOT.event()
-    tEUDAQout.Branch("event", eudaq_event)
-    ### meta-data tree
-    tEUDAQoutMeta = ROOT.TTree("MyTreeMeta","")
-    run_meta_data = ROOT.run_meta_data()
-    tEUDAQoutMeta.Branch("run_meta_data", run_meta_data)
-    ### fill meta-data tree
-    run_meta_data.run_number = runnum ### dummy
-    run_meta_data.run_start  = -1.    ### dummy
-    run_meta_data.run_end    = -1.    ### dummy
-    tEUDAQoutMeta.Fill()
-    
-    print(f"Done booking tEUDAQ")
+    if(weudaqout):
+        ### declare the data tree and its classes
+        ROOT.gROOT.ProcessLine("struct pixel  { Int_t ix; Int_t iy; };" )
+        ROOT.gROOT.ProcessLine("struct chip   { Int_t chip_id; std::vector<pixel> hits; std::vector<TVector3> cls0; std::vector<TVector3> cls1; std::vector<TVector3> cls2; std::vector<TVector3> cls3; };" )
+        ROOT.gROOT.ProcessLine("struct stave  { Int_t stave_id; std::vector<chip> ch_ev_buffer; };" )
+        ROOT.gROOT.ProcessLine("struct event  { Int_t trg_n; Double_t ts_begin; Double_t ts_end; std::vector<stave> st_ev_buffer; };" )
+        ### declare the meta-data tree and its classes
+        ROOT.gROOT.ProcessLine("struct run_meta_data  { Int_t run_number; Double_t run_start; Double_t run_end; };" )
+        ### the main root gile
+        fEUDAQout = ROOT.TFile.Open(f"tree_with_HT_selected_tracks_only_Run{runnum}.root", "RECREATE")
+        ### data tree
+        tEUDAQout = ROOT.TTree("MyTree","")
+        eudaq_event = ROOT.event()
+        tEUDAQout.Branch("event", eudaq_event)
+        ### meta-data tree
+        tEUDAQoutMeta = ROOT.TTree("MyTreeMeta","")
+        run_meta_data = ROOT.run_meta_data()
+        tEUDAQoutMeta.Branch("run_meta_data", run_meta_data)
+        ### fill meta-data tree
+        run_meta_data.run_number = runnum ### dummy
+        run_meta_data.run_start  = -1.    ### dummy
+        run_meta_data.run_end    = -1.    ### dummy
+        tEUDAQoutMeta.Fill()
+        print(f"Done booking tEUDAQ")
     
     
     ### save all events
@@ -578,35 +606,42 @@ if __name__ == "__main__":
     arr_theta_yz = []
     arr_theta_yz_pass = []
     
+    
+    stop = False
     for fpkl in files:
+        if(stop): break
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
         with open(fpkl,'rb') as handle:
+            if(stop): break
             data = pickle.load(handle)
             for ievt,pkl_event in enumerate(data):
-                
                 ########################################
                 ### nicely clear per event for eudaq ###
                 ########################################
-                for s in range(eudaq_event.st_ev_buffer.size()):
-                    for c in range(eudaq_event.st_ev_buffer[s].ch_ev_buffer.size()):
-                        eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].hits.clear()
-                        eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls0.clear()
-                        eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls1.clear()
-                        eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls2.clear()
-                        eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls3.clear()
-                    eudaq_event.st_ev_buffer[s].ch_ev_buffer.clear()
-                eudaq_event.st_ev_buffer.clear()
-                eudaq_event.trg_n    = pkl_event.trigger
-                eudaq_event.ts_begin = -1.
-                eudaq_event.ts_end   = -1.
-                ### initialize stave buffer
-                for i in range(len(cfg["staves"])):
-                    eudaq_event.st_ev_buffer.push_back( ROOT.stave() )
+                if(weudaqout):
+                    for s in range(eudaq_event.st_ev_buffer.size()):
+                        for c in range(eudaq_event.st_ev_buffer[s].ch_ev_buffer.size()):
+                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].hits.clear()
+                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls0.clear()
+                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls1.clear()
+                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls2.clear()
+                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls3.clear()
+                        eudaq_event.st_ev_buffer[s].ch_ev_buffer.clear()
+                    eudaq_event.st_ev_buffer.clear()
+                    eudaq_event.trg_n    = pkl_event.trigger
+                    eudaq_event.ts_begin = -1.
+                    eudaq_event.ts_end   = -1.
+                    ### initialize stave buffer
+                    for i in range(len(cfg["staves"])):
+                        eudaq_event.st_ev_buffer.push_back( ROOT.stave() )
                 ########################################
                 
                 
                 ### check if the first part should be ignored:
-                if(eudaq_event.trg_n<cfg["first2process"]): continue
+                if(pkl_event.trigger<cfg["first2process"]): continue
+                if(nevents>cfg["nmax2process"]):
+                    stop = True
+                    break
                 
                 ### check parity
                 iseven = (int(pkl_event.trigger)%2==0)
@@ -751,7 +786,6 @@ if __name__ == "__main__":
                     #     if(not inROI): break
                     # if(not inROI): continue
                     
-                    
                     ### fill some quantities before alignment
                     if(track.chi2ndof<=cfg["cut_chi2dof"] and selections.pass_geoacc_selection(track)): ##TODO: missing the shared hits cut here...
                         histos["hChi2DoF_alowshrcls"].Fill(track.chi2ndof)
@@ -773,21 +807,13 @@ if __name__ == "__main__":
                             histos[f"h_response_alowshrcls_y_sml_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                             histos[f"h_response_alowshrcls_y_ful_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                     
-                    
                     #################################################
                     ### refit the track if necessary
                     if(not isAlignedAtProd and isNon0Mislaignment):
                         track = refit(track)
                     ### will be the same if misalignment is 0
                     #################################################
-
-
-                    if(cfg["isMC"] and cfg["isFakeMC"]):
-                        slp = pkl_event.fakemcparticles[0].slp
-                        itp = pkl_event.fakemcparticles[0].itp
-                        vtx = pkl_event.fakemcparticles[0].vtx
-                        histos["hTheta_xz_tru_all"].Fill(slp[0])
-                        histos["hTheta_yz_tru_all"].Fill(slp[1])
+                    
                     
                     #########################
                     ### then require chi2 ###
@@ -836,19 +862,6 @@ if __name__ == "__main__":
                     ### and inclined up as a positron      ###
                     ##########################################
                     if(not selections.pass_geoacc_selection(track)): continue
-                    
-                    
-                    if(cfg["isMC"] and cfg["isFakeMC"]):
-                        slp = pkl_event.fakemcparticles[0].slp
-                        itp = pkl_event.fakemcparticles[0].itp
-                        vtx = pkl_event.fakemcparticles[0].vtx
-                        histos["hTheta_xz_tru"].Fill(slp[0])
-                        histos["hTheta_yz_tru"].Fill(slp[1])
-                        # print(f"thetaf_xz={thetaf_xz}, slp={slp[0]}, thetaf_yz={thetaf_yz}, slp={slp[1]}")
-                        histos["hTheta_xz_response"].Fill( (thetaf_xz-slp[0])/slp[0] if(slp[0]!=0) else -1. )
-                        histos["hTheta_yz_response"].Fill( (thetaf_yz-slp[1])/slp[1] if(slp[1]!=0) else -1. )
-                        histos["hD_x_response"].Fill( (rD[0]-vtx[0])/vtx[0] if(vtx[0]!=0) else -1. )
-                        histos["hD_y_response"].Fill( (rD[1]-vtx[1])/vtx[1] if(vtx[1]!=0) else -1. )
                         
                     
                     ### the angle in y-z calculated from d_exit
@@ -912,6 +925,10 @@ if __name__ == "__main__":
                     
                     acceptance_tracks.append(track)
                     ntracks += 1
+                ###################
+                ### end of loop ###
+                ###################
+                    
                 
                 ### the graph of the good tracks
                 counters.set_global_counter("Good Tracks",icounter,len(good_tracks))
@@ -936,41 +953,40 @@ if __name__ == "__main__":
                 if(iseven): tracks_triggers_dict["even"]["trks"] += len(selected_tracks)
                 else:       tracks_triggers_dict["odd"]["trks"]  += len(selected_tracks)
                 
+                
                 ### plot some selected tracks
                 for itrk,track in enumerate(selected_tracks):
                     ###########################
                     ### fill the eudaq tree ###
                     ###########################
-                    # for det in cfg["detectors"]:
-                    for det in track.detectors:
-                        stvid = cfg["det2stvchp"][det][0]
-                        chpid = cfg["det2stvchp"][det][1]
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.push_back( ROOT.chip() )
-                        ichip = eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.size()-1
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].chip_id = int(chpid)
-                        cls0 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
-                        cls1 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
-                        v0 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm ]
-                        v1 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm,  track.trkcls[det].zTmm  ]
-                        cls2 = ROOT.TVector3( v0[0],v0[1],v0[2] )
-                        cls3 = ROOT.TVector3( v1[0],v1[1],v1[2] )
-                        
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls0.push_back( cls0 )
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls1.push_back( cls1 )
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls2.push_back( cls2 )
-                        eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls3.push_back( cls3 )
-                        trkpixels = []
-                        for pixel in track.trkcls[det].pixels:
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits.push_back( ROOT.pixel() )
-                            ihit = eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits.size()-1
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits[ihit].ix = pixel.x
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits[ihit].iy = pixel.y
-                            trkpixels.append([pixel.x,pixel.y])
-                        # print(f"itrk[{itrk}]: chpid={chpid} --> trkpixels={trkpixels}")
+                    if(weudaqout):
+                        for det in track.detectors:
+                            stvid = cfg["det2stvchp"][det][0]
+                            chpid = cfg["det2stvchp"][det][1]
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.push_back( ROOT.chip() )
+                            ichip = eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.size()-1
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].chip_id = int(chpid)
+                            cls0 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
+                            cls1 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
+                            v0 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm ]
+                            v1 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm,  track.trkcls[det].zTmm  ]
+                            cls2 = ROOT.TVector3( v0[0],v0[1],v0[2] )
+                            cls3 = ROOT.TVector3( v1[0],v1[1],v1[2] )
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls0.push_back( cls0 )
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls1.push_back( cls1 )
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls2.push_back( cls2 )
+                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls3.push_back( cls3 )
+                            trkpixels = []
+                            for pixel in track.trkcls[det].pixels:
+                                eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits.push_back( ROOT.pixel() )
+                                ihit = eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits.size()-1
+                                eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits[ihit].ix = pixel.x
+                                eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits[ihit].iy = pixel.y
+                                trkpixels.append([pixel.x,pixel.y])
+                            # print(f"itrk[{itrk}]: chpid={chpid} --> trkpixels={trkpixels}")
                     ###########################
                     
 
-                    
                     histos["hChi2DoF_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_full_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_mid_zeroshrcls"].Fill(track.chi2ndof)
@@ -996,52 +1012,54 @@ if __name__ == "__main__":
                         
                         ### draw all waves
                         rChip = [track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm,track.trkcls[det].zTnoGmm]
-                        # xwave = get_wave("xz",rChip[2],rChip[0],thetaxmin,thetaxmax)
-                        # ywave = get_wave("yz",rChip[2],rChip[1],thetaymin,thetaymax)
-                        xwave = get_wave(rChip[2],rChip[0],thetaxmin,thetaxmax)
-                        ywave = get_wave(rChip[2],rChip[1],thetaymin,thetaymax)
-                        for btheta in range(1,histos["hWaves_zx"].GetNbinsX()+1):
-                            theta = histos["hWaves_zx"].GetXaxis().GetBinCenter(btheta)
-                            rhox  = xwave.Eval(theta)
-                            rhoy  = ywave.Eval(theta)
-                            histos["hWaves_zx"].Fill(theta,rhox)
-                            histos["hWaves_zy"].Fill(theta,rhoy)
-                        del xwave
-                        del ywave
+                        
+                        if(iswavehst):
+                            # xwave = get_wave("xz",rChip[2],rChip[0],thetaxmin,thetaxmax)
+                            # ywave = get_wave("yz",rChip[2],rChip[1],thetaymin,thetaymax)
+                            xwave = get_wave(rChip[2],rChip[0],thetaxmin,thetaxmax)
+                            ywave = get_wave(rChip[2],rChip[1],thetaymin,thetaymax)
+                            for btheta in range(1,histos["hWaves_zx"].GetNbinsX()+1):
+                                theta = histos["hWaves_zx"].GetXaxis().GetBinCenter(btheta)
+                                rhox  = xwave.Eval(theta)
+                                rhoy  = ywave.Eval(theta)
+                                histos["hWaves_zx"].Fill(theta,rhox)
+                                histos["hWaves_zy"].Fill(theta,rhoy)
+                            del xwave
+                            del ywave
                     
-                    ### draw only wave intersections
-                    pivot_stave = 0
-                    for det in track.detectors: pivot_stave += cfg["det2stv"][det]
-                    pivot_stave /= len(track.detectors)
-                    pivot_stave = 0 if(pivot_stave<0.5) else cfg["layers"]
-                    fill_pair( pivot_stave+0, pivot_stave+1, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+0, pivot_stave+2, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+0, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+0, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+1, pivot_stave+2, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+1, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+1, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+2, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+2, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    fill_pair( pivot_stave+3, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
-                    
-                    ### find the tunnel widths
-                    thetax = track.hough_coords[0]
-                    rhox   = track.hough_coords[1]
-                    thetay = track.hough_coords[2]
-                    rhoy   = track.hough_coords[3]
-                    bthetax = hzx.GetXaxis().FindBin( thetax )
-                    brhox   = hzx.GetXaxis().FindBin( rhox   )
-                    bthetay = hzy.GetXaxis().FindBin( thetay )
-                    brhoy   = hzy.GetXaxis().FindBin( rhoy   )
-                    arr_thetax = [ hzx.GetXaxis().GetBinLowEdge(bthetax), hzx.GetXaxis().GetBinUpEdge(bthetax) ]
-                    arr_rhox   = [ hzx.GetYaxis().GetBinLowEdge(brhox),   hzx.GetYaxis().GetBinUpEdge(brhox)   ]
-                    arr_thetay = [ hzy.GetXaxis().GetBinLowEdge(bthetay), hzy.GetXaxis().GetBinUpEdge(bthetay) ]
-                    arr_rhoy   = [ hzy.GetYaxis().GetBinLowEdge(brhoy),   hzy.GetYaxis().GetBinUpEdge(brhoy)   ]
-                    for det in cfg["detectors"]:
-                        xmin,xmax,ymin,ymax = get_edges_from_theta_rho_corners(det,arr_thetax,arr_rhox,arr_thetay,arr_rhoy)
-                        histos[f"h_tunnel_width_x_{det}"].Fill(xmax-xmin)
-                        histos[f"h_tunnel_width_y_{det}"].Fill(ymax-ymin)
+                    if(iswavehst):
+                        ### draw only wave intersections
+                        pivot_stave = 0
+                        for det in track.detectors: pivot_stave += cfg["det2stv"][det]
+                        pivot_stave /= len(track.detectors)
+                        pivot_stave = 0 if(pivot_stave<0.5) else cfg["layers"]
+                        fill_pair( pivot_stave+0, pivot_stave+1, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+0, pivot_stave+2, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+0, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+0, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+1, pivot_stave+2, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+1, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+1, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+2, pivot_stave+3, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+2, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        fill_pair( pivot_stave+3, pivot_stave+4, track, histos["hWaves_zx_intersections"], histos["hWaves_zy_intersections"] )
+                        ### find the tunnel widths
+                        thetax = track.hough_coords[0]
+                        rhox   = track.hough_coords[1]
+                        thetay = track.hough_coords[2]
+                        rhoy   = track.hough_coords[3]
+                        bthetax = hzx.GetXaxis().FindBin( thetax )
+                        brhox   = hzx.GetXaxis().FindBin( rhox   )
+                        bthetay = hzy.GetXaxis().FindBin( thetay )
+                        brhoy   = hzy.GetXaxis().FindBin( rhoy   )
+                        arr_thetax = [ hzx.GetXaxis().GetBinLowEdge(bthetax), hzx.GetXaxis().GetBinUpEdge(bthetax) ]
+                        arr_rhox   = [ hzx.GetYaxis().GetBinLowEdge(brhox),   hzx.GetYaxis().GetBinUpEdge(brhox)   ]
+                        arr_thetay = [ hzy.GetXaxis().GetBinLowEdge(bthetay), hzy.GetXaxis().GetBinUpEdge(bthetay) ]
+                        arr_rhoy   = [ hzy.GetYaxis().GetBinLowEdge(brhoy),   hzy.GetYaxis().GetBinUpEdge(brhoy)   ]
+                        for det in cfg["detectors"]:
+                            xmin,xmax,ymin,ymax = get_edges_from_theta_rho_corners(det,arr_thetax,arr_rhox,arr_thetay,arr_rhoy)
+                            histos[f"h_tunnel_width_x_{det}"].Fill(xmax-xmin)
+                            histos[f"h_tunnel_width_y_{det}"].Fill(ymax-ymin)
                 
                 
                 ### at the end of the pkl_event, clean the Hough space histos
@@ -1050,7 +1068,7 @@ if __name__ == "__main__":
                 
                 ###########################
                 ### fill the eudaq tree ###
-                tEUDAQout.Fill()
+                if(weudaqout): tEUDAQout.Fill()
                 ###########################
                 
                 print(f"Event[{nevents-1}], Trigger[{pkl_event.trigger}] --> Good tracks: {len(good_tracks)}, Acceptance tracks: {len(acceptance_tracks)}, Selected tracks: {len(selected_tracks)}")
@@ -2445,11 +2463,12 @@ if __name__ == "__main__":
     ########################
     ### write eudaq file ###
     ########################
-    fEUDAQout.cd()
-    tEUDAQout.Write()
-    tEUDAQoutMeta.Write()
-    fEUDAQout.Write()
-    fEUDAQout.Close()
+    if(weudaqout):
+        fEUDAQout.cd()
+        tEUDAQout.Write()
+        tEUDAQoutMeta.Write()
+        fEUDAQout.Write()
+        fEUDAQout.Close()
     ########################
     
     

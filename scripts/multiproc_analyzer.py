@@ -511,7 +511,6 @@ if __name__ == "__main__":
     config.init_config(configfile, False)
     cfg = config.Config().map
     config.show_config(cfg)
-    # print(cfg) # print config once
     #############################################
     
     

@@ -4,6 +4,7 @@ import math
 import array
 import numpy as np
 import ROOT
+from collections import defaultdict
 
 from tracker_lib import config, utils
     
@@ -94,7 +95,7 @@ def remove_tracks_with_shared_clusters(tracks):
     clsid_to_trackidx = {}
     for det in cfg["detectors"]:
         clsid_to_trackidx.update({det:{}})
-        
+
     for itrk,track in enumerate(tracks):
         for det in cfg["detectors"]:
             CID = track.trkcls[det].CID
@@ -105,7 +106,7 @@ def remove_tracks_with_shared_clusters(tracks):
                 # print(f"found shared cluster for CID={CID}: itrk1={itrk}(chi2={track.chi2ndof}), itrk2={itrk0}(chi2={tracks[itrk0].chi2ndof})")
                 if(tracks[itrk0].chi2ndof>track.chi2ndof):
                     clsid_to_trackidx[det][CID] = itrk
-    
+
     passing_tracks_idx = []
     passing_tracks = []
     det0 = cfg["detectors"][0]
@@ -118,5 +119,5 @@ def remove_tracks_with_shared_clusters(tracks):
             if(noccurancees!=len(cfg["detectors"])): continue
             passing_tracks_idx.append(itrk)
             passing_tracks.append(tracks[itrk])
-    
+
     return passing_tracks

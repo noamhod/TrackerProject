@@ -21,7 +21,7 @@ detevtlib        = 20252302
 
 ### run502 (Be window in):
 first2process = 357
-nmax2process  = 10
+nmax2process  = 100
 inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
 
 # ### run503 (beam-only, focusing on foil, 6h-long)
@@ -210,7 +210,7 @@ fit_chi2_method1 = Nelder-Mead Powell
 
 [PLOT]
 plot_online_evtdisp = 0
-plot_offline_evtdisp = 1
+plot_offline_evtdisp = 0
 
 
 ####################
