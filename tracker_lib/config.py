@@ -152,6 +152,7 @@ class Config:
         self.add("isFakeMC", self.getB('RUN','isFakeMC'))
         self.add("doVtx", self.getB('RUN','doVtx'))
         self.add("runtype", self.getS('RUN','runtype'))
+        self.add("checkbadtriggers", self.getB('RUN','checkbadtriggers'))
         self.add("iszerosuppressed", self.getB('RUN','iszerosuppressed'))
         self.add("skipclustering", self.getB('RUN','skipclustering'))
         self.add("skiptracking", self.getB('RUN','skiptracking'))

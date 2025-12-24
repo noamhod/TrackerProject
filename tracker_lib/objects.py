@@ -43,9 +43,9 @@ class Cls:
         cfg = config.Config().map
         self.det = det
         self.SID = cfg["det2stvchp"][det][0] ### stave ID
-        self.CID = CID ## chip ID
         self.DID = cfg["detectors"].index(det)
         self.TID = cfg["det2tdm"][det]
+        self.CID = CID ## cluster ID
         self.pixels = pixels
         self.n = len(pixels)
         self.x,self.y,self.dx,self.dy,self.nx,self.ny = self.build(pixels) 

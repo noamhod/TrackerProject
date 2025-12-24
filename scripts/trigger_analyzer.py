@@ -53,7 +53,7 @@ fillhits = (int(argus.hits)==1) if(argus.hits is not None) else False
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
-from tracker_lib import Pixels, hists, counters, utils
+from tracker_lib import Pixels, hists, counters, hists, utils
 
 
 
@@ -174,8 +174,7 @@ if __name__ == "__main__":
     ### Initialize Config in the main process ###
     config.init_config(configfile, False)
     cfg = config.Config().map
-    # config.show_config() # print config once
-    print(cfg) # print config once
+    config.show_config(cfg)
     #############################################
     
     
@@ -214,6 +213,7 @@ if __name__ == "__main__":
     detcol = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kOrange+1]
     
     hPixMatix = hists.GetPixMatrix()
+    pix_x_nbins,pix_x_min,pix_x_max, pix_y_nbins,pix_y_min,pix_y_max = hists.GetPixelMatrixPars()
     for det in cfg["detectors"]:
         histos.update( { "h_pix_occ_2D_"+det : ROOT.TH2D("h_pix_occ_2D_"+det,";x;y;Hits",pix_x_nbins,pix_x_min,pix_x_max, pix_y_nbins,pix_y_min,pix_y_max) } )
 
@@ -414,13 +414,13 @@ if __name__ == "__main__":
     lines = {}
     
     ### GOOD FOR RUNS 502 (SHORT BERYLLIUM) AND 503 (LONG BACKGROUND)
-    thr_toro2040 = getThr("toro2040",y_toro2040,direction="down",nsigma=5,frac=0.05)
+    thr_toro2040 = getThr("toro2040",y_toro2040,direction="down",nsigma=1,frac=0.083)
     lines.update({"toro2040":getLine(thr_toro2040,x_trg)})
-    thr_toro2452 = getThr("toro2452",y_toro2452,direction="down",nsigma=5,frac=0.05)
+    thr_toro2452 = getThr("toro2452",y_toro2452,direction="down",nsigma=1,frac=0.083)
     lines.update({"toro2452":getLine(thr_toro2452,x_trg)})
-    thr_toro3163 = getThr("toro3163",y_toro3163,direction="down",nsigma=5,frac=0.05)
+    thr_toro3163 = getThr("toro3163",y_toro3163,direction="down",nsigma=1,frac=0.083)
     lines.update({"toro3163":getLine(thr_toro3163,x_trg)})
-    thr_toro3255 = getThr("toro3255",y_toro3255,direction="down",nsigma=5,frac=0.05)
+    thr_toro3255 = getThr("toro3255",y_toro3255,direction="down",nsigma=1,frac=0.083)
     lines.update({"toro3255":getLine(thr_toro3255,x_trg)})
     thr_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=79.5,frac=0.01)
     lines.update({"pmt3060":getLine(thr_pmt3060,x_trg)})
@@ -432,15 +432,15 @@ if __name__ == "__main__":
     lines.update({"pmt3350":getLine(thr_pmt3350,x_trg)})
     thr_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=351.5,frac=0.01)
     lines.update({"pmt3360":getLine(thr_pmt3360,x_trg)})
-    thr_rad = getThr("rad",y_rad,direction="up",nsigma=5,frac=0.05)
+    thr_rad = getThr("rad",y_rad,direction="up",nsigma=1,frac=0.01)
     lines.update({"rad":getLine(thr_rad,x_trg)})
-    thr_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=10,frac=0.01)
+    thr_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=1,frac=0.01)
     lines.update({"bpm_pb_3156":getLine(thr_bpm_pb_3156,x_trg)})
-    thr_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=15,frac=0.01)
+    thr_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=1,frac=0.01)
     lines.update({"bpm_q0_3218":getLine(thr_bpm_q0_3218,x_trg)})
-    thr_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction="down",nsigma=15,frac=0.01)
+    thr_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction="down",nsigma=1,frac=0.01)
     lines.update({"bpm_q1_3265":getLine(thr_bpm_q1_3265,x_trg)})
-    thr_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=15,frac=0.01)
+    thr_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=1,frac=0.01)
     lines.update({"bpm_q2_3315":getLine(thr_bpm_q2_3315,x_trg)})
     
     
@@ -515,6 +515,7 @@ if __name__ == "__main__":
                     fltr_hits_vs_trg[det][counter+i] = 0
                     fltr_hits_vs_ent[det][counter+i] = 0
                     if(fltr_trg1 not in final_fltr_trgs): final_fltr_trgs.append( fltr_trg1 )
+    final_fltr_trgs = np.array(final_fltr_trgs).astype(int)
     # print(final_fltr_trgs)
     print(f'After neighbours removal, removed {len(final_fltr_trgs)}, which is {len(final_fltr_trgs)/len(x_trg)*100:.2f}% of the total')
     

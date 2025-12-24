@@ -146,6 +146,7 @@ def fitSVD(track,dx,dy,theta,refdet=[]):
     return chisq_SVD,ndof_SVD,dabs,dxabs,dyabs
 
 
+
 def init_params(axes,ndet2align,params):
     cfg = config.Config().map
     dxFinal    = [0]*ndet2align
@@ -182,6 +183,7 @@ def init_params(axes,ndet2align,params):
         print("Unknown axes combination. Quitting.")
         quit()
     return dxFinal,dyFinal,thetaFinal,nparperdet
+
 
 
 def fit_misalignment(events,ndet2align,refdet,axes):
@@ -267,8 +269,7 @@ if __name__ == "__main__":
     ### Initialize Config in the main process ###
     config.init_config(configfile, False)
     cfg = config.Config().map
-    # config.show_config() # print config once
-    print(cfg) # print config once
+    config.show_config(cfg)
     #############################################
     
     
@@ -330,7 +331,7 @@ if __name__ == "__main__":
         name = f"h_response_y_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",100,-12.5,+12.5) } )
     
     
-    ### save all events
+    ### save all relevant events with only the good tracks
     events = []
     chisq0 = 0
     dabs0  = 0
@@ -352,9 +353,19 @@ if __name__ == "__main__":
                 evtgoodtracks = 0
                 tracks = event.tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(event.tracks)
                 for track in tracks:
-                    
                     ### require some relevant cuts
                     if(not pass_alignment_selections(track)): continue
+                    
+                    for det in track.detectors:
+                        dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
+                        histos[f"h_residual_xy_{det}"].Fill(dx,dy)
+                        histos[f"h_residual_xy_mid_{det}"].Fill(dx,dy)
+                        histos[f"h_residual_x_{det}"].Fill(dx)
+                        histos[f"h_residual_y_{det}"].Fill(dy)
+                        histos[f"h_residual_x_mid_{det}"].Fill(dx)
+                        histos[f"h_residual_y_mid_{det}"].Fill(dy)
+                        histos[f"h_response_x_{det}"].Fill(dx/track.trkcls[det].dxTnoGmm)
+                        histos[f"h_response_y_{det}"].Fill(dy/track.trkcls[det].dyTnoGmm)
                     
                     chisq,ndof,dabs,dX,dY = fitSVD(track,[0.]*ndet2align,[0.]*ndet2align,[0.]*ndet2align,refdet)
                     chi2dof = chisq/ndof
@@ -379,41 +390,6 @@ if __name__ == "__main__":
     chisq0 = chisq0/ngoodtracks
     dabs0  = dabs0/ngoodtracks
     print(f"Done collecting {ngoodtracks} tracks (out of {alltracks} ({nuniquetrks} unique) in {allevents} events, or {float(alltracks)/float(allevents)} trks/evt) with chisq0={chisq0} and dabs0={dabs0}. Now going to fit misalignments")
-    
-    
-    
-    ###################
-    ### fill histos ###
-    ###################
-    
-    for event in events:
-        tracks = event.tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(event.tracks)
-        for itrk,track in enumerate(tracks):
-            
-            ### require some relevant cuts
-            if(not pass_alignment_selections(track)): continue
-            # for det in cfg["detectors"]:
-            for det in track.detectors:
-                dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
-                histos[f"h_residual_xy_{det}"].Fill(dx,dy)
-                histos[f"h_residual_xy_mid_{det}"].Fill(dx,dy)
-                histos[f"h_residual_x_{det}"].Fill(dx)
-                histos[f"h_residual_y_{det}"].Fill(dy)
-                histos[f"h_residual_x_mid_{det}"].Fill(dx)
-                histos[f"h_residual_y_mid_{det}"].Fill(dy)
-                histos[f"h_response_x_{det}"].Fill(dx/track.trkcls[det].dxTnoGmm)
-                histos[f"h_response_y_{det}"].Fill(dy/track.trkcls[det].dyTnoGmm)
-                
-                if(cfg["isFakeMC"]):
-                    xOrig = track.trkcls[det].pixels[0].xOrig
-                    yOrig = track.trkcls[det].pixels[0].yOrig
-                    xFinal = track.trkcls[det].pixels[0].xFake
-                    yFinal = track.trkcls[det].pixels[0].yFake
-                    # print(f"Track[{itrk}] in {det}:  xOrig={xOrig}-->xFinal={xFinal}, yOrig={yOrig}-->yFinal={yFinal}")
-                    histos[f"dxhist_{det}"].Fill(xFinal-xOrig)
-                    histos[f"dyhist_{det}"].Fill(yFinal-yOrig)
-
-
     ### save histos
     fOut = ROOT.TFile("scan.root","RECREATE")
     fOut.cd()
@@ -428,7 +404,10 @@ if __name__ == "__main__":
     #######################
     params,result,success = fit_misalignment(events,ndet2align,refdet,axes)
     
-    ### check
+
+    ########################
+    ### and now check it ###
+    ########################
     chisq1 = 0
     dabs1  = 0
     dX1    = 0

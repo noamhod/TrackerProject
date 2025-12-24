@@ -68,14 +68,16 @@ def pass_geoacc_selection(track):
     ## r0: first detector, rN: last detector, rW: window, rD: dipole exit
     r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track)
     xWinL,xWinR,yWinB,yWinT = utils.get_pdc_window_bounds()
-    xDipL,xDipR,yDipB,yDipT = utils.get_dipole_exit_bounds()
     xFlgL,xFlgR,yFlgB,yFlgT = utils.get_dipole_flange_bounds()
+    xDipL,xDipR,yDipB,yDipT = utils.get_dipole_exit_bounds()
     
-    psss_RoI             = ( tilted_eliptic_RoI_cut(track) )                                          if(cfg["cut_RoI_spot"]) else True
+    psss_RoI             = ( tilted_eliptic_RoI_cut(track) )                                       if(cfg["cut_RoI_spot"])    else True
     pass_inclination_yz  = ( rN[1]>=r0[1]  and r0[1]>=rW[1]  and rN[1]>=rW[1] )        if(cfg["cut_allow_negative_yz_slope"]) else True
     pass_window_aperture = ( (rW[0]>=xWinL and rW[0]<=xWinR) and (rW[1]>=yWinB and rW[1]<=yWinT) ) if(cfg["cut_windowaprtr"]) else True 
-    pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>0 and rF[1]<=yFlgT) )      if(cfg["cut_flangeaprtr"]) else True 
-    pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>0 and rD[1]<=yDipT) )      if(cfg["cut_dipoleaprtr"]) else True 
+    # pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>0 and rF[1]<=yFlgT) )      if(cfg["cut_flangeaprtr"]) else True
+    pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>yFlgB and rF[1]<=yFlgT) )  if(cfg["cut_flangeaprtr"]) else True
+    # pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>0 and rD[1]<=yDipT) )      if(cfg["cut_dipoleaprtr"]) else True
+    pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>yDipB and rD[1]<=yDipT) )  if(cfg["cut_dipoleaprtr"]) else True
     pass_dipole_spot     = ( spot_cut(rD[0],rD[1])  )     if(cfg["cut_spot"])    else True
     pass_dipole_strip    = ( strip_cut(rD[0],rD[1]) )     if(cfg["cut_strip"])   else True
     pass_dk_at_det       = ( pass_dk_at_detector(track) ) if(cfg["cut_dk_algn"]) else True
@@ -93,11 +95,10 @@ def pass_geoacc_selection(track):
 def remove_tracks_with_shared_clusters(tracks):
     cfg = config.Config().map
     clsid_to_trackidx = {}
-    for det in cfg["detectors"]:
-        clsid_to_trackidx.update({det:{}})
-
+    for det in cfg["detectors"]: clsid_to_trackidx.update({det:{}})
     for itrk,track in enumerate(tracks):
-        for det in cfg["detectors"]:
+        # for det in cfg["detectors"]:
+        for det in track.detectors:
             CID = track.trkcls[det].CID
             if(CID not in clsid_to_trackidx[det]):
                 clsid_to_trackidx[det].update({CID:itrk})
@@ -107,17 +108,27 @@ def remove_tracks_with_shared_clusters(tracks):
                 if(tracks[itrk0].chi2ndof>track.chi2ndof):
                     clsid_to_trackidx[det][CID] = itrk
 
+    # ## TODO: this block has to be adapted to the tandem layers concept!!!
+    # passing_tracks_idx = []
+    # passing_tracks     = []
+    # det0 = cfg["detectors"][0]
+    # for CID,itrk in clsid_to_trackidx[det0].items():
+    #     if(itrk not in passing_tracks_idx):
+    #         noccurancees = 1
+    #         for i in range(1,len(cfg["detectors"])):
+    #             deti = cfg["detectors"][i]
+    #             noccurancees += (itrk in clsid_to_trackidx[deti].values())
+    #         if(noccurancees!=len(cfg["detectors"])): continue
+    #         passing_tracks_idx.append(itrk)
+    #         passing_tracks.append(tracks[itrk])
+    
+    
     passing_tracks_idx = []
-    passing_tracks = []
-    det0 = cfg["detectors"][0]
-    for CID,itrk in clsid_to_trackidx[det0].items():
-        if(itrk not in passing_tracks_idx):
-            noccurancees = 1
-            for i in range(1,len(cfg["detectors"])):
-                deti = cfg["detectors"][i]
-                noccurancees += (itrk in clsid_to_trackidx[deti].values())
-            if(noccurancees!=len(cfg["detectors"])): continue
-            passing_tracks_idx.append(itrk)
-            passing_tracks.append(tracks[itrk])
-
+    passing_tracks     = []
+    for det in cfg["tandemlyrs"][0]: ### track must be in the one of the first tandem layer's chips
+        for CID,itrk in clsid_to_trackidx[det].items():
+            if(itrk not in passing_tracks_idx):
+                passing_tracks_idx.append(itrk)
+                passing_tracks.append(tracks[itrk])
+    
     return passing_tracks

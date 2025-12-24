@@ -27,14 +27,17 @@ parser.add_argument('-conf', metavar='config file', required=True,  help='full p
 parser.add_argument('-mult', metavar='multi run?',  required=False, help='is this a multirun? [0/1]')
 parser.add_argument('-wave', metavar='fill waves?', required=False, help='fill wave histos? [0/1]')
 parser.add_argument('-eudq', metavar='fill eudaq?', required=False, help='fill eudaq tree? [0/1]')
+parser.add_argument('-toys', metavar='fill toys?',  required=False, help='fill toys histos? [0/1]')
 argus = parser.parse_args()
 configfile = argus.conf
 ismutirun  = argus.mult if(argus.mult is not None and int(argus.mult)==1) else False
 iswavehst  = argus.wave if(argus.wave is not None and int(argus.wave)==1) else False
 weudaqout  = argus.eudq if(argus.eudq is not None and int(argus.eudq)==1) else False
+dotoyhsit  = argus.toys if(argus.toys is not None and int(argus.toys)==1) else False
 print(f"ismutirun={ismutirun}")
 print(f"iswavehst={iswavehst}")
 print(f"weudaqout={weudaqout}")
+print(f"dotoyhsit={dotoyhsit}")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
@@ -177,12 +180,13 @@ def refit(track):
     seed_dy = {}
     # for det in cfg["detectors"]:
     for det in track.detectors:
-        ### first align!!
-        clusters[det].xTmm,clusters[det].yTmm = utils.align(det,clusters[det].xTmm,clusters[det].yTmm)
-        ### then prepare for refit
-        seed_x.update({  det : clusters[det].xTmm  })
-        seed_y.update({  det : clusters[det].yTmm  })
-        seed_z.update({  det : clusters[det].zTmm  })
+        ### first get the track cluster in this det at the EUDAQ coordinates
+        rCLS = [clusters[det].xmm, clusters[det].ymm, clusters[det].zmm]
+        ### then transform (including alignment) to the real space
+        rCLS = transform_to_real_space(rCLS,det,algn=True)
+        seed_x.update({  det : rCLS[0]  })
+        seed_y.update({  det : rCLS[1]  })
+        seed_z.update({  det : rCLS[2]  })
         seed_dx.update({ det : clusters[det].xTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dxTmm })
         seed_dy.update({ det : clusters[det].yTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dyTmm })
     ### then prepare for refit
@@ -214,7 +218,7 @@ def refit(track):
 
 
 
-def get_wave(z,k,thetamin,thetamax):
+def get_wave(name,z,k,thetamin,thetamax):
     ### rho = k*sin(theta) + z*cos(theta)
     func = ROOT.TF1(f"func_{name}","[1]*sin(x)+[0]*cos(x)",thetamin,thetamax,2)
     func.SetParameter(0,z)
@@ -545,12 +549,18 @@ if __name__ == "__main__":
     ### bad triggers
     fpkltrgname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_BadTriggers.pkl")
     badtriggers = []
-    if(not cfg["isMC"] and not cfg["runtype"]=="cosmics"):
+    if(cfg["runtype"]=="beam" and cfg["checkbadtriggers"]):
         fpkltrigger = open(fpkltrgname,'rb')
         badtriggers = pickle.load(fpkltrigger)
         fpkltrigger.close()
+        print("\n----------------------------------")
+        print(f"Found {len(badtriggers)} bad triggers")
+        print("-----------------------------------\n")
+    else:
+        print("\n----------------------------")
+        print(f"Not removing any triggers!")
+        print("----------------------------\n")
     nbadtrigs = len(badtriggers)
-    print(f"Found {nbadtrigs} bad triggers in the entire run")
     
     
     
@@ -639,7 +649,7 @@ if __name__ == "__main__":
                 
                 ### check if the first part should be ignored:
                 if(pkl_event.trigger<cfg["first2process"]): continue
-                if(nevents>cfg["nmax2process"]):
+                if(cfg["nmax2process"]>0 and nevents>cfg["nmax2process"]):
                     stop = True
                     break
                 
@@ -656,11 +666,11 @@ if __name__ == "__main__":
                         avgncls += pkl_event.nclusters[det]
                     avgnpix /= len(cfg["detectors"])
                     avgncls /= len(cfg["detectors"])
-                else:
-                    continue ### empty event
-                    # print("---------------------------------------------------------------------------------------")
-                    # print(f"Problem with length of pixels array {len(pkl_event.npixels)} or clusters array {len(pkl_event.nclusters)}")
-                    # print("---------------------------------------------------------------------------------------")
+                # else:
+                #     continue ### empty event
+                #     print("---------------------------------------------------------------------------------------")
+                #     print(f"Problem with length of pixels array {len(pkl_event.npixels)} or clusters array {len(pkl_event.nclusters)}")
+                #     print("---------------------------------------------------------------------------------------")
                 print(f"Reading event #{ievt}, trigger:{pkl_event.trigger}, ts:[{utils.get_human_timestamp_ns(pkl_event.timestamp_bgn)}, {utils.get_human_timestamp_ns(pkl_event.timestamp_end)}]")
                 
                 ### some counters
@@ -690,10 +700,12 @@ if __name__ == "__main__":
                 
 
                 ### skip bad triggers...
-                if(not cfg["isMC"] and cfg["runtype"]=="beam" and (int(pkl_event.trigger) in badtriggers)):
+                if((cfg["runtype"]=="beam" and cfg["checkbadtriggers"]) and (int(pkl_event.trigger) in badtriggers)):
                     nbadtrigs_actual += 1
+                    print(f"Skipping bad trigger: {int(pkl_event.trigger)}")
                     continue
                 histos["hTriggers"].Fill(1.5)
+                
                 
                 tracks_triggers_dict["all"]["trgs"]["good"] += 1
                 tracks_triggers_dict["all"]["pix"]["good"]  += avgnpix
@@ -810,6 +822,7 @@ if __name__ == "__main__":
                     #################################################
                     ### refit the track if necessary
                     if(not isAlignedAtProd and isNon0Mislaignment):
+                        print(f"Note I'm doing a refit!!")
                         track = refit(track)
                     ### will be the same if misalignment is 0
                     #################################################
@@ -1014,10 +1027,10 @@ if __name__ == "__main__":
                         rChip = [track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm,track.trkcls[det].zTnoGmm]
                         
                         if(iswavehst):
-                            # xwave = get_wave("xz",rChip[2],rChip[0],thetaxmin,thetaxmax)
-                            # ywave = get_wave("yz",rChip[2],rChip[1],thetaymin,thetaymax)
-                            xwave = get_wave(rChip[2],rChip[0],thetaxmin,thetaxmax)
-                            ywave = get_wave(rChip[2],rChip[1],thetaymin,thetaymax)
+                            # xwave = get_wave("xz",rChip[2],rChip[0],0,np.pi)
+                            # ywave = get_wave("yz",rChip[2],rChip[1],0,np.pi)
+                            xwave = get_wave("xz",rChip[2],rChip[0],0,np.pi)
+                            ywave = get_wave("yz",rChip[2],rChip[1],0,np.pi)
                             for btheta in range(1,histos["hWaves_zx"].GetNbinsX()+1):
                                 theta = histos["hWaves_zx"].GetXaxis().GetBinCenter(btheta)
                                 rhox  = xwave.Eval(theta)
@@ -1366,105 +1379,109 @@ if __name__ == "__main__":
     print("---------------5")
     
     
-    hxz = histos["hTheta_xz_before_cuts"].Clone("hxz")
-    hyz = histos["hTheta_yz_before_cuts"].Clone("hyz")
-    hpz = histos["hPf_small"].Clone("hpz")
-    hxz.SetBinErrorOption(ROOT.TH1.kPoisson)
-    hyz.SetBinErrorOption(ROOT.TH1.kPoisson)
-    # hpz.SetBinErrorOption(ROOT.TH1.kPoisson)
-    hxzl = histos["hTheta_xz_before_cuts"].Clone("hxz_down")
-    hxzh = histos["hTheta_xz_before_cuts"].Clone("hxz_up")
-    hyzl = histos["hTheta_yz_before_cuts"].Clone("hyz_down")
-    hyzh = histos["hTheta_yz_before_cuts"].Clone("hyz_up")
-    hpzl = histos["hPf_small"].Clone("hpz_down")
-    hpzh = histos["hPf_small"].Clone("hpz_up")
-    err_xz = 0.00087 #0.0025
-    err_yz = 0.00094 #0.0025
-    err_yz_detpipe = 0.001
-    fOutToys = ROOT.TFile("fOutToys.root","RECREATE")
-    hyz.Write()
-    hpz.Write()
-    for i in range(1000): get_toy(i,arr_theta_xz,htH=hxzh,htL=hxzl,err=err_xz)
-    for i in range(1000): get_toy(i,arr_theta_yz,htH=hyzh,htL=hyzl,err=err_yz)
-    # for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe,fOut=fOutToys)
-    for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe)
-    fOutToys.Close()
-    grxz = get_error_graph("grxz",h0=hxz,hh=hxzh,hl=hxzl)
-    gryz = get_error_graph("gryz",h0=hyz,hh=hyzh,hl=hyzl)
-    grpz = get_error_graph("grpz",h0=hpz,hh=hpzh,hl=hpzl)
-    hxz.GetXaxis().SetTitle("Track #theta_{xz} (LAB frame) [rad]")
-    hyz.GetXaxis().SetTitle("Track #theta_{yz} (LAB frame) [rad]")
-    # hxz.SetFillColorAlpha(ROOT.kBlue,0.35)
-    # hyz.SetFillColorAlpha(ROOT.kBlue,0.35)
-    # hxz.SetLineColor(ROOT.kBlue)
-    # hyz.SetLineColor(ROOT.kBlue)
-    hxz.SetMarkerStyle(20)
-    hyz.SetMarkerStyle(20)
-    hxz.SetMarkerSize(1)
-    hyz.SetMarkerSize(1)
-    hxz.SetMarkerColor(ROOT.kBlack)
-    hyz.SetMarkerColor(ROOT.kBlack)
-    hxz.SetLineColor(ROOT.kBlack)
-    hyz.SetLineColor(ROOT.kBlack)
-    #
-    hxz.SetMaximum(420)
-    hyz.SetMaximum(280)
-    hxz.GetXaxis().SetTitleOffset(1.3)
-    hyz.GetXaxis().SetTitleOffset(1.3)
-    cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)
-    cnv.Divide(2,1)
-    cnv.cd(1)
-    ROOT.gPad.SetTicks(1,1)
-    # hxz.Draw("hist")
-    hxz.Draw("ep")
-    # grxz.Draw("E3 same")
-    grxz.Draw("E2 same")
-    cnv.RedrawAxis()
-    s = ROOT.TLatex()
-    s.SetNDC(1)
-    s.SetTextAlign(13)
-    s.SetTextColor(ROOT.kBlack)
-    s.SetTextFont(22)
-    s.SetTextSize(0.045)
-    s.DrawLatex(0.17,0.85,f"Run {runnum}")
-    #
-    s = ROOT.TLatex()
-    s.SetNDC(1)
-    s.SetTextAlign(13)
-    s.SetTextColor(ROOT.kBlack)
-    s.SetTextFont(132)
-    s.SetTextSize(0.045)
-    s.DrawLatex(0.16,0.80,f"#mu={hxz.GetMean():.3f} rad")
-    s.DrawLatex(0.16,0.75,f"#sigma={hxz.GetStdDev():.3f} rad")
-    s.DrawLatex(0.16,0.70,f"#theta_{{xz}}^{{max}}={hxz.GetXaxis().GetBinCenter(hxz.GetMaximumBin()):.3f} rad")
-    #
-    cnv.cd(2)
-    ROOT.gPad.SetTicks(1,1)
-    hyz.Draw("ep")
-    # gryz.Draw("E3 same")
-    gryz.Draw("E2 same")
-    cnv.RedrawAxis()
-    s = ROOT.TLatex()
-    s.SetNDC(1)
-    s.SetTextAlign(13)
-    s.SetTextColor(ROOT.kBlack)
-    s.SetTextFont(22)
-    s.SetTextSize(0.045)
-    s.DrawLatex(0.17,0.85,f"Run {runnum}")
-    #
-    s = ROOT.TLatex()
-    s.SetNDC(1)
-    s.SetTextAlign(13)
-    s.SetTextColor(ROOT.kBlack)
-    s.SetTextFont(132)
-    s.SetTextSize(0.045)
-    s.DrawLatex(0.16,0.80,f"#mu={hyz.GetMean():.3f} rad")
-    s.DrawLatex(0.16,0.75,f"#sigma={hyz.GetStdDev():.3f} rad")
-    s.DrawLatex(0.16,0.70,f"#theta_{{yz}}^{{max}}={hyz.GetXaxis().GetBinCenter(hyz.GetMaximumBin()):.3f} rad")
-    #
-    cnv.Update()
-    cnv.SaveAs(f'{foupdfname.replace(".pdf","")}_angles_nocuts.pdf')
-    del cnv
+    grxz = None
+    gryz = None
+    grpz = None
+    if(dotoyhsit):
+        hxz = histos["hTheta_xz_before_cuts"].Clone("hxz")
+        hyz = histos["hTheta_yz_before_cuts"].Clone("hyz")
+        hpz = histos["hPf_small"].Clone("hpz")
+        hxz.SetBinErrorOption(ROOT.TH1.kPoisson)
+        hyz.SetBinErrorOption(ROOT.TH1.kPoisson)
+        # hpz.SetBinErrorOption(ROOT.TH1.kPoisson)
+        hxzl = histos["hTheta_xz_before_cuts"].Clone("hxz_down")
+        hxzh = histos["hTheta_xz_before_cuts"].Clone("hxz_up")
+        hyzl = histos["hTheta_yz_before_cuts"].Clone("hyz_down")
+        hyzh = histos["hTheta_yz_before_cuts"].Clone("hyz_up")
+        hpzl = histos["hPf_small"].Clone("hpz_down")
+        hpzh = histos["hPf_small"].Clone("hpz_up")
+        err_xz = 0.00087 #0.0025
+        err_yz = 0.00094 #0.0025
+        err_yz_detpipe = 0.001
+        fOutToys = ROOT.TFile("fOutToys.root","RECREATE")
+        hyz.Write()
+        hpz.Write()
+        for i in range(1000): get_toy(i,arr_theta_xz,htH=hxzh,htL=hxzl,err=err_xz)
+        for i in range(1000): get_toy(i,arr_theta_yz,htH=hyzh,htL=hyzl,err=err_yz)
+        # for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe,fOut=fOutToys)
+        for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe)
+        fOutToys.Close()
+        grxz = get_error_graph("grxz",h0=hxz,hh=hxzh,hl=hxzl)
+        gryz = get_error_graph("gryz",h0=hyz,hh=hyzh,hl=hyzl)
+        grpz = get_error_graph("grpz",h0=hpz,hh=hpzh,hl=hpzl)
+        hxz.GetXaxis().SetTitle("Track #theta_{xz} (LAB frame) [rad]")
+        hyz.GetXaxis().SetTitle("Track #theta_{yz} (LAB frame) [rad]")
+        # hxz.SetFillColorAlpha(ROOT.kBlue,0.35)
+        # hyz.SetFillColorAlpha(ROOT.kBlue,0.35)
+        # hxz.SetLineColor(ROOT.kBlue)
+        # hyz.SetLineColor(ROOT.kBlue)
+        hxz.SetMarkerStyle(20)
+        hyz.SetMarkerStyle(20)
+        hxz.SetMarkerSize(1)
+        hyz.SetMarkerSize(1)
+        hxz.SetMarkerColor(ROOT.kBlack)
+        hyz.SetMarkerColor(ROOT.kBlack)
+        hxz.SetLineColor(ROOT.kBlack)
+        hyz.SetLineColor(ROOT.kBlack)
+        #
+        hxz.SetMaximum(420)
+        hyz.SetMaximum(280)
+        hxz.GetXaxis().SetTitleOffset(1.3)
+        hyz.GetXaxis().SetTitleOffset(1.3)
+        cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)
+        cnv.Divide(2,1)
+        cnv.cd(1)
+        ROOT.gPad.SetTicks(1,1)
+        # hxz.Draw("hist")
+        hxz.Draw("ep")
+        # grxz.Draw("E3 same")
+        grxz.Draw("E2 same")
+        cnv.RedrawAxis()
+        s = ROOT.TLatex()
+        s.SetNDC(1)
+        s.SetTextAlign(13)
+        s.SetTextColor(ROOT.kBlack)
+        s.SetTextFont(22)
+        s.SetTextSize(0.045)
+        s.DrawLatex(0.17,0.85,f"Run {runnum}")
+        #
+        s = ROOT.TLatex()
+        s.SetNDC(1)
+        s.SetTextAlign(13)
+        s.SetTextColor(ROOT.kBlack)
+        s.SetTextFont(132)
+        s.SetTextSize(0.045)
+        s.DrawLatex(0.16,0.80,f"#mu={hxz.GetMean():.3f} rad")
+        s.DrawLatex(0.16,0.75,f"#sigma={hxz.GetStdDev():.3f} rad")
+        s.DrawLatex(0.16,0.70,f"#theta_{{xz}}^{{max}}={hxz.GetXaxis().GetBinCenter(hxz.GetMaximumBin()):.3f} rad")
+        #
+        cnv.cd(2)
+        ROOT.gPad.SetTicks(1,1)
+        hyz.Draw("ep")
+        # gryz.Draw("E3 same")
+        gryz.Draw("E2 same")
+        cnv.RedrawAxis()
+        s = ROOT.TLatex()
+        s.SetNDC(1)
+        s.SetTextAlign(13)
+        s.SetTextColor(ROOT.kBlack)
+        s.SetTextFont(22)
+        s.SetTextSize(0.045)
+        s.DrawLatex(0.17,0.85,f"Run {runnum}")
+        #
+        s = ROOT.TLatex()
+        s.SetNDC(1)
+        s.SetTextAlign(13)
+        s.SetTextColor(ROOT.kBlack)
+        s.SetTextFont(132)
+        s.SetTextSize(0.045)
+        s.DrawLatex(0.16,0.80,f"#mu={hyz.GetMean():.3f} rad")
+        s.DrawLatex(0.16,0.75,f"#sigma={hyz.GetStdDev():.3f} rad")
+        s.DrawLatex(0.16,0.70,f"#theta_{{yz}}^{{max}}={hyz.GetXaxis().GetBinCenter(hyz.GetMaximumBin()):.3f} rad")
+        #
+        cnv.Update()
+        cnv.SaveAs(f'{foupdfname.replace(".pdf","")}_angles_nocuts.pdf')
+        del cnv
     print("---------------6")
     
     
@@ -2454,9 +2471,9 @@ if __name__ == "__main__":
     fout = ROOT.TFile(foutrootname,"RECREATE")
     fout.cd()
     for hname,hist in histos.items(): hist.Write()
-    grxz.Write()
-    gryz.Write()
-    grpz.Write()
+    if(grxz is not None): grxz.Write()
+    if(gryz is not None): gryz.Write()
+    if(grpz is not None): grpz.Write()
     fout.Write()
     fout.Close()
     

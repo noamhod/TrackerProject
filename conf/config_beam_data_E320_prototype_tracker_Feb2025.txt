@@ -4,6 +4,7 @@ isMC             = 0
 isFakeMC         = 0
 doVtx            = 0
 runtype          = beam
+checkbadtriggers = 1
 iszerosuppressed = 0
 skipclustering   = 0
 skiptracking     = 0
@@ -21,7 +22,7 @@ detevtlib        = 20252302
 
 ### run502 (Be window in):
 first2process = 357
-nmax2process  = 100
+nmax2process  = 0
 inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
 
 # ### run503 (beam-only, focusing on foil, 6h-long)
@@ -123,6 +124,7 @@ lut_scaleY = 0.20
 
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX
+# cut_chi2dof = 1
 # cut_chi2dof = 3
 # cut_chi2dof = 20
 cut_chi2dof = 1000
@@ -132,13 +134,13 @@ cut_dk_algn_det  = ALPIDE_3
 cut_dk_algn_dxmin = 0.02
 cut_dk_algn_dxmax = 0.08
 cut_dk_algn_dymin = -0.07
-cut_dk_algn_dymax = -0.02
-cut_maxcls  = 4
+cut_dk_algn_dymax = -0.03
+cut_maxcls = 4
 cut_allow_shared_clusters = 0
 cut_allow_negative_yz_slope = 0
-cut_windowaprtr = 0
-cut_flangeaprtr = 0
-cut_dipoleaprtr = 0
+cut_windowaprtr = 1
+cut_flangeaprtr = 1
+cut_dipoleaprtr = 1
 cut_spot          = 0
 cut_spot_xcenter  = 0
 cut_spot_ycenter  = 0
@@ -174,18 +176,18 @@ use_large_clserr_for_algnmnt = 1
 
 #####################################
 ### DEFAULT MISALIGNMENT (before doing the alignment procedure):
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
+misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
 #####################################
 
 #####################################
-### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 8<CHI2<20 USING ALPIDE_0 AS REF (May 3)
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-02,dy=3.95E-02,theta=-1.72E-03 ALPIDE_2:dx=2.86E-02,dy=-4.27E-02,theta=1.53E-03 ALPIDE_3:dx=6.74E-02,dy=-6.58E-02,theta=-1.53E-03 ALPIDE_4:dx=-1.88E-02,dy=1.29E-02,theta=3.77E-04
+### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 8<CHI2<20 USING ALPIDE_0 AS REF
 #####################################
 
 minchi2align  = 0.01
-# minchi2align  = 10
+# minchi2align  = 12
 maxchi2align  = 1000
 # maxchi2align  = 20
+# maxchi2align  = 1
 axes2align    = xytheta
 naligniter    = 200
 alignmentbounds = dx:min=-0.5,max=+0.5 dy:min=-0.5,max=0.5 theta:min=-0.05,max=+0.05

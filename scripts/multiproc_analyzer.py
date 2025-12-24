@@ -156,8 +156,10 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
 
 
         ### skip bad triggers...
-        if(not cfg["isMC"] and cfg["runtype"]=="beam"):
-            if(int(trigger) in badtrigs): continue
+        if((cfg["runtype"]=="beam" and cfg["checkbadtriggers"])):
+            if(int(trigger) in badtrigs):
+                print(f"Skipping bad trigger: {trigger}")
+                continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("BeamQC") )
 
         
@@ -176,19 +178,16 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_cutflow"].Fill( cfg["cuts"].index("0Err") )
 
 
-
         ### get the pixels
         n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix)
         histos["h_nStaves"].Fill(n_active_staves)
         histos["h_nDetectors"].Fill(n_active_chips)
         histos["h_nTandemLayers"].Fill(n_active_tandem_layers)
-        # sprnt = f"ievt={ievt}: active_chips={n_active_chips} -->"
         sprnt = f"ievt={ievt}:"
         for det in cfg["detectors"]:
             sprnt += f" Npixels[{det}]={len(pixels[det])},"
             hists.fillPixOcc(det,pixels[det],masked[det],histos) ### fill pixel occupancy
         if(cfg["dbg"]): print(sprnt)
-        # print(f"Trigger {trigger}, {utils.get_human_timestamp_ns(timestamp_begin)} --> {sprnt}")
         
 
         ### if skip clustering?
@@ -205,16 +204,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                         if(det not in chips):
                             chips += f" {det}"
             print(f"trigger={trigger}:  n_active_tandem_layers={n_active_tandem_layers}, n_active_chips={n_active_chips}: chips={chips}")
-        
-        
-        ### the fake particles are attached to the pixels (it is enough to take the 1st pixel of the 1st detector) #TODO: this is assuming that there's only one mc particle per event
-        fakemcparticles = []
-        if(cfg["isMC"] and cfg["isFakeMC"]):
-            det0 = cfg["detectors"][0]
-            slp = [pixels[det0][0].Azx, pixels[det0][0].Azy]
-            itp = [pixels[det0][0].Bzx, pixels[det0][0].Bzy]
-            vtx = [pixels[det0][0].Vx, pixels[det0][0].Vy, pixels[det0][0].Vz]
-            fakemcparticles.append( objects.FakeMCparticle(slp,itp,vtx) )
         
         
         ### non-empty events
@@ -247,7 +236,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 pixels_wo_noise = noise.getGoodPixels(det,pixels[det],masked[det],hPixMatix[det])
                 pixels_save.update({det:pixels_wo_noise.copy()})
         eventslist[out_event_index].set_event_pixels(pixels_save)
-
         
 
         ### run clustering
@@ -260,7 +248,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             hists.fillClsHists(det,clusters[det],masked[det],histos)
             if(len(det_clusters)>0): nclusters += 1
             sprnt += f" Nclusters[{det}]={len(det_clusters)},"
-        # if(cfg["doprintout"]): print(sprnt)
         if(cfg["dbg"]): print(sprnt)
         eventslist[out_event_index].set_event_clusters(clusters)
         n_active_tandem_layers = utils.count_active_tandem_layers(clusters)
@@ -298,14 +285,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nSeeds_full"].Fill(nSeeds)
         histos["h_nSeeds_mid"].Fill(nSeeds)
         histos["h_nSeeds_zoom"].Fill(nSeeds)
-        # if(nSeeds<1):
-        #     for det in cfg["detectors"]:
-        #         print(f"{det}: x={clusters[det][0].xTmm}, y={clusters[det][0].yTmm}, z={clusters[det][0].zTmm}")
-        #     print(f"eventid={ievt}: seeder.naccumulators = {seeder.naccumulators}")
-        #     print(f"eventid={ievt}: seeder.cells = {seeder.cells}")
-        #     print(f"eventid={ievt}: seeder.LUT = {seeder.LUT.LUT}")
-        #     print(f"eventid={ievt}: seeder.tunnels = {seeder.tunnels}")
-        #     print(f"eventid={ievt}: seeder.hough_coord = {seeder.hough_coord}")
         if(nSeeds<1):
             del seeder
             continue ### CUT!!!
@@ -332,13 +311,14 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             del seeder
             if(cfg["dbg"]): print(f"after deleting seeder")
         eventslist[out_event_index].set_event_seeds(seeds,hough_space)
-        
         if(cfg["dbg"]): print(f"after set_event_seeds")
+
 
         ### get the event tracks
         vtx  = [cfg["xVtx"],cfg["yVtx"],cfg["zVtx"]]    if(cfg["doVtx"]) else []
         evtx = [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] if(cfg["doVtx"]) else []
         
+
         ### loop over all seeds:
         tracks = []
         n_tracks            = 0
@@ -346,7 +326,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         n_goodchi2_tracks   = 0
         n_selected_tracks   = 0
         for iseed,seed in enumerate(seeds):
-            
+
             if(cfg["dbg"]): print(f"starting iseed={iseed}")
             
             ### get the points
@@ -447,7 +427,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nTracks_selected_full"].Fill( n_selected_tracks )
         histos["h_nTracks_selected_mid"].Fill( n_selected_tracks )
         histos["h_nTracks_selected_zoom"].Fill( n_selected_tracks )
-        print(f"eventid={ievt} Tracking: Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}")
+        print(f"eventid={ievt}: Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}")
         
         if(n_successful_tracks<1): continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
@@ -568,11 +548,17 @@ if __name__ == "__main__":
 
     ### load bad triggers from pickle
     badtriggers = []
-    if(not cfg["isMC"] and cfg["runtype"]=="beam" and ("E320" in cfg["inputfile"])):
+    if(cfg["runtype"]=="beam" and cfg["checkbadtriggers"]):
         fpkltrigger = open(fpkltrgname,'rb')
         badtriggers = pickle.load(fpkltrigger)
         fpkltrigger.close()
+        print("\n----------------------------------")
         print(f"Found {len(badtriggers)} bad triggers")
+        print("-----------------------------------\n")
+    else:
+        print("\n----------------------------")
+        print(f"Not removing any triggers!")
+        print("----------------------------\n")
     
     
     ### masking business

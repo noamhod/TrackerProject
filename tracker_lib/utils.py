@@ -194,13 +194,14 @@ def transform_to_real_space(v,det,algn=True):
     vy[0] = Ry[0][0]*vz[0]+Ry[0][1]*vz[1]+Ry[0][2]*vz[2]
     vy[1] = Ry[1][0]*vz[0]+Ry[1][1]*vz[1]+Ry[1][2]*vz[2]
     vy[2] = Ry[2][0]*vz[0]+Ry[2][1]*vz[1]+Ry[2][2]*vz[2]
+    ### do the alignment BEFORE the global offsetting
+    va = [vy[0],vy[1],vy[2]]
+    if(algn): va[0],va[1] = align(det,va[0],va[1]) ### this is the alignment
     ### introduce the offsets of the real space position of the detector (this is not the alignment offests!)
-    r = vy
+    r = va
     r[0] += (cfg["offsets_x"][det]+cfg["xGlobalOffset"])
     r[1] += (cfg["offsets_y"][det]+cfg["yGlobalOffset"])
     r[2] += (cfg["offsets_z"][det]+cfg["zGlobalOffset"])
-    ### do the alignment?
-    if(algn): r[0],r[1] = align(det,r[0],r[1]) ### this is the alignment
     return r
 
 
