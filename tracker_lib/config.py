@@ -319,11 +319,14 @@ class Config:
         self.add("alignmentmethod", self.getS('ALIGNMENT','alignmentmethod'))
         self.add("alignmentwerr", self.getB('ALIGNMENT','alignmentwerr'))
         self.add("alignmentmintrks", self.getI('ALIGNMENT','alignmentmintrks'))
-        # if(self.map["isMC"]):
-        #     print("Ignoring misalignment for MC")
-        #     for key1 in self.map["misalignment"]:
-        #         for key2 in self.map["misalignment"][key1]:
-        #             self.map["misalignment"][key1][key2] = 0
+
+        self.add("global_corr_thetax", self.getF('GLOBALALIGNMENT','global_corr_thetax')*np.pi/180. )
+        self.add("global_corr_thetay", self.getF('GLOBALALIGNMENT','global_corr_thetay')*np.pi/180. )
+        self.add("global_corr_thetaz", self.getF('GLOBALALIGNMENT','global_corr_thetaz')*np.pi/180. )
+        self.add("global_corr_dx", self.getF('GLOBALALIGNMENT','global_corr_dx'))
+        self.add("global_corr_dy", self.getF('GLOBALALIGNMENT','global_corr_dy'))
+        self.add("global_corr_dz", self.getF('GLOBALALIGNMENT','global_corr_dz'))
+        
         
         self.add("zWindow",       self.getF('WINDOW','zWindow'))
         self.add("xWindow",       self.getF('WINDOW','xWindow'))

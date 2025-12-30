@@ -93,20 +93,19 @@ def get_error_graph(name,h0,hh,hl):
     gr.SetMarkerStyle(0)
     gr.SetName(name)
     return gr
+    
 
-def get_pz_from_fit(theta_yz, err_yz_detpipe=0):
+def get_pz_from_fit(theta_yz, err_thet_yz=0):
     cfg = config.Config().map
-    # theta_yz_detpipe = cfg["thetax"] ### TODO!!!
-    theta_yz_detpipe = 0
-    phi = theta_yz - theta_yz_detpipe
-    if(err_yz_detpipe>0):
-        e = rnd.Gaus(0,err_yz_detpipe)
-        while(e<-err_yz_detpipe or e>err_yz_detpipe): e = rnd.Gaus(0,err_yz_detpipe)
-        phi = theta_yz - (theta_yz_detpipe+e)
+    phi = theta_yz
+    if(err_thet_yz>0):
+        e = rnd.Gaus(0,err_thet_yz)
+        while(e<-err_thet_yz or e>err_thet_yz): e = rnd.Gaus(0,err_thet_yz)
+        phi = theta_yz + e
     pz = (0.3 * B * LB)/math.sin( phi )
     return pz
 
-def get_toy(toy,T,htH,htL,err,hpzH=None,hpzL=None,err_yz_detpipe=0,fOut=None):
+def get_toy(toy,T,htH,htL,err,hpzH=None,hpzL=None,err_thet_yz=0,fOut=None):
     ### get the misalignment
     e = rnd.Gaus(0,err)
     while(e<-err or e>err): e = rnd.Gaus(0,err)
@@ -123,7 +122,7 @@ def get_toy(toy,T,htH,htL,err,hpzH=None,hpzL=None,err_yz_detpipe=0,fOut=None):
         t1 = t+e
         ht1.Fill(t1)
         if(hp1 is not None):
-            p1 = get_pz_from_fit(t1,err_yz_detpipe)
+            p1 = get_pz_from_fit(t1,err_thet_yz)
             hp1.Fill( p1 )
     
     ### check if larger/smaller than the existing and update if so
@@ -799,7 +798,7 @@ if __name__ == "__main__":
                     # if(not inROI): continue
                     
                     ### fill some quantities before alignment
-                    if(track.chi2ndof<=cfg["cut_chi2dof"] and selections.pass_geoacc_selection(track)): ##TODO: missing the shared hits cut here...
+                    if(track.chi2ndof<=cfg["cut_chi2dof"] and selections.pass_geoacc_selection(track,ismultiproc=False)): ##TODO: missing the shared hits cut here...
                         histos["hChi2DoF_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_full_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_mid_alowshrcls"].Fill(track.chi2ndof)
@@ -826,7 +825,7 @@ if __name__ == "__main__":
                         track = refit(track)
                     ### will be the same if misalignment is 0
                     #################################################
-                    
+                                        
                     
                     #########################
                     ### then require chi2 ###
@@ -835,15 +834,19 @@ if __name__ == "__main__":
                     good_tracks.append(track)
                     
                     ### get the coordinates at extreme points in real space and after tilting the detector
-                    r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track)
+                    r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track,ismultiproc=False)
 
                     ### the y distance from y=0 in the dipole exit plane
                     dExit = rD[1]
                     
                     ### calculate the fit angles
                     ### params = [p0x,p1x,p0y,p1y]
-                    tan_theta_xz = track.params[1] ### the slope in xz
-                    tan_theta_yz = track.params[3] ### the slope in yz
+                    newdir,newcnt = utils.apply_global_alignment_to_p(track.direction,track.centroid,ismultiproc=False)
+                    newpars = utils.get_pars_from_centroid_and_direction(newcnt,newdir)
+                    # tan_theta_xz = track.params[1] ### the slope in xz
+                    # tan_theta_yz = track.params[3] ### the slope in yz
+                    tan_theta_xz = newpars[1] ### the slope in xz
+                    tan_theta_yz = newpars[3] ### the slope in yz
                     thetaf_xz = math.atan(tan_theta_xz)
                     thetaf_yz = math.atan(tan_theta_yz)
                     
@@ -874,7 +877,7 @@ if __name__ == "__main__":
                     ### and the dipole exit aperture       ###
                     ### and inclined up as a positron      ###
                     ##########################################
-                    if(not selections.pass_geoacc_selection(track)): continue
+                    if(not selections.pass_geoacc_selection(track,ismultiproc=False)): continue
                         
                     
                     ### the angle in y-z calculated from d_exit
@@ -954,7 +957,7 @@ if __name__ == "__main__":
                 ### event displays
                 if(cfg["plot_offline_evtdisp"] and len(good_tracks)>0):
                     fevtdisplayname = tfilenamein.replace("tree_","event_displays/").replace(".root",f"_offline_{pkl_event.trigger}.pdf")
-                    evtdisp.plot_event(pkl_event.meta.run,pkl_event.meta.start,pkl_event.meta.dur,pkl_event.trigger,fevtdisplayname,pkl_event.clusters,pkl_event.tracks,chi2threshold=cfg["cut_chi2dof"])
+                    evtdisp.plot_event(pkl_event.meta.run,pkl_event.meta.start,pkl_event.meta.dur,pkl_event.trigger,fevtdisplayname,pkl_event.clusters,pkl_event.tracks,chi2threshold=cfg["cut_chi2dof"],ismultiproc=False)
                 
                 
                 ### the Hough space (for the tunnel widths)
@@ -1095,7 +1098,7 @@ if __name__ == "__main__":
 
 
     ### plot the geometry distributions
-    foupdfname = tfilenamein.replace(".root",f"_dipole_window.pdf")
+    foupdfname = tfilenamein.replace(".root",f"_allplots.pdf")
 
     cnv = ROOT.TCanvas("cnv_dipole_window","",1000,500)
     cnv.Divide(2,1)
@@ -1134,13 +1137,18 @@ if __name__ == "__main__":
     del cnv
     
     
-    noGlobalAlignment      = (cfg["xOffset0"]==0 and cfg["thetax"]==0 and cfg["yOffset0"]==0 and cfg["cut_strip"]==False and cfg["cut_spot"]==False)
-    noGlobAlgnWithStrip    = (cfg["xOffset0"]==0 and cfg["thetax"]==0 and cfg["yOffset0"]==0 and cfg["cut_strip"]==True  and cfg["cut_spot"]==False) ## strip cut has to be around the original blob
-    partialGlobalAlignment = (cfg["xOffset0"]!=0 and cfg["thetax"]!=0 and cfg["yOffset0"]==0 and cfg["cut_strip"]==False and cfg["cut_spot"]==False) 
-    partGlobalAlgnWithStrp = (cfg["xOffset0"]!=0 and cfg["thetax"]!=0 and cfg["yOffset0"]==0 and cfg["cut_strip"]==True  and cfg["cut_spot"]==False) ## strip cut has to be around the new blob
-    fullGlobalAlignment    = (cfg["xOffset0"]!=0 and cfg["thetax"]!=0 and cfg["yOffset0"]!=0 and cfg["cut_strip"]==False and cfg["cut_spot"]==False)
-    fullGlobAlgnWithStrip  = (cfg["xOffset0"]!=0 and cfg["thetax"]!=0 and cfg["yOffset0"]!=0 and cfg["cut_strip"]==True  and cfg["cut_spot"]==False) ## strip cut has to be around the new blob
-    fullGlobAlgFullSel     = (cfg["xOffset0"]!=0 and cfg["thetax"]!=0 and cfg["yOffset0"]!=0 and cfg["cut_strip"]==False and cfg["cut_spot"]==True)
+    glb_dx = cfg["global_corr_dx"]
+    glb_tx = cfg["global_corr_thetax"]
+    glb_dy = cfg["global_corr_dy"]
+    cut_strp = cfg["cut_strip"]
+    cut_spot = cfg["cut_spot"]
+    noGlobalAlignment      = (glb_dx==0 and glb_tx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
+    noGlobAlgnWithStrip    = (glb_dx==0 and glb_tx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the original blob
+    partialGlobalAlignment = (glb_dx!=0 and glb_tx!=0 and glb_dy==0 and cut_strp==False and cut_spot==False) 
+    partGlobalAlgnWithStrp = (glb_dx!=0 and glb_tx!=0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobalAlignment    = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
+    fullGlobAlgnWithStrip  = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobAlgFullSel     = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
     
     algn_label = "NULL"
     if(noGlobalAlignment):      algn_label = "Before global alignment"
@@ -1397,14 +1405,13 @@ if __name__ == "__main__":
         hpzh = histos["hPf_small"].Clone("hpz_up")
         err_xz = 0.00087 #0.0025
         err_yz = 0.00094 #0.0025
-        err_yz_detpipe = 0.001
+        err_thet_yz = 0.001
         fOutToys = ROOT.TFile("fOutToys.root","RECREATE")
         hyz.Write()
         hpz.Write()
         for i in range(1000): get_toy(i,arr_theta_xz,htH=hxzh,htL=hxzl,err=err_xz)
         for i in range(1000): get_toy(i,arr_theta_yz,htH=hyzh,htL=hyzl,err=err_yz)
-        # for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe,fOut=fOutToys)
-        for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_yz_detpipe=err_yz_detpipe)
+        for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_thet_yz=err_thet_yz)
         fOutToys.Close()
         grxz = get_error_graph("grxz",h0=hxz,hh=hxzh,hl=hxzl)
         gryz = get_error_graph("gryz",h0=hyz,hh=hyzh,hl=hyzl)
@@ -2467,7 +2474,7 @@ if __name__ == "__main__":
     
     
     ### save as root file
-    foutrootname = tfilenamein.replace(".root",f"_dipole_window.root")
+    foutrootname = tfilenamein.replace(".root",f"_allplots.root")
     fout = ROOT.TFile(foutrootname,"RECREATE")
     fout.cd()
     for hname,hist in histos.items(): hist.Write()

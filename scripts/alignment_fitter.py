@@ -391,7 +391,7 @@ if __name__ == "__main__":
     dabs0  = dabs0/ngoodtracks
     print(f"Done collecting {ngoodtracks} tracks (out of {alltracks} ({nuniquetrks} unique) in {allevents} events, or {float(alltracks)/float(allevents)} trks/evt) with chisq0={chisq0} and dabs0={dabs0}. Now going to fit misalignments")
     ### save histos
-    fOut = ROOT.TFile("scan.root","RECREATE")
+    fOut = ROOT.TFile(tfilenamein.replace(".root","_aligment_scan.root"),"RECREATE")
     fOut.cd()
     for hname,hist in histos.items(): hist.Write()
     fOut.Write()

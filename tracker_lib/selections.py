@@ -63,10 +63,10 @@ def pass_dk_at_detector(track,dxrange=[-999,+999],dyrange=[-999,+999]):
     return True
     
 
-def pass_geoacc_selection(track):
+def pass_geoacc_selection(track,ismultiproc=False):
     cfg = config.Config().map
     ## r0: first detector, rN: last detector, rW: window, rD: dipole exit
-    r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track)
+    r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track,ismultiproc)
     xWinL,xWinR,yWinB,yWinT = utils.get_pdc_window_bounds()
     xFlgL,xFlgR,yFlgB,yFlgT = utils.get_dipole_flange_bounds()
     xDipL,xDipR,yDipB,yDipT = utils.get_dipole_exit_bounds()

@@ -16,7 +16,7 @@ from scipy.optimize import curve_fit
 from tracker_lib import config, objects, utils
 
 
-def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,showtrkcls=False,showallcls=False,showwindow=True,showpipe=True):
+def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,showtrkcls=False,showallcls=False,showwindow=True,showpipe=True,ismultiproc=False):
     cfg = config.Config().map
     # if(len(tracks)<1 and): return ###TODO
     
@@ -58,7 +58,7 @@ def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,sho
     ax4.yaxis.set_ticks_position('none')
         
     ### the chips
-    L1verts = utils.getChips()
+    L1verts = utils.getChips() ### TODO: add here the global offsets and rotations via apply_global_alignment_to_r if(not ismultiproc)
     ax1.add_collection3d(Poly3DCollection(L1verts, facecolors='green', linewidths=0.5, edgecolors='g', alpha=.20))
     ax2.add_collection3d(Poly3DCollection(L1verts, facecolors='green', linewidths=0.5, edgecolors='g', alpha=.20))
     ax3.add_collection3d(Poly3DCollection(L1verts, facecolors='green', linewidths=0.5, edgecolors='g', alpha=.20))
@@ -84,7 +84,7 @@ def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,sho
         for det in cfg["detectors"]:
             # stave = cfg["det2stvchp"][det][0]
             for cluster in clusters[det]:
-                # r = utils.transform_to_real_space( [cluster.xmm,cluster.ymm,cluster.zmm],stave )
+                ### TODO: add here the global offsets and rotations via apply_global_alignment_to_r if(not ismultiproc)
                 clsx.append( cluster.xTmm )
                 clsy.append( cluster.yTmm )
                 clsz.append( cluster.zTmm )
@@ -104,8 +104,21 @@ def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,sho
         goodtrk += 1
         
         ### Plot the points and the fitted line
-        xFrst,yFrst,zFrst = utils.get_trak_at_det(cfg["det_frst"],track)
-        xLast,yLast,zLast = utils.get_trak_at_det(cfg["det_last"],track)
+        # xFrst,yFrst,zFrst = utils.get_trak_at_det(cfg["det_frst"],track)
+        # xLast,yLast,zLast = utils.get_trak_at_det(cfg["det_last"],track)
+        r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track,ismultiproc=False)
+        xFrst=r0[0]
+        yFrst=r0[1]
+        zFrst=r0[2]
+        xLast=rN[0]
+        yLast=rN[1]
+        zLast=rN[2]
+        
+        ### TODO: add here the global offsets and rotations via apply_global_alignment_to_p if(not ismultiproc)
+        ### TODO: to get the new params like:
+        ### TODO: newdir,newcnt = utils.apply_global_alignment_to_p(track.direction,track.centroid,ismultiproc=False)
+        ### TODO: newpars = utils.get_pars_from_centroid_and_direction(newcnt,newdir)
+        
         xw,yw,zw = utils.line(cfg["world"]["z"][0], track.params) ### window
         xd,yd,zd = utils.line(cfg["world"]["z"][1]*0.55, track.params) ### dump direction
         

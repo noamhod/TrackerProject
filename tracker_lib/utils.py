@@ -368,6 +368,88 @@ def res_track2vertex(vertex, direction, centroid):
     return dx,dy
 
 
+def apply_global_alignment_to_r(v,ismultiproc=False):
+    cfg = config.Config().map
+    tx = cfg["global_corr_thetax"]
+    ty = cfg["global_corr_thetay"]
+    tz = cfg["global_corr_thetaz"]
+    dx = cfg["global_corr_dx"]
+    dy = cfg["global_corr_dy"]
+    dz = cfg["global_corr_dz"]
+
+    ### if no transformation:
+    if(tx+ty+tz+dx+dy+dz==0 or ismultiproc):
+        return v
+
+    ### otherwise
+    Rx = [[1,0,0],[0,math.cos(tx),-math.sin(tx)], [0,math.sin(tx),math.cos(tx)]]
+    Ry = [[math.cos(ty),0,math.sin(ty)], [0,1,0], [-math.sin(ty),0,math.cos(ty)]]
+    Rz = [[math.cos(tz),-math.sin(tz),0], [math.sin(tz),math.cos(tz),0], [0,0,1]]
+    
+    ### rotate around x
+    vx = [0,0,0]
+    vx[0] = Rx[0][0]*v[0]+Rx[0][1]*v[1]+Rx[0][2]*v[2]
+    vx[1] = Rx[1][0]*v[0]+Rx[1][1]*v[1]+Rx[1][2]*v[2]
+    vx[2] = Rx[2][0]*v[0]+Rx[2][1]*v[1]+Rx[2][2]*v[2]
+    ### rotate around z
+    vz = [0,0,0]
+    vz[0] = Rz[0][0]*vx[0]+Rz[0][1]*vx[1]+Rz[0][2]*vx[2]
+    vz[1] = Rz[1][0]*vx[0]+Rz[1][1]*vx[1]+Rz[1][2]*vx[2]
+    vz[2] = Rz[2][0]*vx[0]+Rz[2][1]*vx[1]+Rz[2][2]*vx[2]
+    ### rotate around y
+    vy = [0,0,0]
+    vy[0] = Ry[0][0]*vz[0]+Ry[0][1]*vz[1]+Ry[0][2]*vz[2]
+    vy[1] = Ry[1][0]*vz[0]+Ry[1][1]*vz[1]+Ry[1][2]*vz[2]
+    vy[2] = Ry[2][0]*vz[0]+Ry[2][1]*vz[1]+Ry[2][2]*vz[2]
+    
+    ### add translations
+    r = vy
+    r[0] += dx
+    r[1] += dy
+    r[2] += dz
+    return r
+
+import numpy as np
+
+
+def apply_global_alignment_to_p(direction,centroid,ismultiproc=False):
+    """
+    Transforms track.direction and track.centroid to Global Frame.
+    """
+    cfg = config.Config().map
+    tx = cfg["global_corr_thetax"]
+    ty = cfg["global_corr_thetay"]
+    tz = cfg["global_corr_thetaz"]
+    dx = cfg["global_corr_dx"]
+    dy = cfg["global_corr_dy"]
+    dz = cfg["global_corr_dz"]
+
+    ### if no transformation:
+    if(tx+ty+tz+dx+dy+dz==0 or ismultiproc):
+        return direction, centroid
+
+    # 1. Construct the Rotation Matrices
+    cx, sx = np.cos(tx), np.sin(tx)
+    cy, sy = np.cos(ty), np.sin(ty)
+    cz, sz = np.cos(tz), np.sin(tz)
+
+    Rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    Ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    Rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+
+    # Combine: R = Rz * Ry * Rx
+    R = Rz @ Ry @ Rx
+    T = np.array([dx, dy, dz])
+
+    # 2. Transform the vectors
+    # track.direction is a numpy array [vx, vy, vz]
+    # track.centroid is a numpy array [cx, cy, cz]
+    new_direction = R @ direction
+    new_centroid = (R @ centroid) + T
+
+    return new_direction, new_centroid
+
+
 def get_track_point_at_z(track,z):
     x,y,z = line(z,track.params)
     r = [x,y,z]
@@ -380,9 +462,9 @@ def get_trak_at_det(det,track):
     rT = transform_to_real_space(r0,det)
     xT,yT,zT = line(rT[2],track.params)
     return xT,yT,zT
+    
 
-
-def get_track_point_at_extremes(track):
+def get_track_point_at_extremes(track,ismultiproc=False):
     cfg = config.Config().map
     x0,y0,z0 = get_trak_at_det(cfg["det_frst"],track)
     xN,yN,zN = get_trak_at_det(cfg["det_last"],track)
@@ -394,6 +476,13 @@ def get_track_point_at_extremes(track):
     rW = get_track_point_at_z(track,zW)
     rF = get_track_point_at_z(track,zF)
     rD = get_track_point_at_z(track,zD)
+    ### apply global aligment?
+    if(not ismultiproc):
+        r0 = apply_global_alignment_to_r(r0)
+        rN = apply_global_alignment_to_r(rN)
+        rW = apply_global_alignment_to_r(rW)
+        rF = apply_global_alignment_to_r(rF)
+        rD = apply_global_alignment_to_r(rD)
     
     return r0,rN,rW,rF,rD
     

@@ -367,7 +367,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             ### require good chi2, pointing to the pdc window, inclined up as a positron
             chi2ndof = chisq/ndof if(ndof>0) else 99999
             pass_fit       = (success and chi2ndof<=cfg["cut_chi2dof"])
-            pass_selection = (pass_fit and selections.pass_geoacc_selection(track))
+            pass_selection = (pass_fit and selections.pass_geoacc_selection(track,ismultiproc=True))
             if(success):        n_successful_tracks += 1
             if(pass_fit):       n_goodchi2_tracks += 1
             if(pass_selection): n_selected_tracks += 1
@@ -448,7 +448,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             # showcls = True ###TODO: remove
             showwin = (cfg["runtype"]!="cosmics")
             showpip = ("E320" in cfg["inputfile"])
-            evtdisp.plot_event(runnumber,starttime,duration,trigger,fevtdisplayname,clusters,tracks,chi2threshold=cfg["cut_chi2dof"],showtrkcls=showcls,showallcls=showcls,showwindow=showwin,showpipe=showpip)
+            evtdisp.plot_event(runnumber,starttime,duration,trigger,fevtdisplayname,clusters,tracks,chi2threshold=cfg["cut_chi2dof"],showtrkcls=showcls,showallcls=showcls,showwindow=showwin,showpipe=showpip,ismultiproc=True)
         
         if(n_goodchi2_tracks<1): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leqX") )
