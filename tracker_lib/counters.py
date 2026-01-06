@@ -13,8 +13,8 @@ pad_mrg_rgt = ROOT.gStyle.GetPadRightMargin()
 
 
 COUNTERS      = ["Pixels/layer", "Clusters/layer", "Track Seeds", "Good Tracks", "Selected Tracks"]
-counters_cols = [ROOT.kBlack,   ROOT.kBlue,      ROOT.kRed,     ROOT.kOrange+1, ROOT.kGreen+2 ]
-counters_mrks = [23,            22,              26,            24,             20 ]
+counters_cols = [ROOT.kBlack,   ROOT.kBlue,        ROOT.kRed,     ROOT.kOrange+1, ROOT.kGreen+2 ]
+counters_mrks = [23,            22,                26,            24,             20 ]
 
 counters_x_trg = array.array('d')
 counters_y_val = {}

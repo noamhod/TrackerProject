@@ -20,15 +20,15 @@ detevtlib        = 20252302
 # nmax2process  = 100
 # inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run490.root
 
-# ### run502 (Be window in):
-# first2process = 357
-# nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
-
-### run503 (beam-only, focusing on foil, 6h-long)
-first2process = 0
+### run502 (Be window in):
+first2process = 357
 nmax2process  = 0
-inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run503.root
+inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
+
+# ### run503 (beam-only, focusing on foil, 6h-long)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run503.root
 
 # ### run510 (Be window in long run, parasitic)
 # first2process = 0
@@ -124,8 +124,8 @@ lut_scaleY = 0.20
 
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX
-cut_chi2dof = 3
-# cut_chi2dof = 1000
+# cut_chi2dof = 3
+cut_chi2dof = 100000
 # only during alignment !!!
 cut_dk_algn       = 0
 cut_dk_algn_det   = ALPIDE_3
@@ -139,16 +139,16 @@ cut_allow_negative_yz_slope = 0
 cut_windowaprtr = 1
 cut_flangeaprtr = 1
 cut_dipoleaprtr = 1
+cut_strip         = 0
+cut_strip_xcenter = -2.8
+cut_strip_ycenter = 10.1
+cut_strip_xwidth  = 7
+cut_strip_ywidth  = 7
 cut_spot          = 0
 cut_spot_xcenter  = -2.6
 cut_spot_ycenter  = 10.6
-cut_spot_radius_x = 3
-cut_spot_radius_y = 7
-cut_strip         = 1
-cut_strip_xcenter = 7.7
-cut_strip_ycenter = -3.3
-cut_strip_xwidth  = 7
-cut_strip_ywidth  = 7
+cut_spot_radius_x = 2
+cut_spot_radius_y = 10
 ### eliptical RoI at the chips surface
 cut_RoI_spot           = 0
 cut_RoI_spot_xcenter   = 0
@@ -208,10 +208,10 @@ global_corr_dx     = 0
 global_corr_dy     = 0
 global_corr_dz     = 0
 # global_corr_thetax = 0.2216
-# global_corr_thetay = 0
+# global_corr_thetay = +0.002
 # global_corr_thetaz = 0
-# global_corr_dx     = -10.1
-# global_corr_dy     = +1.2
+# global_corr_dx     = -11.1
+# global_corr_dy     = +1.6
 # global_corr_dz     = 0
 
 

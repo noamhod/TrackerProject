@@ -105,6 +105,7 @@ def get_pz_from_fit(theta_yz, err_thet_yz=0):
     pz = (0.3 * B * LB)/math.sin( phi )
     return pz
 
+
 def get_toy(toy,T,htH,htL,err,hpzH=None,hpzL=None,err_thet_yz=0,fOut=None):
     ### get the misalignment
     e = rnd.Gaus(0,err)
@@ -285,9 +286,28 @@ def book_histos():
     ### some histos
     histos = {}
     
+    trkarr = hists.GetLogBinning(75,0.5,3000)
+    ntrkarr = len(trkarr)-1
+    
     histos.update({ "hTriggers": ROOT.TH1D("hTriggers",";;Triggers",2,0,2)})
     histos["hTriggers"].GetXaxis().SetBinLabel(1,"All")
     histos["hTriggers"].GetXaxis().SetBinLabel(2,"Good")
+    
+    histos.update( { "h_nTunnels"      : ROOT.TH1D("h_nTunnels",";N_{tunnels}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTunnels_log"  : ROOT.TH1D("h_nTunnels_log",";N_{tunnels}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTunnels_full" : ROOT.TH1D("h_nTunnels_full",";N_{tunnels}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTunnels_mid"  : ROOT.TH1D("h_nTunnels_mid",";N_{tunnels}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTunnels_zoom" : ROOT.TH1D("h_nTunnels_zoom",";N_{tunnels}/Event;Events",40,0,40) } )
+    histos.update( { "h_nSeeds"        : ROOT.TH1D("h_nSeeds",";N_{seeds}/Event;Events",250,0,250) } )
+    histos.update( { "h_nSeeds_log"    : ROOT.TH1D("h_nSeeds_log",";N_{seeds}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nSeeds_full"   : ROOT.TH1D("h_nSeeds_full",";N_{seeds}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nSeeds_mid"    : ROOT.TH1D("h_nSeeds_mid",";N_{seeds}/Event;Events",100,0,100) } )
+    histos.update( { "h_nSeeds_zoom"   : ROOT.TH1D("h_nSeeds_zoom",";N_{seeds}/Event;Events",40,0,40) } )
+    histos.update( { "h_nTracks"       : ROOT.TH1D("h_nTracks",";N_{tracks}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTracks_log"   : ROOT.TH1D("h_nTracks_log",";N_{tracks}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTracks_full"  : ROOT.TH1D("h_nTracks_full",";N_{tracks}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTracks_mid"   : ROOT.TH1D("h_nTracks_mid",";N_{tracks}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTracks_zoom"  : ROOT.TH1D("h_nTracks_zoom",";N_{tracks}/Event;Events",40,0,40) } )
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
@@ -731,6 +751,9 @@ if __name__ == "__main__":
                 n_pixels = 0
                 nactivelayers = np.zeros(cfg["layers"], dtype=int)
                 for det in cfg["detectors"]:
+                    if(det not in pkl_event.npixels):
+                        print(f"problem in trigger {pkl_event.trigger} --> {det} not found in pkl_event.npixels. Skipping.")
+                        break
                     npix = pkl_event.npixels[det]
                     tdm = cfg["det2tdm"][det]
                     nactivelayers[tdm] = (npix>0)
@@ -752,10 +775,22 @@ if __name__ == "__main__":
                 counters.set_global_counter("Clusters/layer",icounter,n_clusters/Ndet)
                 if(not pass_clusters): continue
                 
+                
+                histos["h_nTunnels"     ].Fill(pkl_event.ntunnels)
+                histos["h_nTunnels_log" ].Fill(pkl_event.ntunnels)
+                histos["h_nTunnels_full"].Fill(pkl_event.ntunnels)
+                histos["h_nTunnels_mid" ].Fill(pkl_event.ntunnels)
+                histos["h_nTunnels_zoom"].Fill(pkl_event.ntunnels)
+                
 
                 ### check seeds
                 n_seeds = len(pkl_event.seeds)
                 counters.set_global_counter("Track Seeds",icounter,n_seeds)
+                histos["h_nSeeds"     ].Fill(n_seeds)
+                histos["h_nSeeds_log" ].Fill(n_seeds)
+                histos["h_nSeeds_full"].Fill(n_seeds)
+                histos["h_nSeeds_mid" ].Fill(n_seeds)
+                histos["h_nSeeds_zoom"].Fill(n_seeds)
                 if(n_seeds==0): continue
         
 
@@ -941,6 +976,11 @@ if __name__ == "__main__":
                     
                     acceptance_tracks.append(track)
                     ntracks += 1
+                    
+                    # TODO: FOR PRINTING THE CLUSTERS FOR THE HOUGH-TRANSFORM ILLUSTRATIVE PLOT
+                    # for det in track.detectors:
+                    #     print(f'"{det}": ({track.trkcls[det].xTnoGmm},{track.trkcls[det].yTnoGmm},{track.trkcls[det].zTnoGmm}),')
+                    
                 ###################
                 ### end of loop ###
                 ###################
@@ -953,6 +993,12 @@ if __name__ == "__main__":
                 selected_tracks = acceptance_tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(acceptance_tracks)
                 # if(len(selected_tracks)!=len(acceptance_tracks)): print(f"nsel:{len(acceptance_tracks)} --> npas={len(selected_tracks)}")
                 counters.set_global_counter("Selected Tracks",icounter,len(selected_tracks))
+                
+                histos["h_nTracks"     ].Fill(len(selected_tracks))
+                histos["h_nTracks_log" ].Fill(len(selected_tracks))
+                histos["h_nTracks_full"].Fill(len(selected_tracks))
+                histos["h_nTracks_mid" ].Fill(len(selected_tracks))
+                histos["h_nTracks_zoom"].Fill(len(selected_tracks))
                 
                 ### event displays
                 if(cfg["plot_offline_evtdisp"] and len(good_tracks)>0):
@@ -1139,16 +1185,17 @@ if __name__ == "__main__":
     
     glb_dx = cfg["global_corr_dx"]
     glb_tx = cfg["global_corr_thetax"]
+    glb_ty = cfg["global_corr_thetay"]
     glb_dy = cfg["global_corr_dy"]
     cut_strp = cfg["cut_strip"]
     cut_spot = cfg["cut_spot"]
-    noGlobalAlignment      = (glb_dx==0 and glb_tx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
-    noGlobAlgnWithStrip    = (glb_dx==0 and glb_tx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the original blob
-    partialGlobalAlignment = (glb_dx!=0 and glb_tx!=0 and glb_dy==0 and cut_strp==False and cut_spot==False) 
-    partGlobalAlgnWithStrp = (glb_dx!=0 and glb_tx!=0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
-    fullGlobalAlignment    = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
-    fullGlobAlgnWithStrip  = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
-    fullGlobAlgFullSel     = (glb_dx!=0 and glb_tx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
+    noGlobalAlignment      = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
+    noGlobAlgnWithStrip    = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the orig blob
+    partialGlobalAlignment = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False) 
+    partGlobalAlgnWithStrp = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobalAlignment    = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
+    fullGlobAlgnWithStrip  = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobAlgFullSel     = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
     
     algn_label = "NULL"
     if(noGlobalAlignment):      algn_label = "Before global alignment"
@@ -1391,37 +1438,34 @@ if __name__ == "__main__":
     gryz = None
     grpz = None
     if(dotoyhsit):
+        ROOT.gStyle.SetErrorX(0.5)
         hxz = histos["hTheta_xz_before_cuts"].Clone("hxz")
         hyz = histos["hTheta_yz_before_cuts"].Clone("hyz")
         hpz = histos["hPf_small"].Clone("hpz")
         hxz.SetBinErrorOption(ROOT.TH1.kPoisson)
         hyz.SetBinErrorOption(ROOT.TH1.kPoisson)
-        # hpz.SetBinErrorOption(ROOT.TH1.kPoisson)
         hxzl = histos["hTheta_xz_before_cuts"].Clone("hxz_down")
         hxzh = histos["hTheta_xz_before_cuts"].Clone("hxz_up")
         hyzl = histos["hTheta_yz_before_cuts"].Clone("hyz_down")
         hyzh = histos["hTheta_yz_before_cuts"].Clone("hyz_up")
         hpzl = histos["hPf_small"].Clone("hpz_down")
         hpzh = histos["hPf_small"].Clone("hpz_up")
-        err_xz = 0.00087 #0.0025
-        err_yz = 0.00094 #0.0025
-        err_thet_yz = 0.001
-        fOutToys = ROOT.TFile("fOutToys.root","RECREATE")
+        err_xz_rad      = 0.0009 ## [rad] ## From step 3 of the local-alignment process in the paper
+        err_yz_rad      = 0.0010 ## [rad] ## From step 3 of the local-alignment process in the paper
+        err_thet_yz_rad = 0.0010 ## [rad] ## This is due to the tilt: from the bin width of the θ_yz distribution (i.e., from the uncertainty on θ^max_yz)
+        fOutToys = ROOT.TFile(tfilenamein.replace(".root","_toys.root"),"RECREATE")
         hyz.Write()
         hpz.Write()
-        for i in range(1000): get_toy(i,arr_theta_xz,htH=hxzh,htL=hxzl,err=err_xz)
-        for i in range(1000): get_toy(i,arr_theta_yz,htH=hyzh,htL=hyzl,err=err_yz)
-        for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz,hpzH=hpzh,hpzL=hpzl,err_thet_yz=err_thet_yz)
+        for i in range(1000): get_toy(i,arr_theta_xz,htH=hxzh,htL=hxzl,err=err_xz_rad)
+        for i in range(1000): get_toy(i,arr_theta_yz,htH=hyzh,htL=hyzl,err=err_yz_rad)
+        for i in range(1000): get_toy(i,arr_theta_yz_pass,htH=hyzh,htL=hyzl,err=err_yz_rad,hpzH=hpzh,hpzL=hpzl,err_thet_yz=err_thet_yz_rad)
         fOutToys.Close()
         grxz = get_error_graph("grxz",h0=hxz,hh=hxzh,hl=hxzl)
         gryz = get_error_graph("gryz",h0=hyz,hh=hyzh,hl=hyzl)
         grpz = get_error_graph("grpz",h0=hpz,hh=hpzh,hl=hpzl)
+        #
         hxz.GetXaxis().SetTitle("Track #theta_{xz} (LAB frame) [rad]")
         hyz.GetXaxis().SetTitle("Track #theta_{yz} (LAB frame) [rad]")
-        # hxz.SetFillColorAlpha(ROOT.kBlue,0.35)
-        # hyz.SetFillColorAlpha(ROOT.kBlue,0.35)
-        # hxz.SetLineColor(ROOT.kBlue)
-        # hyz.SetLineColor(ROOT.kBlue)
         hxz.SetMarkerStyle(20)
         hyz.SetMarkerStyle(20)
         hxz.SetMarkerSize(1)
@@ -1431,18 +1475,19 @@ if __name__ == "__main__":
         hxz.SetLineColor(ROOT.kBlack)
         hyz.SetLineColor(ROOT.kBlack)
         #
-        hxz.SetMaximum(420)
-        hyz.SetMaximum(280)
+        hxz.SetMaximum(320)
+        hyz.SetMaximum(230)
         hxz.GetXaxis().SetTitleOffset(1.3)
         hyz.GetXaxis().SetTitleOffset(1.3)
         cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)
         cnv.Divide(2,1)
         cnv.cd(1)
         ROOT.gPad.SetTicks(1,1)
-        # hxz.Draw("hist")
-        hxz.Draw("ep")
-        # grxz.Draw("E3 same")
+        hxz.Draw("e1p")
         grxz.Draw("E2 same")
+        # grxz.SetMarkerStyle(25)
+        # grxz.SetMarkerSize(1)
+        # grxz.Draw("e1p same")
         cnv.RedrawAxis()
         s = ROOT.TLatex()
         s.SetNDC(1)
@@ -1450,7 +1495,7 @@ if __name__ == "__main__":
         s.SetTextColor(ROOT.kBlack)
         s.SetTextFont(22)
         s.SetTextSize(0.045)
-        s.DrawLatex(0.17,0.85,f"Run {runnum}")
+        s.DrawLatex(0.57,0.85,f"Run {runnum}")
         #
         s = ROOT.TLatex()
         s.SetNDC(1)
@@ -1458,14 +1503,13 @@ if __name__ == "__main__":
         s.SetTextColor(ROOT.kBlack)
         s.SetTextFont(132)
         s.SetTextSize(0.045)
-        s.DrawLatex(0.16,0.80,f"#mu={hxz.GetMean():.3f} rad")
-        s.DrawLatex(0.16,0.75,f"#sigma={hxz.GetStdDev():.3f} rad")
-        s.DrawLatex(0.16,0.70,f"#theta_{{xz}}^{{max}}={hxz.GetXaxis().GetBinCenter(hxz.GetMaximumBin()):.3f} rad")
+        s.DrawLatex(0.56,0.80,f"#mu={hxz.GetMean():.3f} rad")
+        s.DrawLatex(0.56,0.75,f"#sigma={hxz.GetStdDev():.3f} rad")
+        s.DrawLatex(0.56,0.70,f"#theta_{{xz}}^{{max}}={hxz.GetXaxis().GetBinCenter(hxz.GetMaximumBin()):.3f} rad")
         #
         cnv.cd(2)
         ROOT.gPad.SetTicks(1,1)
-        hyz.Draw("ep")
-        # gryz.Draw("E3 same")
+        hyz.Draw("e1p")
         gryz.Draw("E2 same")
         cnv.RedrawAxis()
         s = ROOT.TLatex()
@@ -1489,6 +1533,7 @@ if __name__ == "__main__":
         cnv.Update()
         cnv.SaveAs(f'{foupdfname.replace(".pdf","")}_angles_nocuts.pdf')
         del cnv
+        ROOT.gStyle.SetErrorX(0.0)
     print("---------------6")
     
     
