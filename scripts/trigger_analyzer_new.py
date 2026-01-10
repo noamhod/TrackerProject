@@ -51,17 +51,11 @@ configfile = argus.conf
 fillhits = (int(argus.hits)==1) if(argus.hits is not None) else False
 dopvs    = (int(argus.pvs)==1)  if(argus.pvs is not None) else False
 
-import config
-from config import *
-### must be called here (first) and only once!
-init_config(configfile,False)
 
-import utils
-from utils import *
-import pixels
-from pixels import *
-import hists
-from hists import *
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tracker_lib import config
+from tracker_lib import Pixels, hists, counters, hists, utils
 
 
 ### global
@@ -193,6 +187,14 @@ def plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytit
 
 
 if __name__ == "__main__":
+
+    #############################################
+    ### Initialize Config in the main process ###
+    config.init_config(configfile, False)
+    cfg = config.Config().map
+    config.show_config(cfg)
+    #############################################
+    
     
     ### see https://root.cern/manual/python
     print("---- start loading libs")
@@ -210,12 +212,9 @@ if __name__ == "__main__":
         ROOT.gSystem.Load('libtrk_event_dict.dylib')
     print("---- finish loading libs")
     
-    # print config once
-    show_config()
-    
     ### make directories, copy the input file to the new basedir and return the path to it
-    tfilenamein = make_run_dirs(cfg["inputfile"])
-    RunNum = get_run_from_file(tfilenamein)
+    tfilenamein = utils.make_run_dirs(cfg["inputfile"])
+    RunNum = utils.get_run_from_file(tfilenamein)
     
     tfile = ROOT.TFile(tfilenamein,"READ")
     ttree = tfile.Get("MyTree")
@@ -230,7 +229,8 @@ if __name__ == "__main__":
     detectorids = [8,6,4,2,0]
     detcol = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ROOT.kOrange+1]
     
-    hPixMatix = GetPixMatrix()
+    hPixMatix = hists.GetPixMatrix()
+    pix_x_nbins,pix_x_min,pix_x_max, pix_y_nbins,pix_y_min,pix_y_max = hists.GetPixelMatrixPars()
     for det in cfg["detectors"]:
         histos.update( { "h_pix_occ_2D_"+det : ROOT.TH2D("h_pix_occ_2D_"+det,";x;y;Hits",pix_x_nbins,pix_x_min,pix_x_max, pix_y_nbins,pix_y_min,pix_y_max) } )
 
@@ -304,7 +304,7 @@ if __name__ == "__main__":
         
         x_trg[counter] = trgn
         x_ent[counter] = ientry
-        x_tim.append( get_human_timestamp_ns(ts_bgn) )
+        x_tim.append( utils.get_human_timestamp_ns(ts_bgn) )
         
         y_dt[counter]       = dt
         
@@ -516,7 +516,7 @@ if __name__ == "__main__":
     lines.update({"pmt3360_dn":getLine(thr_dn_pmt3360,x_trg)})
     lines.update({"pmt3360_up":getLine(thr_up_pmt3360,x_trg)})
     
-    thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction="up",nsigma=2,frac=0.2)
+    thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction="up",nsigma=5,frac=0.01)
     lines.update({"rad_dn":getLine(thr_dn_rad,x_trg)})
     lines.update({"rad_up":getLine(thr_up_rad,x_trg)})
     
@@ -556,7 +556,7 @@ if __name__ == "__main__":
         if(not fail and y_pmt3350[i]>thr_up_pmt3350 and thr_up_pmt3350>0):         fail = True
         if(not fail and y_pmt3360[i]>thr_up_pmt3360 and thr_up_pmt3360>0):         fail = True
         
-        # if(not fail and y_rad[i]>thr_up_rad and thr_up_rad>0):                 fail = True
+        if(not fail and y_rad[i]>thr_up_rad and thr_up_rad>0):                     fail = True
         
         if(not fail and y_bpm_pb_3156[i]<thr_dn_bpm_pb_3156 and thr_dn_bpm_pb_3156>0): fail = True
         if(not fail and y_bpm_q0_3218[i]<thr_dn_bpm_q0_3218 and thr_dn_bpm_q0_3218>0): fail = True
@@ -943,8 +943,8 @@ if __name__ == "__main__":
     graphs["rad"].Draw("al")
     graphs["rad"].SetTitle(";Trigger number;RadMon [mRem/h]")
     graphs["rad"].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
-    # lines["rad_dn"].Draw("same")
-    # lines["rad_up"].Draw("same")
+    lines["rad_dn"].Draw("same")
+    lines["rad_up"].Draw("same")
     cnv.RedrawAxis()
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
@@ -1063,7 +1063,7 @@ if __name__ == "__main__":
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
     
-    cnv = ROOT.TCanvas("c13","",1200,500)
+    cnv = ROOT.TCanvas("DTORT2_cnts","",1200,500)
     cnv.SetTicks(1,1)
     # cnv.SetLogy()
     graphs["DTORT2_cnts"].Draw("al")
@@ -1074,7 +1074,7 @@ if __name__ == "__main__":
     cnv.SaveAs(f"{ftrgname}")
     
     
-    cnv = ROOT.TCanvas("c13","",1200,500)
+    cnv = ROOT.TCanvas("foilm2","",1200,500)
     cnv.SetTicks(1,1)
     # cnv.SetLogy()
     graphs["foilm2"].Draw("al")
@@ -1084,7 +1084,7 @@ if __name__ == "__main__":
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
     
-    cnv = ROOT.TCanvas("c14","",1200,500)
+    cnv = ROOT.TCanvas("dt","",1200,500)
     cnv.SetTicks(1,1)
     # cnv.SetLogy()
     graphs["dt"].Draw("al")
@@ -1094,7 +1094,7 @@ if __name__ == "__main__":
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
     
-    cnv = ROOT.TCanvas("c15","",1200,500)
+    cnv = ROOT.TCanvas("time","",1200,500)
     cnv.SetTicks(1,1)
     cnv.SetLogy()
     histos["h_time"].Draw("hist")
@@ -1103,7 +1103,7 @@ if __name__ == "__main__":
     cnv.SaveAs(f"{ftrgname})")
     
     
-    cnv = ROOT.TCanvas("cnv","",800,2200)
+    cnv = ROOT.TCanvas("pix_occ_2D_","",800,2200)
     cnv.Divide(1,5)
     for idet,det in enumerate(cfg["detectors"]):
         cnv.cd(idet+1)

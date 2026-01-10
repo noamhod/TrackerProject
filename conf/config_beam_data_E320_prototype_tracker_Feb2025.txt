@@ -13,7 +13,7 @@ saveprimitive    = 0
 nCPU             = 10
 nprintout        = 20
 skipmasking      = 1
-detevtlib        = 20252302
+detevtlib        = 20250223
 
 # ### run490 (Al foil allin, focused)
 # first2process = 0
@@ -124,8 +124,8 @@ lut_scaleY = 0.20
 
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX
-# cut_chi2dof = 3
-cut_chi2dof = 100000
+cut_chi2dof = 3
+# cut_chi2dof = 1000
 # only during alignment !!!
 cut_dk_algn       = 0
 cut_dk_algn_det   = ALPIDE_3
@@ -144,7 +144,7 @@ cut_strip_xcenter = -2.8
 cut_strip_ycenter = 10.1
 cut_strip_xwidth  = 7
 cut_strip_ywidth  = 7
-cut_spot          = 0
+cut_spot          = 1
 cut_spot_xcenter  = -2.6
 cut_spot_ycenter  = 10.6
 cut_spot_radius_x = 2
@@ -201,18 +201,18 @@ alignmentmintrks = 25
 
 
 [GLOBALALIGNMENT]
-global_corr_thetax = 0
-global_corr_thetay = 0
-global_corr_thetaz = 0
-global_corr_dx     = 0
-global_corr_dy     = 0
-global_corr_dz     = 0
-# global_corr_thetax = 0.2216
-# global_corr_thetay = +0.002
+# global_corr_thetax = 0
+# global_corr_thetay = 0
 # global_corr_thetaz = 0
-# global_corr_dx     = -11.1
-# global_corr_dy     = +1.6
+# global_corr_dx     = 0
+# global_corr_dy     = 0
 # global_corr_dz     = 0
+global_corr_thetax = 0.2216
+global_corr_thetay = +0.002
+global_corr_thetaz = 0
+global_corr_dx     = -11.1
+global_corr_dy     = +1.6
+global_corr_dz     = 0
 
 
 [FIT]

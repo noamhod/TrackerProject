@@ -1,2 +1,0 @@
-cmake CMakeLists.txt
-make

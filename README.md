@@ -10,6 +10,7 @@ Prerequisits:
 Setup:
 - On mac: Setup ROOT
 - On the DAQ PC it is already setup
+- On the mac: might need to do `source venv/bin/activate'
 - On mac: `export LD_LIBRARY_PATH=$PWD/DetectorEvent/DATEDIR:$LD_LIBRARY_PATH` (DATEDIR is the specific date where the lib is valid for)
 - On the DAQ PC: `export LD_LIBRARY_PATH=$HOME/work/eudaq/lib:$LD_LIBRARY_PATH`
 - put data files somewhere with enough space

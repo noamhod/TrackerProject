@@ -13,7 +13,7 @@ saveprimitive    = 0
 nCPU             = 10
 nprintout        = 20
 skipmasking      = 1
-detevtlib        = 20252302
+detevtlib        = 20250223
 
 # ### run490 (Al foil allin, focused)
 # first2process = 0
