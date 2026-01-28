@@ -189,7 +189,7 @@ class run_meta {
         // time server meta data
         std::vector<time_server_md> ts_md;
 
-        ClassDef(run_meta, 2);
+        ClassDef(run_meta, 3);
 };
 
 #endif

@@ -140,7 +140,7 @@ cut_windowaprtr = 1
 cut_flangeaprtr = 1
 cut_dipoleaprtr = 1
 cut_strip         = 0
-cut_strip_xcenter = -2.8
+cut_strip_xcenter = -2.9
 cut_strip_ycenter = 10.1
 cut_strip_xwidth  = 7
 cut_strip_ywidth  = 7
@@ -179,7 +179,7 @@ use_large_clserr_for_algnmnt = 0
 
 #####################################
 ### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 10<CHI2<25 USING ALPIDE_0 AS REF
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=3.37E-03,dy=5.28E-03,theta=-1.23E-03 ALPIDE_2:dx=4.43E-02,dy=-7.62E-02,theta=1.79E-03 ALPIDE_3:dx=7.16E-02,dy=-7.93E-02,theta=-1.39E-03 ALPIDE_4:dx=-2.62E-02,dy=1.99E-02,theta=3.76E-04
+misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-03,dy=9.59E-03,theta=-1.34E-03 ALPIDE_2:dx=4.12E-02,dy=-7.33E-02,theta=1.74E-03 ALPIDE_3:dx=7.08E-02,dy=-7.82E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.45E-02,dy=1.96E-02,theta=3.98E-04
 #####################################
 
 minchi2align  = 0.01
@@ -208,10 +208,10 @@ alignmentmintrks = 25
 # global_corr_dy     = 0
 # global_corr_dz     = 0
 global_corr_thetax = 0.2216
-global_corr_thetay = +0.002
+global_corr_thetay = 0
 global_corr_thetaz = 0
-global_corr_dx     = -11.1
-global_corr_dy     = +1.6
+global_corr_dx     = -10.6
+global_corr_dy     = +1.3
 global_corr_dz     = 0
 
 

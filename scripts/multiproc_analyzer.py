@@ -96,26 +96,30 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             runnumber = utils.get_run_from_file(tfilenamein) #TODO: can also be taken from the event tree itself later
     meta = objects.Meta(runnumber,starttime,endtime,duration)
     # tfmeta.Close()
+    if(cfg["dbg"]): print("Got the meta tree")
     
     
     ### open the pickle:
     if(not cfg["skiptracking"]):
         picklename = tfilenamein.replace(".root","_"+str(irange)+".pkl")
         fpickle = open(os.path.expanduser(picklename),"wb")
-        
+    if(cfg["dbg"]): print("Opened the pickle")
+
     
     
     ### histos
     histos = hists.book_histos()
+    if(cfg["dbg"]): print("Done booking histos")
     
     
     ### get the tree
     tfile,ttree,neventsall = GetTree(tfilenamein)
-    # truth_tree = tfile.Get("MCParticle") if(cfg["isCVRroot"]) else None
+    if(cfg["dbg"]): print("Got the TTree")
     
     
     ### needed below
     hPixMatix = hists.GetPixMatrix()
+    if(cfg["dbg"]): print("Defined the pixel matrix")
     
     
     ### start the event loop
@@ -125,6 +129,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
     for ievt in range(ievt_start,ievt_end+1):
         ### get the event
         ttree.GetEntry(ievt)
+        if(cfg["dbg"]): print(f"Got entry {ievt} from tree")
         
         ### get the trigger number and time stamps
         trigger         = ttree.event.trg_n
@@ -143,11 +148,13 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                               ttree.event.epics_frame.mcalc_z_obj,
                               ttree.event.epics_frame.mcalc_z_im,
                               ttree.event.epics_frame.espec_xcor_bact)
+            if(cfg["dbg"]): print("Done setting magnets")
             
 
         ### append the envent no-matter-what:
         eventslist.append( objects.Event(meta,trigger,timestamp_begin,timestamp_end,magnets,saveprimitive=cfg["saveprimitive"]) )
         out_event_index = len(eventslist)-1
+        if(cfg["dbg"]): print("Start appending event list")
         
 
         ### all events...
@@ -161,6 +168,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 print(f"Skipping bad trigger: {trigger}")
                 continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("BeamQC") )
+        if(cfg["dbg"]): print("Passed good trigger")
 
         
         ### check event errors
@@ -176,10 +184,11 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                         histos["h_errors_"+det].AddBinContent(b)
                 continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("0Err") )
+        if(cfg["dbg"]): print("Passed DAQ errors")
 
 
         ### get the pixels
-        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix)
+        n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix,pix_matrix_max_frac=1)
         histos["h_nStaves"].Fill(n_active_staves)
         histos["h_nDetectors"].Fill(n_active_chips)
         histos["h_nTandemLayers"].Fill(n_active_tandem_layers)

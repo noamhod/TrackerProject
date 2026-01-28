@@ -70,18 +70,17 @@ def pass_geoacc_selection(track,ismultiproc=False):
     xWinL,xWinR,yWinB,yWinT = utils.get_pdc_window_bounds()
     xFlgL,xFlgR,yFlgB,yFlgT = utils.get_dipole_flange_bounds()
     xDipL,xDipR,yDipB,yDipT = utils.get_dipole_exit_bounds()
-    
-    psss_RoI             = ( tilted_eliptic_RoI_cut(track) )                                       if(cfg["cut_RoI_spot"])    else True
-    pass_inclination_yz  = ( rN[1]>=r0[1]  and r0[1]>=rW[1]  and rN[1]>=rW[1] )        if(cfg["cut_allow_negative_yz_slope"]) else True
-    pass_window_aperture = ( (rW[0]>=xWinL and rW[0]<=xWinR) and (rW[1]>=yWinB and rW[1]<=yWinT) ) if(cfg["cut_windowaprtr"]) else True 
-    # pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>0 and rF[1]<=yFlgT) )      if(cfg["cut_flangeaprtr"]) else True
-    pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>yFlgB and rF[1]<=yFlgT) )  if(cfg["cut_flangeaprtr"]) else True
-    # pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>0 and rD[1]<=yDipT) )      if(cfg["cut_dipoleaprtr"]) else True
-    pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>yDipB and rD[1]<=yDipT) )  if(cfg["cut_dipoleaprtr"]) else True
-    pass_dipole_spot     = ( spot_cut(rD[0],rD[1])  )     if(cfg["cut_spot"])    else True
-    pass_dipole_strip    = ( strip_cut(rD[0],rD[1]) )     if(cfg["cut_strip"])   else True
-    pass_dk_at_det       = ( pass_dk_at_detector(track) ) if(cfg["cut_dk_algn"]) else True
+    ### the cuts
+    psss_RoI             = ( tilted_eliptic_RoI_cut(track) )                                       if(cfg["cut_RoI_spot"])                else True
+    pass_inclination_yz  = ( rN[1]>=r0[1]  and r0[1]>=rW[1]  and rN[1]>=rW[1] )                    if(cfg["cut_allow_negative_yz_slope"]) else True
+    pass_window_aperture = ( (rW[0]>=xWinL and rW[0]<=xWinR) and (rW[1]>=yWinB and rW[1]<=yWinT) ) if(cfg["cut_windowaprtr"])             else True 
+    pass_flange_aperture = ( (rF[0]>=xFlgL and rF[0]<=xFlgR) and (rF[1]>yFlgB and rF[1]<=yFlgT) )  if(cfg["cut_flangeaprtr"])             else True
+    pass_dipole_aperture = ( (rD[0]>=xDipL and rD[0]<=xDipR) and (rD[1]>yDipB and rD[1]<=yDipT) )  if(cfg["cut_dipoleaprtr"])             else True
+    pass_dipole_spot     = ( spot_cut(rD[0],rD[1])  )                                              if(cfg["cut_spot"])                    else True
+    pass_dipole_strip    = ( strip_cut(rD[0],rD[1]) )                                              if(cfg["cut_strip"])                   else True
+    pass_dk_at_det       = ( pass_dk_at_detector(track) )                                          if(cfg["cut_dk_algn"])                 else True
     if(cfg["dbg"]): print(f"psss_RoI={psss_RoI}, pass_inclination_yz={pass_inclination_yz}, pass_window_aperture={pass_window_aperture}, pass_flange_aperture={pass_flange_aperture}, pass_dipole_aperture={pass_dipole_aperture}, pass_dipole_spot={pass_dipole_spot}, pass_dipole_strip={pass_dipole_strip}, pass_dk_at_det={pass_dk_at_det}")
+    ### final decision
     return (psss_RoI and
             pass_inclination_yz and
             pass_window_aperture and
@@ -97,7 +96,6 @@ def remove_tracks_with_shared_clusters(tracks):
     clsid_to_trackidx = {}
     for det in cfg["detectors"]: clsid_to_trackidx.update({det:{}})
     for itrk,track in enumerate(tracks):
-        # for det in cfg["detectors"]:
         for det in track.detectors:
             CID = track.trkcls[det].CID
             if(CID not in clsid_to_trackidx[det]):

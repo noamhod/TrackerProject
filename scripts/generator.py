@@ -13,6 +13,7 @@ import pickle
 import multiprocessing
 from matplotlib.animation import FuncAnimation, PillowWriter
 import math
+import statistics
 import ROOT
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(0)
@@ -29,11 +30,11 @@ ROOT.gStyle.SetGridColor(ROOT.kGray)
 ROOT.gStyle.SetGridWidth(1)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import bremss as br
+from tracker_lib import bremss as br
 
 
 import argparse
-parser = argparse.ArgumentParser(description='serial_analyzer.py...')
+parser = argparse.ArgumentParser(description='generator.py...')
 parser.add_argument('-mag', metavar='magnets settings (run 502 or run 490)', required=True,  help='magnets settings (run 502 or run 490)')
 parser.add_argument('-gen', metavar='particles to generate', required=True,  help='particles to generate')
 parser.add_argument('-acc', metavar='require full acceptance?', required=False,  help='require full acceptance?')
@@ -110,7 +111,8 @@ Emin    = 1e-2 #1 ## GeV
 Emax    = 10 ## GeV
 smearT  = False #True
 smearP  = True
-smear_sigma_T_um  = 0.03 ## um
+truncate_smear_pT = False
+smear_sigma_T_um  = 1e-4 ## um
 smear_sigma_P_GeV = 1e-4 ## GeV
 ZMAX    = 18 ## METERES
 tmax    = ZMAX / (0.99 * c) ### time range for propagation (seconds): approximate time to travel 18 meters (last detector is at ~18 meters, relativistic particles going ~c)
@@ -166,6 +168,14 @@ hPixelMatrix2_coarse = ROOT.TH2D("h_pix2_coarse",";pixel-x;pixel-y;Hits",int(npi
 hPz_full  = ROOT.TH1D("hPz_full", ";p_{z} [GeV];Particles",100,0,10)
 hPz_small = ROOT.TH1D("hPz_small",";p_{z} [GeV];Particles",50,1.5,4.5)
 hPz_zoom  = ROOT.TH1D("hPz_zoom", ";p_{z} [GeV];Particles",40,1.5,3.5)
+
+hPx_full  = ROOT.TH1D("hPx_full", ";p_{x} [GeV];Particles",100,-1e-2,+1e-2)
+hPx_small = ROOT.TH1D("hPx_small",";p_{x} [GeV];Particles",50, -1e-3,+1e-3)
+hPx_zoom  = ROOT.TH1D("hPx_zoom", ";p_{x} [GeV];Particles",40, -1e-4,+1e-4)
+
+hPy_full  = ROOT.TH1D("hPy_full", ";p_{y} [GeV];Particles",100,-1e-2,+1e-2)
+hPy_small = ROOT.TH1D("hPy_small",";p_{y} [GeV];Particles",50, -1e-3,+1e-3)
+hPy_zoom  = ROOT.TH1D("hPy_zoom", ";p_{y} [GeV];Particles",40, -1e-4,+1e-4)
 
 # Define detector x range
 # detector_x_center_cm = -1.0 # cm
@@ -543,7 +553,7 @@ def truncated_exp_NK(aa, bb, slope=1.0, how_many=1):
     return samples[0] if how_many == 1 else samples
 
 
-def simulate_secondary_production(primary_state,q=+1,Emin=0.5,Emax=5,smear_T=False,smear_pT=False):    
+def simulate_secondary_production(primary_state,q=+1,Emin=0.5,Emax=5,smear_T=False,smear_pT=False,truncate_pT=False):    
     x      = primary_state[0]
     y      = primary_state[1]
     z      = primary_state[2]
@@ -552,13 +562,23 @@ def simulate_secondary_production(primary_state,q=+1,Emin=0.5,Emax=5,smear_T=Fal
     pz     = primary_state[5]
     mass   = primary_state[6]
     ### smear trasverse position
-    if(smear_T):
+    if(smear_T and smear_sigma_T_um>0):
         x = x + np.random.normal(0,smear_sigma_T_um*um_to_m)
         y = y + np.random.normal(0,smear_sigma_T_um*um_to_m)
     ### smear trasverse momenta
     if(smear_pT):
-        px = px + np.random.normal(0,smear_sigma_P_GeV) 
-        py = py + np.random.normal(0,smear_sigma_P_GeV)
+        if(truncate_pT):
+            dpx = np.random.normal(0,smear_sigma_P_GeV)
+            while(abs(dpx)>smear_sigma_P_GeV):
+                dpx = np.random.normal(0,smear_sigma_P_GeV)
+            px = px + dpx
+            dpy = np.random.normal(0,smear_sigma_P_GeV)
+            while(abs(dpy)>smear_sigma_P_GeV):
+                dpy = np.random.normal(0,smear_sigma_P_GeV)
+            py = py + dpy
+        else:
+            px = px + np.random.normal(0,smear_sigma_P_GeV)
+            py = py + np.random.normal(0,smear_sigma_P_GeV)
     ### sample energy from exponential
     # E = truncated_exp_NK(Emin,Emax,slope=0.3) if(Emax>Emin) else Emin # GeV
     E = br.sample_from_pdf_on_bins(E_vals, eplus, nsamples=1, rng=rng)
@@ -627,17 +647,17 @@ quad2 = Quadrupole(
 )
 xcorr = Dipole(
     name="xcorr",
-    x_min=-10.795+magsetdelt["xcorr"][0], x_max=+10.795+magsetdelt["xcorr"][0], 
-    y_min=-4.6990+magsetdelt["xcorr"][1], y_max=+4.6990+magsetdelt["xcorr"][1],
-    z_min=987.779, z_max=1011.15,
+    x_min=-10.795+magsetdelt["xcorr"][0], x_max=+10.795+magsetdelt["xcorr"][0], # cm 
+    y_min=-4.6990+magsetdelt["xcorr"][1], y_max=+4.6990+magsetdelt["xcorr"][1], # cm
+    z_min=987.779, z_max=1011.15, # cm
     B_x=0, B_y=+0.026107, B_z=0,  # Tesla
     angles=magsetangl["xcorr"]
 )
 dipole = Dipole(
     name="dipole",
-    x_min=-2.2352+magsetdelt["dipole"][0], x_max=2.2352+magsetdelt["dipole"][0],
-    y_min=-6.6927+magsetdelt["dipole"][1], y_max=3.4927+magsetdelt["dipole"][1],
-    z_min=1260.34, z_max=1351.78,
+    x_min=-2.2352+magsetdelt["dipole"][0], x_max=2.2352+magsetdelt["dipole"][0], # cm
+    y_min=-6.6927+magsetdelt["dipole"][1], y_max=3.4927+magsetdelt["dipole"][1], # cm
+    z_min=1260.34, z_max=1351.78, # cm
     B_x=0.219, B_y=0, B_z=0,  # Tesla
     angles=magsetangl["dipole"]
 )
@@ -1216,7 +1236,7 @@ if __name__ == "__main__":
     print(f"Run multiprocessing: {mltprc}")
     print(f"MagnetsSettings: {MagnetsSettings}")
 
-    pdfname = f"generator_plots/generator_{MagnetsSettings}"
+    pdfname = f"plots/generator_plots/generator_{MagnetsSettings}"
     
     #####################################################
     #####################################################
@@ -1225,14 +1245,14 @@ if __name__ == "__main__":
     # momentum in units of GeV/c and convert to kg*m/s
     ### generate
     initial_states = []
-    PZ0 = []    
+    PZ0 = []
     for i in range(Nparticles):
         ### generate the primary beam
         electron_state = GenerateGaussianBeam(E_GeV,mGeV,-QQ)
         ### propagate the primary to the foil in vacuum
         electron_state_at_foil = propagate_state_in_vacuum_to_z(electron_state,Z0_m)
         ### smear at the foil to get the secondary
-        positron_state_at_foil = simulate_secondary_production(electron_state_at_foil,q=QQ,Emin=Emin,Emax=Emax,smear_T=smearT,smear_pT=smearP)
+        positron_state_at_foil = simulate_secondary_production(electron_state_at_foil,q=QQ,Emin=Emin,Emax=Emax,smear_T=smearT,smear_pT=smearP,truncate_pT=truncate_smear_pT)
         ### convert to mks
         positron_state_at_foil_mks = state_GeV_to_kgms(positron_state_at_foil)
         # positron_state_at_foil_mks = state_GeV_to_kgms(electron_state_at_foil)
@@ -1645,23 +1665,42 @@ if __name__ == "__main__":
     ### plot the hits COARSELY 2D:
     fig, axs = plt.subplots(1, 5, figsize=(10, 3.5), sharex=True, sharey=True, tight_layout=True)
     P0 = []
+    P0_X = []
+    P0_Y = []
     hOcc = []
     for i,detector in enumerate(detectors):
         X = []
         Y = []
         P = []
+        P_X = []
+        P_Y = []
         for hit in detector.hits:
             pid = hit['particle_id']
             xx  = hit['x']
             yy  = hit['y']
             zz  = hit['z']
+            px  = initial_states[pid][3]
+            py  = initial_states[pid][4]
             pz  = initial_states[pid][5]
             X.append(xx*m_to_mm)
             Y.append(yy*m_to_mm) 
             if(fullacc and pid not in list_good_tracks): continue
             P.append(pz/GeV_to_kgms)
-        hOcc.append( axs[i].hist2d(X, Y, bins=(128,256),range=[[detectors[0].x_min*m_to_mm,detectors[0].x_max*m_to_mm],[detectors[0].y_min*m_to_mm,detectors[0].y_max*m_to_mm]], rasterized=True) )
-        if(i==0): P0 = P
+            P_X.append(px/GeV_to_kgms)
+            P_Y.append(py/GeV_to_kgms)
+        # hOcc.append( axs[i].hist2d(X, Y, bins=(128,256),range=[[detectors[0].x_min*m_to_mm,detectors[0].x_max*m_to_mm],[detectors[0].y_min*m_to_mm,detectors[0].y_max*m_to_mm]], rasterized=True) )
+        hOcc.append( axs[i].hist2d(X, Y, bins=(64,128),range=[[detectors[0].x_min*m_to_mm,detectors[0].x_max*m_to_mm],[detectors[0].y_min*m_to_mm,detectors[0].y_max*m_to_mm]], rasterized=True) )        
+        ## h, xedges, yedges, image = ax.hist2d(...)
+        max_idx = np.unravel_index(np.argmax(hOcc[i][0]), hOcc[i][0].shape) # Find the index of the maximum value in the 2D array
+        tot_counts = hOcc[i][0].sum()
+        max_counts = hOcc[i][0].max()
+        x_of_max   = hOcc[i][1][max_idx[0]]
+        y_of_max   = hOcc[i][2][max_idx[1]]
+        print(f"{detector.name}: x={statistics.mean(X):.3f}+-{statistics.stdev(X):.3f} mm with total counts={tot_counts} and max counts={max_counts} at (xmax,ymax)=({x_of_max:.2f},{y_of_max:.2f})")
+        if(i==0):
+            P0 = P
+            P0_X = P_X
+            P0_Y = P_Y
         axs[i].set_xlabel('X [mm]')
         axs[i].set_ylabel('Y [mm]')
         axs[i].set_title(f'ALPIDE_{i}')
@@ -1679,11 +1718,25 @@ if __name__ == "__main__":
         hPz_full.Fill(p)
         hPz_small.Fill(p)
         hPz_zoom.Fill(p)
+    for p in P0_X:
+        hPx_full.Fill(p)
+        hPx_small.Fill(p)
+        hPx_zoom.Fill(p)
+    for p in P0_Y:
+        hPy_full.Fill(p)
+        hPy_small.Fill(p)
+        hPy_zoom.Fill(p)
     fOut = ROOT.TFile(f"{pdfname}_Toy_MC_hPz_zoom.root","RECREATE")
     fOut.cd()
     hPz_full.Write()
     hPz_small.Write()
     hPz_zoom.Write()
+    hPx_full.Write()
+    hPx_small.Write()
+    hPx_zoom.Write()
+    hPy_full.Write()
+    hPy_small.Write()
+    hPy_zoom.Write()
     fOut.Close()
 
 

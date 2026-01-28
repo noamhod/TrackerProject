@@ -126,8 +126,9 @@ lut_scaleY = 0.20
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX
 # cut_chi2dof = 3
 cut_chi2dof = 1000
+# cut_chi2dof = 20
 # only during alignment !!!
-cut_dk_algn       = 0
+cut_dk_algn       = 1
 cut_dk_algn_det   = ALPIDE_3
 cut_dk_algn_dxmin = 0.025
 cut_dk_algn_dxmax = 0.075
@@ -139,11 +140,11 @@ cut_allow_negative_yz_slope = 0
 cut_windowaprtr = 1
 cut_flangeaprtr = 1
 cut_dipoleaprtr = 1
-cut_strip         = 0
-cut_strip_xcenter = -2.8
-cut_strip_ycenter = 10.1
-cut_strip_xwidth  = 7
-cut_strip_ywidth  = 7
+cut_strip         = 1
+cut_strip_xcenter = 7.4
+cut_strip_ycenter = -3.6
+cut_strip_xwidth  = 5
+cut_strip_ywidth  = 5
 cut_spot          = 0
 cut_spot_xcenter  = -2.6
 cut_spot_ycenter  = 10.6
@@ -179,7 +180,7 @@ misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx
 
 #####################################
 ### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 10<CHI2<25 USING ALPIDE_0 AS REF
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=3.37E-03,dy=5.28E-03,theta=-1.23E-03 ALPIDE_2:dx=4.43E-02,dy=-7.62E-02,theta=1.79E-03 ALPIDE_3:dx=7.16E-02,dy=-7.93E-02,theta=-1.39E-03 ALPIDE_4:dx=-2.62E-02,dy=1.99E-02,theta=3.76E-04
+# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-03,dy=9.59E-03,theta=-1.34E-03 ALPIDE_2:dx=4.12E-02,dy=-7.33E-02,theta=1.74E-03 ALPIDE_3:dx=7.08E-02,dy=-7.82E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.45E-02,dy=1.96E-02,theta=3.98E-04
 #####################################
 
 minchi2align  = 0.01

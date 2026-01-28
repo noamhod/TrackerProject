@@ -41,15 +41,17 @@ ROOT.gStyle.SetPadRightMargin(0.16)
 
 import argparse
 parser = argparse.ArgumentParser(description='analyze_triggers.py...')
-parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
-parser.add_argument('-imin', metavar='first entry', required=False,  help='first entry')
-parser.add_argument('-imax', metavar='last entry', required=False,  help='last entry')
-parser.add_argument('-pvs',  metavar='analyze pvs?', required=False,  help='analyze pvs?')
-parser.add_argument('-hits', metavar='plot hits?', required=False,  help='plot hits?')
+parser.add_argument('-conf',   metavar='config file', required=True,  help='full path to config file')
+parser.add_argument('-pvs',    metavar='analyze pvs?', required=True,  help='analyze pvs?')
+parser.add_argument('-maxocc', metavar='max occupancy to keep', required=True,  help='max occupancy to keep')
+parser.add_argument('-imin',   metavar='first entry', required=False,  help='first entry')
+parser.add_argument('-imax',   metavar='last entry', required=False,  help='last entry')
+parser.add_argument('-hits',   metavar='plot hits?', required=False,  help='plot hits?')
 argus = parser.parse_args()
 configfile = argus.conf
-fillhits = (int(argus.hits)==1) if(argus.hits is not None) else False
-dopvs    = (int(argus.pvs)==1)  if(argus.pvs is not None) else False
+fillhits = (int(argus.hits)==1) if(argus.hits   is not None) else False
+dopvs    = (int(argus.pvs)==1)  if(argus.pvs    is not None) else False
+maxocc   = int(argus.maxocc)    if(argus.maxocc is not None) else int(argus.maxocc)
 
 
 
@@ -540,37 +542,54 @@ if __name__ == "__main__":
     removed_triggers = []
     for i in range(len(x_trg)):
         fail = False
-        if(not fail and y_toro2040[i]<thr_dn_toro2040 and thr_dn_toro2040>0):       fail = True
-        if(not fail and y_toro2452[i]<thr_dn_toro2452 and thr_dn_toro2452>0):       fail = True
-        if(not fail and y_toro3163[i]<thr_dn_toro3163 and thr_dn_toro3163>0):       fail = True
-        if(not fail and y_toro3255[i]<thr_dn_toro3255 and thr_dn_toro3255>0):       fail = True
-        
-        if(not fail and y_toro2040[i]>thr_up_toro2040 and thr_up_toro2040>0):       fail = True
-        if(not fail and y_toro2452[i]>thr_up_toro2452 and thr_up_toro2452>0):       fail = True
-        if(not fail and y_toro3163[i]>thr_up_toro3163 and thr_up_toro3163>0):       fail = True
-        if(not fail and y_toro3255[i]>thr_up_toro3255 and thr_up_toro3255>0):       fail = True
-        
-        if(not fail and y_pmt3060[i]>thr_up_pmt3060 and thr_up_pmt3060>0):         fail = True
-        if(not fail and y_pmt3070[i]>thr_up_pmt3070 and thr_up_pmt3070>0):         fail = True
-        if(not fail and y_pmt3179[i]>thr_up_pmt3179 and thr_up_pmt3179>0):         fail = True
-        if(not fail and y_pmt3350[i]>thr_up_pmt3350 and thr_up_pmt3350>0):         fail = True
-        if(not fail and y_pmt3360[i]>thr_up_pmt3360 and thr_up_pmt3360>0):         fail = True
-        
-        if(not fail and y_rad[i]>thr_up_rad and thr_up_rad>0):                     fail = True
+        if(not fail and y_toro2040[i]<thr_dn_toro2040 and thr_dn_toro2040>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro2040 down")
+        if(not fail and y_toro2452[i]<thr_dn_toro2452 and thr_dn_toro2452>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro2452 down")
+        if(not fail and y_toro3163[i]<thr_dn_toro3163 and thr_dn_toro3163>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro3163 down")
+        if(not fail and y_toro3255[i]<thr_dn_toro3255 and thr_dn_toro3255>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro3255 down")
+                                                                              
+        if(not fail and y_toro2040[i]>thr_up_toro2040 and thr_up_toro2040>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro2040 up")
+        if(not fail and y_toro2452[i]>thr_up_toro2452 and thr_up_toro2452>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro2452 up")
+        if(not fail and y_toro3163[i]>thr_up_toro3163 and thr_up_toro3163>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro3163 up")
+        if(not fail and y_toro3255[i]>thr_up_toro3255 and thr_up_toro3255>0): fail = True
+        if(fail): print(f"[{i}]: Failed Toro3255 up")
+                                                                              
+        if(not fail and y_pmt3060[i]>thr_up_pmt3060 and thr_up_pmt3060>0):    fail = True
+        if(fail): print(f"[{i}]: Failed PMT3060")
+        if(not fail and y_pmt3070[i]>thr_up_pmt3070 and thr_up_pmt3070>0):    fail = True
+        if(fail): print(f"[{i}]: Failed PMT3070")
+        if(not fail and y_pmt3179[i]>thr_up_pmt3179 and thr_up_pmt3179>0):    fail = True
+        if(fail): print(f"[{i}]: Failed PMT3179")
+        if(not fail and y_pmt3350[i]>thr_up_pmt3350 and thr_up_pmt3350>0):    fail = True
+        if(fail): print(f"[{i}]: Failed PMT3350")
+        if(not fail and y_pmt3360[i]>thr_up_pmt3360 and thr_up_pmt3360>0):    fail = True
+        if(fail): print(f"[{i}]: Failed PMT3360")
+                                                                              
+        if(not fail and y_rad[i]>thr_up_rad and thr_up_rad>0):                fail = True
+        if(fail): print(f"[{i}]: Failed RADMON")
         
         if(not fail and y_bpm_pb_3156[i]<thr_dn_bpm_pb_3156 and thr_dn_bpm_pb_3156>0): fail = True
+        if(fail): print(f"[{i}]: Failed BPM3156")
         if(not fail and y_bpm_q0_3218[i]<thr_dn_bpm_q0_3218 and thr_dn_bpm_q0_3218>0): fail = True
+        if(fail): print(f"[{i}]: Failed BPM3218")
         if(not fail and y_bpm_q1_3265[i]<thr_dn_bpm_q1_3265 and thr_dn_bpm_q1_3265>0): fail = True
+        if(fail): print(f"[{i}]: Failed BPM3265")
         if(not fail and y_bpm_q2_3315[i]<thr_dn_bpm_q2_3315 and thr_dn_bpm_q2_3315>0): fail = True
+        if(fail): print(f"[{i}]: Failed BPM3315")
         
-        ############ TODO
+        ####################################
         for det in cfg["detectors"]:
-            # if(not fail and (hits_vs_trg[det][i]>800 or hits_vs_trg[det][i]<80)):
-            # if(not fail and (hits_vs_trg[det][i]>800000 or hits_vs_trg[det][i]<80)): ### For run560...
-            if(not fail and (hits_vs_trg[det][i]>20000)): ### For run696...
+            if(not fail and (hits_vs_trg[det][i]>maxocc)):
                 fail = True
                 break
-        ############ TODO
+        if(fail): print(f"[{i}]: Failed MAXOCC for maxocc={maxocc}")
+        ####################################
         
         ##########################
         if(fail):

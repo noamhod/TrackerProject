@@ -57,9 +57,18 @@ def pass_alignment_selections(track):
     if(track.chi2ndof>cfg["maxchi2align"]): return False
     ### FOR BEAM ONLY: require pointing to the pdc window and the dipole exit aperture and inclined up as a positron, etc
     if(isbeamrun):
-        if(track.maxcls>cfg["cut_maxcls"]):   return False
+        if(track.maxcls>cfg["cut_maxcls"]): return False
         if(not selections.pass_geoacc_selection(track)): return False
     return True
+
+
+def get_selected_tracks(event):
+    tracks = []
+    for track in event.tracks:
+        if(not pass_alignment_selections(track)): continue
+        tracks.append(track)
+    tracks = tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(tracks)
+    return tracks
 
 
 def fitSVD(track,dx,dy,theta,refdet=[]):
@@ -199,15 +208,13 @@ def fit_misalignment(events,ndet2align,refdet,axes):
         nvalidevents = 0
         nvalidtracks = 0
         for event in events:
-            
-            tracks = event.tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(event.tracks)
-            for track in tracks:
-                ### require some relevant cuts
-                if(not pass_alignment_selections(track)): continue
-                
+            selected_tracks = get_selected_tracks(event)
+            for track in selected_tracks:
                 chisq,ndof,dabs,dX,dY = fitSVD(track,dx,dy,dt,refdet)
                 nvalidtracks += 1
                 sum_dabs     += dabs
+            
+
 
         return sum_dabs/nvalidtracks
     
@@ -240,7 +247,6 @@ def fit_misalignment(events,ndet2align,refdet,axes):
         result = minimize(metric_function_to_minimize, initial_params, method='COBYLA', bounds=range_params, options={'disp': True, 'maxiter':2000})
     elif(cfg["alignmentmethod"]=="Powell"):
         result = minimize(metric_function_to_minimize, initial_params, method='Powell', bounds=range_params, options={'disp': True, 'maxiter':2000})
-        # result = minimize(metric_function_to_minimize, initial_params, method='Powell', bounds=range_params, options={'disp': True, 'maxiter':2000, 'ftol':1e-1, 'xtol':1e-1})
     elif(cfg["alignmentmethod"]=="least_squares"):
         lower_bounds = np.array([lo for (lo, hi) in range_params])
         upper_bounds = np.array([hi for (lo, hi) in range_params])
@@ -279,6 +285,7 @@ if __name__ == "__main__":
                 print("Unknown detector:",det," --> quitting")
                 quit()
     
+    
     ### get all the files
     tfilenamein = ""
     files = []
@@ -287,6 +294,8 @@ if __name__ == "__main__":
     else:
         tfilenamein = utils.make_run_dirs(cfg["inputfile"])
         files = utils.getfiles(tfilenamein)
+    print(f"Files:\n{files}")
+    
     
     ###
     axes       = cfg["axes2align"]
@@ -310,23 +319,14 @@ if __name__ == "__main__":
         name = f"dx_{det}"; histos.update( {name:ROOT.TH1D(name,det+";dx [mm];#sum#Deltax [mm]",NscanBins,cfg["alignmentbounds"]["dx"]["min"],cfg["alignmentbounds"]["dx"]["max"])} )
         name = f"dy_{det}"; histos.update( {name:ROOT.TH1D(name,det+";dy [mm];#sum#Deltay [mm]",NscanBins,cfg["alignmentbounds"]["dy"]["min"],cfg["alignmentbounds"]["dy"]["max"])} )
         name = f"dt_{det}"; histos.update( {name:ROOT.TH1D(name,det+";d#theta [rad];#sum#Deltar [mm]",NscanBins,cfg["alignmentbounds"]["theta"]["min"],cfg["alignmentbounds"]["theta"]["max"])} )
-        
-        if(cfg["isFakeMC"]):
-            name = f"dxhist_{det}"; histos.update( {name:ROOT.TH1D(name,";x_{final}-x_{orig} [mm];Tracks",400,cfg["alignmentbounds"]["dx"]["min"],cfg["alignmentbounds"]["dx"]["max"])} )
-            name = f"dyhist_{det}"; histos.update( {name:ROOT.TH1D(name,";y_{final}-y_{orig} [mm];Tracks",400,cfg["alignmentbounds"]["dy"]["min"],cfg["alignmentbounds"]["dy"]["max"])} )
-
         name = f"h_residual_x_{det}"; histos.update( {name:ROOT.TH1D(name,"det+;x_{trk}-x_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
         name = f"h_residual_y_{det}"; histos.update( {name:ROOT.TH1D(name,"det+;y_{trk}-y_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
-
         name = f"h_residual_x_mid_{det}"; histos.update( {name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
         name = f"h_residual_y_mid_{det}"; histos.update( {name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
-        
         name = f"h_residual_xy_{det}";     histos.update( {name:ROOT.TH2D(name,det+";x_{trk}-x_{cls} [mm];y_{trk}-y_{cls} [mm];Tracks",nResBins2D,-absRes*3,+absRes*3, nResBins2D,-absRes*3,+absRes*3) } )
         name = f"h_residual_xy_mid_{det}"; histos.update( {name:ROOT.TH2D(name,det+";x_{trk}-x_{cls} [mm];y_{trk}-y_{cls} [mm];Tracks",nResBins2D,-absRes*5,+absRes*5, nResBins2D,-absRes*5,+absRes*5) } )
-        
         # name = f"h_residual_x_full_{det}"; histos.update( {name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins*2,-absRes*50,+absRes*50) } )
-        # name = f"h_residual_y_full_{det}"; histos.update( {name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins*2,-absRes*50,+absRes*50) } )
-        
+        # name = f"h_residual_y_full_{det}"; histos.update( {name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins*2,-absRes*50,+absRes*50) } )    
         name = f"h_response_x_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",100,-12.5,+12.5) } )
         name = f"h_response_y_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",100,-12.5,+12.5) } )
     
@@ -339,7 +339,6 @@ if __name__ == "__main__":
     dY0    = 0
     allevents = 0
     alltracks = 0
-    nuniquetrks = 0
     ngoodtracks = 0
     for fpkl in files:
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
@@ -351,11 +350,9 @@ if __name__ == "__main__":
                 allevents += 1
                 alltracks += len(event.tracks)
                 evtgoodtracks = 0
-                tracks = event.tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(event.tracks)
-                for track in tracks:
-                    ### require some relevant cuts
-                    if(not pass_alignment_selections(track)): continue
-                    
+                
+                selected_tracks = get_selected_tracks(event)
+                for track in selected_tracks:
                     for det in track.detectors:
                         dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
                         histos[f"h_residual_xy_{det}"].Fill(dx,dy)
@@ -373,7 +370,7 @@ if __name__ == "__main__":
                     ### count and proceed
                     if(ngoodtracks%25==0 and ngoodtracks>0): print(f"Added {ngoodtracks} tracks")
                     
-                    ngoodtracks += 1
+                    ngoodtracks   += 1
                     evtgoodtracks += 1 
                     chisq0 += chi2dof
                     dabs0  += dabs
@@ -389,7 +386,7 @@ if __name__ == "__main__":
         quit()
     chisq0 = chisq0/ngoodtracks
     dabs0  = dabs0/ngoodtracks
-    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks} ({nuniquetrks} unique) in {allevents} events, or {float(alltracks)/float(allevents)} trks/evt) with chisq0={chisq0} and dabs0={dabs0}. Now going to fit misalignments")
+    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks}) in {allevents} events, or {float(alltracks)/float(allevents)} trks/evt) with chisq0={chisq0} and dabs0={dabs0}. Now going to fit misalignments")
     ### save histos
     fOut = ROOT.TFile(tfilenamein.replace(".root","_aligment_scan.root"),"RECREATE")
     fOut.cd()
@@ -401,6 +398,7 @@ if __name__ == "__main__":
     
     #######################
     ### Run the fit !!! ###
+    ### events is already not including the 
     #######################
     params,result,success = fit_misalignment(events,ndet2align,refdet,axes)
     
@@ -416,13 +414,11 @@ if __name__ == "__main__":
     ngoodtracks = 0
     dxFinal,dyFinal,thetaFinal,nparperdet = init_params(axes,ndet2align,params)
     for event in events:
-        for track in event.tracks:
-            ### require some relevant cuts
-            if(not pass_alignment_selections(track)): continue
-
+        
+        selected_tracks = get_selected_tracks(event)
+        for track in selected_tracks:
             chisq,ndof,dabs,dX,dY = fitSVD(track,dxFinal,dyFinal,thetaFinal,refdet)
             chi2dof = chisq/ndof
-
             ngoodtracks += 1
             chisq1 += chi2dof
             dabs1  += dabs

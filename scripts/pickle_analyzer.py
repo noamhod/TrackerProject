@@ -311,18 +311,25 @@ def book_histos():
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
-    
     histos.update({ "hChi2DoF_full_alowshrcls": ROOT.TH1D("hChi2DoF_full_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,cfg["cut_chi2dof"])})
     histos.update({ "hChi2DoF_full_zeroshrcls": ROOT.TH1D("hChi2DoF_full_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,cfg["cut_chi2dof"])})
-    
     histos.update({ "hChi2DoF_mid_alowshrcls": ROOT.TH1D("hChi2DoF_mid_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,200)})
     histos.update({ "hChi2DoF_mid_zeroshrcls": ROOT.TH1D("hChi2DoF_mid_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,200)})
-    
     histos.update({ "hChi2DoF_small_alowshrcls": ROOT.TH1D("hChi2DoF_small_alowshrcls",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
     histos.update({ "hChi2DoF_small_zeroshrcls": ROOT.TH1D("hChi2DoF_small_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
-    
     histos.update({ "hChi2DoF_zoom_alowshrcls": ROOT.TH1D("hChi2DoF_zoom_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,5)})
     histos.update({ "hChi2DoF_zoom_zeroshrcls": ROOT.TH1D("hChi2DoF_zoon_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,5)})
+    
+    histos.update({ "hChi2_alowshrcls": ROOT.TH1D("hChi_alowshrcls",";#chi^{2};Tracks",200,0,50*4)})
+    histos.update({ "hChi2_zeroshrcls": ROOT.TH1D("hChi_zeroshrcls",";#chi^{2};Tracks",200,0,50*4)})
+    histos.update({ "hChi2_full_alowshrcls": ROOT.TH1D("hChi2_full_alowshrcls",";#chi^{2};Tracks",200,0,cfg["cut_chi2dof"]*4)})
+    histos.update({ "hChi2_full_zeroshrcls": ROOT.TH1D("hChi2_full_zeroshrcls",";#chi^{2};Tracks",200,0,cfg["cut_chi2dof"]*4)})
+    histos.update({ "hChi2_mid_alowshrcls": ROOT.TH1D("hChi2_mid_alowshrcls",";#chi^{2};Tracks",200,0,200*4)})
+    histos.update({ "hChi2_mid_zeroshrcls": ROOT.TH1D("hChi2_mid_zeroshrcls",";#chi^{2};Tracks",200,0,200*4)})
+    histos.update({ "hChi2_small_alowshrcls": ROOT.TH1D("hChi2_small_alowshrcls",";#chi^{2};Tracks",100,0,20*4)})
+    histos.update({ "hChi2_small_zeroshrcls": ROOT.TH1D("hChi2_small_zeroshrcls",";#chi^{2};Tracks",100,0,20*4)})
+    histos.update({ "hChi2_zoom_alowshrcls": ROOT.TH1D("hChi2_zoom_alowshrcls",";#chi^{2};Tracks",200,0,5*4)})
+    histos.update({ "hChi2_zoom_zeroshrcls": ROOT.TH1D("hChi2_zoon_zeroshrcls",";#chi^{2};Tracks",200,0,5*4)})
     
     histos.update({ "hPf_vs_dExit": ROOT.TH2D("hPf_vs_dExit",";d_{exit} [mm];p(#theta(fit)) [GeV];Tracks",50,0,+35, 50,0,10) })
     histos.update({ "hPd_vs_dExit": ROOT.TH2D("hPd_vs_dExit",";d_{exit} [mm];p(#theta(d_{exit}) [GeV];Tracks",50,0,+35, 50,0,10) })
@@ -595,10 +602,11 @@ if __name__ == "__main__":
     #################################
     ### prepare for eudaq writeup ###
     #################################
+    nweudaqtrks = 0
     if(weudaqout):
         ### declare the data tree and its classes
         ROOT.gROOT.ProcessLine("struct pixel  { Int_t ix; Int_t iy; };" )
-        ROOT.gROOT.ProcessLine("struct chip   { Int_t chip_id; std::vector<pixel> hits; std::vector<TVector3> cls0; std::vector<TVector3> cls1; std::vector<TVector3> cls2; std::vector<TVector3> cls3; };" )
+        ROOT.gROOT.ProcessLine("struct chip   { Int_t chip_id; std::vector<pixel> hits; };" )
         ROOT.gROOT.ProcessLine("struct stave  { Int_t stave_id; std::vector<chip> ch_ev_buffer; };" )
         ROOT.gROOT.ProcessLine("struct event  { Int_t trg_n; Double_t ts_begin; Double_t ts_end; std::vector<stave> st_ev_buffer; };" )
         ### declare the meta-data tree and its classes
@@ -624,7 +632,9 @@ if __name__ == "__main__":
     ### save all events
     nevents = 0
     nalltrk = 0
-    ntracks = 0
+    nacctrk = 0
+    ngodtrk = 0
+    nseltrk = 0
     nbadtrigs_actual = 0
     ntrigs_actual = 0
     tracks_triggers_dict = { "all": {"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0},
@@ -636,6 +646,7 @@ if __name__ == "__main__":
     arr_theta_yz_pass = []
     
     
+    print(f"Files:\n{files}")
     stop = False
     for fpkl in files:
         if(stop): break
@@ -644,17 +655,13 @@ if __name__ == "__main__":
             if(stop): break
             data = pickle.load(handle)
             for ievt,pkl_event in enumerate(data):
+                
+                
                 ########################################
                 ### nicely clear per event for eudaq ###
                 ########################################
                 if(weudaqout):
                     for s in range(eudaq_event.st_ev_buffer.size()):
-                        for c in range(eudaq_event.st_ev_buffer[s].ch_ev_buffer.size()):
-                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].hits.clear()
-                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls0.clear()
-                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls1.clear()
-                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls2.clear()
-                            eudaq_event.st_ev_buffer[s].ch_ev_buffer[c].cls3.clear()
                         eudaq_event.st_ev_buffer[s].ch_ev_buffer.clear()
                     eudaq_event.st_ev_buffer.clear()
                     eudaq_event.trg_n    = pkl_event.trigger
@@ -671,6 +678,7 @@ if __name__ == "__main__":
                 if(cfg["nmax2process"]>0 and nevents>cfg["nmax2process"]):
                     stop = True
                     break
+                
                 
                 ### check parity
                 iseven = (int(pkl_event.trigger)%2==0)
@@ -692,6 +700,7 @@ if __name__ == "__main__":
                 #     print("---------------------------------------------------------------------------------------")
                 print(f"Reading event #{ievt}, trigger:{pkl_event.trigger}, ts:[{utils.get_human_timestamp_ns(pkl_event.timestamp_bgn)}, {utils.get_human_timestamp_ns(pkl_event.timestamp_end)}]")
                 
+                
                 ### some counters
                 tracks_triggers_dict["all"]["trgs"]["all"] += 1
                 tracks_triggers_dict["all"]["pix"]["all"]  += avgnpix
@@ -704,11 +713,8 @@ if __name__ == "__main__":
                     tracks_triggers_dict["odd"]["trgs"]["all"] += 1
                     tracks_triggers_dict["odd"]["pix"]["all"]  += avgnpix
                     tracks_triggers_dict["odd"]["cls"]["all"]  += avgncls
-                
                 ntrigs_actual += 1
-                
                 nevents += 1
-                
                 histos["hTriggers"].Fill(0.5)
                 
                 
@@ -839,6 +845,13 @@ if __name__ == "__main__":
                         histos["hChi2DoF_mid_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_zoom_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_small_alowshrcls"].Fill(track.chi2ndof)
+                        
+                        histos["hChi2_alowshrcls"].Fill(track.chisq)
+                        histos["hChi2_full_alowshrcls"].Fill(track.chisq)
+                        histos["hChi2_mid_alowshrcls"].Fill(track.chisq)
+                        histos["hChi2_zoom_alowshrcls"].Fill(track.chisq)
+                        histos["hChi2_small_alowshrcls"].Fill(track.chisq)
+                        
                         for det in cfg["detectors"]:
                             if(det not in track.detectors): continue
                             dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
@@ -853,6 +866,7 @@ if __name__ == "__main__":
                             histos[f"h_response_alowshrcls_y_sml_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                             histos[f"h_response_alowshrcls_y_ful_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                     
+                    
                     #################################################
                     ### refit the track if necessary
                     if(not isAlignedAtProd and isNon0Mislaignment):
@@ -866,7 +880,11 @@ if __name__ == "__main__":
                     ### then require chi2 ###
                     #########################
                     if(track.chi2ndof>cfg["cut_chi2dof"]): continue ### this is the new chi2!
+                    # if(weudaqout):
+                    #     if(track.chi2ndof<cfg["minchi2align"]): continue
+                    #     if(track.chi2ndof>cfg["maxchi2align"]): continue
                     good_tracks.append(track)
+                    ngodtrk += 1
                     
                     ### get the coordinates at extreme points in real space and after tilting the detector
                     r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track,ismultiproc=False)
@@ -907,11 +925,11 @@ if __name__ == "__main__":
                     
                     nalltrk += 1
                     
-                    ##########################################
-                    ### require pointing to the pdc window ###
-                    ### and the dipole exit aperture       ###
-                    ### and inclined up as a positron      ###
-                    ##########################################
+                    ########################################
+                    ### require pointing cuts and others ###
+                    ### as defined in the [CUTS] section ###
+                    ### of the config file #################
+                    ########################################
                     if(not selections.pass_geoacc_selection(track,ismultiproc=False)): continue
                         
                     
@@ -975,7 +993,7 @@ if __name__ == "__main__":
                         histos["hPr_zoom"].Fill(pr)
                     
                     acceptance_tracks.append(track)
-                    ntracks += 1
+                    nacctrk += 1
                     
                     # TODO: FOR PRINTING THE CLUSTERS FOR THE HOUGH-TRANSFORM ILLUSTRATIVE PLOT
                     # for det in track.detectors:
@@ -991,8 +1009,9 @@ if __name__ == "__main__":
                 
                 ### check for overlaps
                 selected_tracks = acceptance_tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(acceptance_tracks)
-                # if(len(selected_tracks)!=len(acceptance_tracks)): print(f"nsel:{len(acceptance_tracks)} --> npas={len(selected_tracks)}")
+                # if(len(selected_tracks)!=len(acceptance_tracks)): print(f"nacc:{len(acceptance_tracks)} --> nsel={len(selected_tracks)}")
                 counters.set_global_counter("Selected Tracks",icounter,len(selected_tracks))
+                nseltrk += len(selected_tracks)
                 
                 histos["h_nTracks"     ].Fill(len(selected_tracks))
                 histos["h_nTracks_log" ].Fill(len(selected_tracks))
@@ -1022,22 +1041,14 @@ if __name__ == "__main__":
                     ### fill the eudaq tree ###
                     ###########################
                     if(weudaqout):
+                        nweudaqtrks += 1
+                        # print(f"Trigger[{pkl_event.trigger}]: trk[{itrk}] chi2={track.chi2ndof}")
                         for det in track.detectors:
                             stvid = cfg["det2stvchp"][det][0]
                             chpid = cfg["det2stvchp"][det][1]
                             eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.push_back( ROOT.chip() )
                             ichip = eudaq_event.st_ev_buffer[stvid].ch_ev_buffer.size()-1
                             eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].chip_id = int(chpid)
-                            cls0 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
-                            cls1 = ROOT.TVector3( track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm )
-                            v0 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm, track.trkcls[det].zTmm ]
-                            v1 = [ track.trkcls[det].xTmm, track.trkcls[det].yTmm,  track.trkcls[det].zTmm  ]
-                            cls2 = ROOT.TVector3( v0[0],v0[1],v0[2] )
-                            cls3 = ROOT.TVector3( v1[0],v1[1],v1[2] )
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls0.push_back( cls0 )
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls1.push_back( cls1 )
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls2.push_back( cls2 )
-                            eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].cls3.push_back( cls3 )
                             trkpixels = []
                             for pixel in track.trkcls[det].pixels:
                                 eudaq_event.st_ev_buffer[stvid].ch_ev_buffer[ichip].hits.push_back( ROOT.pixel() )
@@ -1054,6 +1065,12 @@ if __name__ == "__main__":
                     histos["hChi2DoF_mid_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_zoom_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_small_zeroshrcls"].Fill(track.chi2ndof)
+                    
+                    histos["hChi2_zeroshrcls"].Fill(track.chisq)
+                    histos["hChi2_full_zeroshrcls"].Fill(track.chisq)
+                    histos["hChi2_mid_zeroshrcls"].Fill(track.chisq)
+                    histos["hChi2_zoom_zeroshrcls"].Fill(track.chisq)
+                    histos["hChi2_small_zeroshrcls"].Fill(track.chisq)
                     # for det in cfg["detectors"]:
                     for det in track.detectors:
                         dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
@@ -1135,8 +1152,10 @@ if __name__ == "__main__":
                 
                 print(f"Event[{nevents-1}], Trigger[{pkl_event.trigger}] --> Good tracks: {len(good_tracks)}, Acceptance tracks: {len(acceptance_tracks)}, Selected tracks: {len(selected_tracks)}")
 
-    # print(f"Events:{nevents}, Tracks:{ntracks}")
-    print(f"All tracks: {nalltrk}, Selected tracks:{ntracks}, GoodTriggers:{nevents-nbadtrigs_actual}, Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
+    # print(f"Events:{nevents}, Tracks:{nacctrk}")
+    print(f"All tracks: {nalltrk}, Good tracks:{ngodtrk}, Accepted tracks:{nacctrk}, Selected tracks:{nseltrk}, GoodTriggers:{nevents-nbadtrigs_actual}, Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
+    
+    if(weudaqout): print(f"\nnweudaqtrks={nweudaqtrks}\n")
     
     ### plot the counters
     fmultpdfname = tfilenamein.replace(".root",f"_multiplicities_vs_triggers.pdf")
@@ -1185,17 +1204,25 @@ if __name__ == "__main__":
     
     glb_dx = cfg["global_corr_dx"]
     glb_tx = cfg["global_corr_thetax"]
-    glb_ty = cfg["global_corr_thetay"]
+    # glb_ty = cfg["global_corr_thetay"]
     glb_dy = cfg["global_corr_dy"]
     cut_strp = cfg["cut_strip"]
     cut_spot = cfg["cut_spot"]
-    noGlobalAlignment      = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
-    noGlobAlgnWithStrip    = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the orig blob
-    partialGlobalAlignment = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False) 
-    partGlobalAlgnWithStrp = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
-    fullGlobalAlignment    = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
-    fullGlobAlgnWithStrip  = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
-    fullGlobAlgFullSel     = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
+    # noGlobalAlignment      = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
+    # noGlobAlgnWithStrip    = (glb_tx==0 and glb_ty==0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the orig blob
+    # partialGlobalAlignment = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
+    # partGlobalAlgnWithStrp = (glb_tx!=0 and glb_ty!=0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    # fullGlobalAlignment    = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
+    # fullGlobAlgnWithStrip  = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    # fullGlobAlgFullSel     = (glb_tx!=0 and glb_ty!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
+
+    noGlobalAlignment      = (glb_tx==0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False)
+    noGlobAlgnWithStrip    = (glb_tx==0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the orig blob
+    partialGlobalAlignment = (glb_tx!=0 and glb_dx==0 and glb_dy==0 and cut_strp==False and cut_spot==False) 
+    partGlobalAlgnWithStrp = (glb_tx!=0 and glb_dx==0 and glb_dy==0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobalAlignment    = (glb_tx!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==False)
+    fullGlobAlgnWithStrip  = (glb_tx!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==True  and cut_spot==False) ## strip cut has to be around the new blob
+    fullGlobAlgFullSel     = (glb_tx!=0 and glb_dx!=0 and glb_dy!=0 and cut_strp==False and cut_spot==True)
     
     algn_label = "NULL"
     if(noGlobalAlignment):      algn_label = "Before global alignment"
@@ -1232,7 +1259,7 @@ if __name__ == "__main__":
     if(hDipoleExitNoCuts.GetMaximum()<3): hDipoleExitNoCuts.SetMaximum(3)
     hDipoleExitNoCuts.Draw("colz")
     palette = cnv.GetPrimitive("palette")
-    if not palette: palette = hist.FindObject("palette")
+    if not palette: palette = hDipoleExitNoCuts.FindObject("palette")
     if palette:
         palette.SetX1NDC(0.86)
         palette.SetX2NDC(0.91)
@@ -1296,7 +1323,7 @@ if __name__ == "__main__":
     if(hDipoleExitWithCuts.GetMaximum()<3): hDipoleExitWithCuts.SetMaximum(3)
     hDipoleExitWithCuts.Draw("colz")
     palette = cnv.GetPrimitive("palette")
-    if not palette: palette = hist.FindObject("palette")
+    if not palette: palette = hDipoleExitWithCuts.FindObject("palette")
     if palette:
         palette.SetX1NDC(0.86)
         palette.SetX2NDC(0.91)
@@ -1475,8 +1502,8 @@ if __name__ == "__main__":
         hxz.SetLineColor(ROOT.kBlack)
         hyz.SetLineColor(ROOT.kBlack)
         #
-        hxz.SetMaximum(320)
-        hyz.SetMaximum(230)
+        hxz.SetMaximum(380)
+        hyz.SetMaximum(250)
         hxz.GetXaxis().SetTitleOffset(1.3)
         hyz.GetXaxis().SetTitleOffset(1.3)
         cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)
@@ -2542,8 +2569,8 @@ if __name__ == "__main__":
     
     
     ### summary of tracking
-    # print(f"\nTracks:{ntracks}, GoodTriggers:{nevents-nbadtrigs}  (with AllTriggers:{nevents} and BadTriggers: {nbadtrigs})")
-    print(f"\nAll tracks:{nalltrk}, Selected tracks:{ntracks}, GoodTriggers:{nevents-nbadtrigs_actual} Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
+    # print(f"\nTracks:{nacctrk}, GoodTriggers:{nevents-nbadtrigs}  (with AllTriggers:{nevents} and BadTriggers: {nbadtrigs})")
+    print(f"\nAll tracks:{nalltrk}, Selected tracks:{nacctrk}, GoodTriggers:{nevents-nbadtrigs_actual} Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
     
     
     tracks_triggers_dict["all"]["pix"]["all"]  /= tracks_triggers_dict["all"]["trgs"]["all"]
