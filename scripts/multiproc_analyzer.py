@@ -334,6 +334,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         n_successful_tracks = 0
         n_goodchi2_tracks   = 0
         n_selected_tracks   = 0
+        n_btterfly_tracks   = 0
         for iseed,seed in enumerate(seeds):
 
             if(cfg["dbg"]): print(f"starting iseed={iseed}")
@@ -377,9 +378,11 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             chi2ndof = chisq/ndof if(ndof>0) else 99999
             pass_fit       = (success and chi2ndof<=cfg["cut_chi2dof"])
             pass_selection = (pass_fit and selections.pass_geoacc_selection(track,ismultiproc=True))
+            pass_butterfly = (pass_selection and (cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut(track)))
             if(success):        n_successful_tracks += 1
-            if(pass_fit):       n_goodchi2_tracks += 1
-            if(pass_selection): n_selected_tracks += 1
+            if(pass_fit):       n_goodchi2_tracks   += 1
+            if(pass_selection): n_selected_tracks   += 1
+            if(pass_butterfly): n_btterfly_tracks   += 1
 
             if(cfg["dbg"]): print(f"after track calculation")
 
@@ -436,7 +439,13 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nTracks_selected_full"].Fill( n_selected_tracks )
         histos["h_nTracks_selected_mid"].Fill( n_selected_tracks )
         histos["h_nTracks_selected_zoom"].Fill( n_selected_tracks )
-        print(f"eventid={ievt}: Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}")
+        histos["h_nTracks_butterfly"].Fill( n_btterfly_tracks )
+        histos["h_nTracks_butterfly_log"].Fill( n_btterfly_tracks if(n_btterfly_tracks>0) else 0.11 )
+        histos["h_nTracks_butterfly_full"].Fill( n_btterfly_tracks )
+        histos["h_nTracks_butterfly_mid"].Fill( n_btterfly_tracks )
+        histos["h_nTracks_butterfly_zoom"].Fill( n_btterfly_tracks )
+        
+        print(f"eventid={ievt}: Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}, Butterfly={n_btterfly_tracks}")
         
         if(n_successful_tracks<1): continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
@@ -461,6 +470,12 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         
         if(n_goodchi2_tracks<1): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leqX") )
+        
+        if(n_selected_tracks<1): continue ### CUT!!!
+        histos["h_cutflow"].Fill( cfg["cuts"].index("Geo") )
+        
+        if(n_btterfly_tracks<1): continue ### CUT!!!
+        histos["h_cutflow"].Fill( cfg["cuts"].index("Btrfly") )
     
     ###########    
     ### end ###

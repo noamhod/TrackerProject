@@ -7,7 +7,53 @@ import ROOT
 from collections import defaultdict
 
 from tracker_lib import config, utils
-    
+d2r = np.pi/180.
+
+
+def tilted_butterfly_PixLevel_cut(x,y):
+    cfg = config.Config().map
+    X0 = cfg["cut_RoI_btrfly_xcenter"]       ### x center
+    Y0 = cfg["cut_RoI_btrfly_ycenter"]       ### y center
+    a  = cfg["cut_RoI_btrfly_long_radius"]   ### long radius
+    b  = cfg["cut_RoI_btrfly_shrt_radius"]   ### short radius  
+    t  = cfg["cut_RoI_btrfly_theta_deg"]*d2r ### angle wrt the x axis
+    c  = cfg["cut_RoI_btrfly_theta_curv"]    ### opening curvature. Smaller c = wider "wings". (Physically similar to the Rayleigh length or beta*)
+    ### start calculate
+    dx = x - X0
+    dy = y - Y0
+    ### rotate to align with beam axis (x', y') where x' is along the beam, y' is perpendicular (waist)
+    x_prime =  dx * math.cos(t) + dy * math.sin(t)
+    y_prime = -dx * math.sin(t) + dy * math.cos(t)
+    ### check hyperbolic width, with the equation: y' < b * sqrt(1 + (x'/c)^2)
+    boundary_y = b * math.sqrt(1 + (x_prime/c)**2)
+    if(abs(y_prime)>boundary_y): return False
+    return True
+
+
+def tilted_butterfly_RoI_cut(track):
+    cfg = config.Config().map
+    X0 = cfg["cut_RoI_btrfly_xcenter"]       ### x center
+    Y0 = cfg["cut_RoI_btrfly_ycenter"]       ### y center
+    a  = cfg["cut_RoI_btrfly_long_radius"]   ### long radius
+    b  = cfg["cut_RoI_btrfly_shrt_radius"]   ### short radius  
+    t  = cfg["cut_RoI_btrfly_theta_deg"]*d2r ### angle wrt the x axis
+    c  = cfg["cut_RoI_btrfly_theta_curv"]    ### opening curvature. Smaller c = wider "wings". (Physically similar to the Rayleigh length or beta*)
+    ### start calculate
+    for det,cluster in track.trkcls.items():
+        dx = cluster.x - X0
+        dy = cluster.y - Y0
+        ### rotate to align with beam axis (x', y') where x' is along the beam, y' is perpendicular (waist)
+        x_prime =  dx * math.cos(t) + dy * math.sin(t)
+        y_prime = -dx * math.sin(t) + dy * math.cos(t)
+        ### check hyperbolic width, with the equation: y' < b * sqrt(1 + (x'/c)^2)
+        boundary_y = b * math.sqrt(1 + (x_prime/c)**2)
+        # print(f"pix xy={pix.x,pix.y}, boundary_y={boundary_y}, y_prime={y_prime}")
+        if(abs(y_prime)>boundary_y):
+            # print("fail")
+            return False
+    return True
+
+
 
 def tilted_eliptic_RoI_cut(track):
     cfg = config.Config().map
@@ -61,7 +107,9 @@ def pass_dk_at_detector(track,dxrange=[-999,+999],dyrange=[-999,+999]):
     if(dx<cfg["cut_dk_algn_dxmin"] or dx>cfg["cut_dk_algn_dxmax"]): return False
     if(dy<cfg["cut_dk_algn_dymin"] or dy>cfg["cut_dk_algn_dymax"]): return False
     return True
-    
+
+
+
 
 def pass_geoacc_selection(track,ismultiproc=False):
     cfg = config.Config().map
@@ -89,6 +137,8 @@ def pass_geoacc_selection(track,ismultiproc=False):
             pass_dipole_spot and
             pass_dipole_strip and
             pass_dk_at_det)
+
+
 
 
 def remove_tracks_with_shared_clusters(tracks):

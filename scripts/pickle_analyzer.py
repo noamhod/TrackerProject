@@ -293,21 +293,26 @@ def book_histos():
     histos["hTriggers"].GetXaxis().SetBinLabel(1,"All")
     histos["hTriggers"].GetXaxis().SetBinLabel(2,"Good")
     
-    histos.update( { "h_nTunnels"      : ROOT.TH1D("h_nTunnels",";N_{tunnels}/Event;Events",250,0,250) } )
-    histos.update( { "h_nTunnels_log"  : ROOT.TH1D("h_nTunnels_log",";N_{tunnels}/Event;Events",ntrkarr,trkarr) } )
-    histos.update( { "h_nTunnels_full" : ROOT.TH1D("h_nTunnels_full",";N_{tunnels}/Event;Events",2000,0,20000) } )
-    histos.update( { "h_nTunnels_mid"  : ROOT.TH1D("h_nTunnels_mid",";N_{tunnels}/Event;Events",100,0,100) } )
-    histos.update( { "h_nTunnels_zoom" : ROOT.TH1D("h_nTunnels_zoom",";N_{tunnels}/Event;Events",40,0,40) } )
-    histos.update( { "h_nSeeds"        : ROOT.TH1D("h_nSeeds",";N_{seeds}/Event;Events",250,0,250) } )
-    histos.update( { "h_nSeeds_log"    : ROOT.TH1D("h_nSeeds_log",";N_{seeds}/Event;Events",ntrkarr,trkarr) } )
-    histos.update( { "h_nSeeds_full"   : ROOT.TH1D("h_nSeeds_full",";N_{seeds}/Event;Events",2000,0,20000) } )
-    histos.update( { "h_nSeeds_mid"    : ROOT.TH1D("h_nSeeds_mid",";N_{seeds}/Event;Events",100,0,100) } )
-    histos.update( { "h_nSeeds_zoom"   : ROOT.TH1D("h_nSeeds_zoom",";N_{seeds}/Event;Events",40,0,40) } )
-    histos.update( { "h_nTracks"       : ROOT.TH1D("h_nTracks",";N_{tracks}/Event;Events",250,0,250) } )
-    histos.update( { "h_nTracks_log"   : ROOT.TH1D("h_nTracks_log",";N_{tracks}/Event;Events",ntrkarr,trkarr) } )
-    histos.update( { "h_nTracks_full"  : ROOT.TH1D("h_nTracks_full",";N_{tracks}/Event;Events",2000,0,20000) } )
-    histos.update( { "h_nTracks_mid"   : ROOT.TH1D("h_nTracks_mid",";N_{tracks}/Event;Events",100,0,100) } )
-    histos.update( { "h_nTracks_zoom"  : ROOT.TH1D("h_nTracks_zoom",";N_{tracks}/Event;Events",40,0,40) } )
+    histos.update( { "h_nTunnels"             : ROOT.TH1D("h_nTunnels",";N_{tunnels}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTunnels_log"         : ROOT.TH1D("h_nTunnels_log",";N_{tunnels}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTunnels_full"        : ROOT.TH1D("h_nTunnels_full",";N_{tunnels}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTunnels_mid"         : ROOT.TH1D("h_nTunnels_mid",";N_{tunnels}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTunnels_zoom"        : ROOT.TH1D("h_nTunnels_zoom",";N_{tunnels}/Event;Events",40,0,40) } )
+    histos.update( { "h_nSeeds"               : ROOT.TH1D("h_nSeeds",";N_{seeds}/Event;Events",250,0,250) } )
+    histos.update( { "h_nSeeds_log"           : ROOT.TH1D("h_nSeeds_log",";N_{seeds}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nSeeds_full"          : ROOT.TH1D("h_nSeeds_full",";N_{seeds}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nSeeds_mid"           : ROOT.TH1D("h_nSeeds_mid",";N_{seeds}/Event;Events",100,0,100) } )
+    histos.update( { "h_nSeeds_zoom"          : ROOT.TH1D("h_nSeeds_zoom",";N_{seeds}/Event;Events",40,0,40) } )
+    histos.update( { "h_nTracks"              : ROOT.TH1D("h_nTracks",";N_{tracks}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTracks_log"          : ROOT.TH1D("h_nTracks_log",";N_{tracks}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTracks_full"         : ROOT.TH1D("h_nTracks_full",";N_{tracks}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTracks_mid"          : ROOT.TH1D("h_nTracks_mid",";N_{tracks}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTracks_zoom"         : ROOT.TH1D("h_nTracks_zoom",";N_{tracks}/Event;Events",40,0,40) } )
+    histos.update( { "h_nTracks_btrfly"       : ROOT.TH1D("h_nTracks_btrfly",";N_{tracks}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTracks_btrfly_log"   : ROOT.TH1D("h_nTracks_btrfly_log",";N_{tracks}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTracks_btrfly_full"  : ROOT.TH1D("h_nTracks_btrfly_full",";N_{tracks}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTracks_btrfly_mid"   : ROOT.TH1D("h_nTracks_btrfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTracks_btrfly_zoom"  : ROOT.TH1D("h_nTracks_btrfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
@@ -635,11 +640,12 @@ if __name__ == "__main__":
     nacctrk = 0
     ngodtrk = 0
     nseltrk = 0
+    nbtrtrk = 0
     nbadtrigs_actual = 0
     ntrigs_actual = 0
-    tracks_triggers_dict = { "all": {"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0},
-                             "even":{"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0},
-                             "odd": {"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0} }
+    tracks_triggers_dict = { "all": {"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0,"btrfly":0},
+                             "even":{"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0,"btrfly":0},
+                             "odd": {"trgs":{"all":0,"good":0},"pix":{"all":0,"good":0},"cls":{"all":0,"good":0},"trks":0,"btrfly":0} }
     
     arr_theta_xz = []
     arr_theta_yz = []
@@ -1019,6 +1025,22 @@ if __name__ == "__main__":
                 histos["h_nTracks_mid" ].Fill(len(selected_tracks))
                 histos["h_nTracks_zoom"].Fill(len(selected_tracks))
                 
+                
+                #TODO: split here to tracks in/out the butterfly cut
+                butterfly_tracks_mask = []
+                n_butterfly_tracks = 0
+                if(cfg["cut_RoI_btrfly"]):
+                    for track in selected_tracks:
+                        pass_butterfly = selections.tilted_butterfly_RoI_cut(track)
+                        butterfly_tracks_mask.append( pass_butterfly )
+                        n_butterfly_tracks += pass_butterfly
+                histos["h_nTracks_btrfly"     ].Fill(n_butterfly_tracks)
+                histos["h_nTracks_btrfly_log" ].Fill(n_butterfly_tracks)
+                histos["h_nTracks_btrfly_full"].Fill(n_butterfly_tracks)
+                histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
+                histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
+                nbtrtrk += n_butterfly_tracks
+                
                 ### event displays
                 if(cfg["plot_offline_evtdisp"] and len(good_tracks)>0):
                     fevtdisplayname = tfilenamein.replace("tree_","event_displays/").replace(".root",f"_offline_{pkl_event.trigger}.pdf")
@@ -1030,13 +1052,23 @@ if __name__ == "__main__":
                 hzy = ROOT.TH2D("hzy","",pkl_event.hough_space["zy_xbins"],pkl_event.hough_space["zy_xmin"],pkl_event.hough_space["zy_xmax"],  pkl_event.hough_space["zy_ybins"],pkl_event.hough_space["zy_ymin"],pkl_event.hough_space["zy_ymax"])
                 
                 ### count selected tracks
-                tracks_triggers_dict["all"]["trks"] += len(selected_tracks)
+                tracks_triggers_dict["all"]["trks"]              += len(selected_tracks)
                 if(iseven): tracks_triggers_dict["even"]["trks"] += len(selected_tracks)
                 else:       tracks_triggers_dict["odd"]["trks"]  += len(selected_tracks)
+                
+                ### count butterfly tracks
+                tracks_triggers_dict["all"]["btrfly"]              += n_butterfly_tracks
+                if(iseven): tracks_triggers_dict["even"]["btrfly"] += n_butterfly_tracks
+                else:       tracks_triggers_dict["odd"]["btrfly"]  += n_butterfly_tracks
                 
                 
                 ### plot some selected tracks
                 for itrk,track in enumerate(selected_tracks):
+                    ##################################################
+                    ### keep only the tracks passing the butterfly ###
+                    if(not butterfly_tracks_mask[itrk]): continue ####
+                    ##################################################
+                    
                     ###########################
                     ### fill the eudaq tree ###
                     ###########################
@@ -1150,10 +1182,10 @@ if __name__ == "__main__":
                 if(weudaqout): tEUDAQout.Fill()
                 ###########################
                 
-                print(f"Event[{nevents-1}], Trigger[{pkl_event.trigger}] --> Good tracks: {len(good_tracks)}, Acceptance tracks: {len(acceptance_tracks)}, Selected tracks: {len(selected_tracks)}")
+                print(f"Event[{nevents-1}], Trigger[{pkl_event.trigger}] --> Good tracks: {len(good_tracks)}, Acceptance tracks: {len(acceptance_tracks)}, Selected tracks: {len(selected_tracks)}, Butterfly tracks: {n_butterfly_tracks}")
 
     # print(f"Events:{nevents}, Tracks:{nacctrk}")
-    print(f"All tracks: {nalltrk}, Good tracks:{ngodtrk}, Accepted tracks:{nacctrk}, Selected tracks:{nseltrk}, GoodTriggers:{nevents-nbadtrigs_actual}, Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
+    print(f"All tracks: {nalltrk}, Good tracks:{ngodtrk}, Accepted tracks:{nacctrk}, Selected tracks:{nseltrk}, Butterfly tracks:{nbtrtrk}  with GoodTriggers:{nevents-nbadtrigs_actual}, Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
     
     if(weudaqout): print(f"\nnweudaqtrks={nweudaqtrks}\n")
     

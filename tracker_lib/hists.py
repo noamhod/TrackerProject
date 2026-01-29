@@ -88,7 +88,7 @@ def book_histos():
     for b in range(1,len(counters.COUNTERS)+1):
         histos["h_counters"].GetXaxis().SetBinLabel(b,counters.COUNTERS[b-1])
     
-    histos.update( { "h_cutflow"   : ROOT.TH1D("h_cutflow",";;Events",10,0,10) } )
+    histos.update( { "h_cutflow"   : ROOT.TH1D("h_cutflow",";;Events",15,0,15) } )
     for b in range(1,len(cfg["cuts"])+1):
         cutname = cfg["cuts"][b-1]
         if(cutname=="#chi^{2}/N_{DoF}#leqX"): cutname = cutname.replace("X",str(cfg["cut_chi2dof"]))
@@ -137,6 +137,12 @@ def book_histos():
     histos.update( { "h_nTracks_selected_full": ROOT.TH1D("h_nTracks_selected_full",";N_{tracks}/Event;Events",2000,0,20000) } )
     histos.update( { "h_nTracks_selected_mid" : ROOT.TH1D("h_nTracks_selected_mid",";N_{tracks}/Event;Events",100,0,100) } )
     histos.update( { "h_nTracks_selected_zoom": ROOT.TH1D("h_nTracks_selected_zoom",";N_{tracks}/Event;Events",40,0,40) } )
+    histos.update( { "h_nTracks_butterfly"     : ROOT.TH1D("h_nTracks_butterfly",";N_{tracks}/Event;Events",250,0,250) } )
+    histos.update( { "h_nTracks_butterfly_log" : ROOT.TH1D("h_nTracks_butterfly_log",";N_{tracks}/Event;Events",ntrkarr,trkarr) } )
+    histos.update( { "h_nTracks_butterfly_full": ROOT.TH1D("h_nTracks_butterfly_full",";N_{tracks}/Event;Events",2000,0,20000) } )
+    histos.update( { "h_nTracks_butterfly_mid" : ROOT.TH1D("h_nTracks_butterfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
+    histos.update( { "h_nTracks_butterfly_zoom": ROOT.TH1D("h_nTracks_butterfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
+    
 
     histos.update( { "h_Chi2_phi"             : ROOT.TH1D("h_Chi2_phi",";Chi2 fit: #phi;Tracks",100,-np.pi,+np.pi) } )
     histos.update( { "h_Chi2_theta"           : ROOT.TH1D("h_Chi2_theta",";Chi2 fit: #theta;Tracks",100,0,np.pi) } )

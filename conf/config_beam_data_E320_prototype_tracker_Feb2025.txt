@@ -123,7 +123,7 @@ lut_scaleY = 0.20
 
 
 [CUTS]
-cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX
+cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX Geo Btrfly
 cut_chi2dof = 3
 # cut_chi2dof = 1000
 # only during alignment !!!
@@ -149,7 +149,7 @@ cut_spot_xcenter  = -2.6
 cut_spot_ycenter  = 10.6
 cut_spot_radius_x = 2
 cut_spot_radius_y = 10
-### eliptical RoI at the chips surface
+### elliptical RoI at the chips surface
 cut_RoI_spot           = 0
 cut_RoI_spot_xcenter   = 0
 cut_RoI_spot_ycenter   = 0
