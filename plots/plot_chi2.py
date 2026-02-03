@@ -123,7 +123,7 @@ def fit2(h, poln=0):
     h_band = h.Clone("band")
     h_band.Reset()
     h_band.SetFillColorAlpha(ROOT.kRed,0.3)
-    h_band.SetLineColor(ROOT.kRed)
+    h_band.SetLineColorAlpha(ROOT.kRed,0.3)
     h_band.SetMarkerSize(0)
     # ROOT.TVirtualFitter.GetFitter().GetConfidenceIntervals(h_band, 0.6827)
     ROOT.TVirtualFitter.GetFitter().GetConfidenceIntervals(h_band, 0.9545)
@@ -224,7 +224,7 @@ else:
     h.Draw("e1p")
     # sfunc,bfunc,frslt = fit2(h,-2)
     # sfunc,bfunc,frslt = fit2(h,2)
-    sfunc,bfunc,frslt,h_band = fit2(h,4)
+    sfunc,bfunc,frslt,h_band = fit2(h,5)
     
     leg = ROOT.TLegend(0.5,0.5,0.88,0.88)
     leg.SetFillStyle(4000) # will be transparent

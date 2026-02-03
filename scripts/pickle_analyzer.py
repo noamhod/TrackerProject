@@ -1016,7 +1016,6 @@ if __name__ == "__main__":
                 ### check for overlaps
                 selected_tracks = acceptance_tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(acceptance_tracks)
                 # if(len(selected_tracks)!=len(acceptance_tracks)): print(f"nacc:{len(acceptance_tracks)} --> nsel={len(selected_tracks)}")
-                counters.set_global_counter("Selected Tracks",icounter,len(selected_tracks))
                 nseltrk += len(selected_tracks)
                 
                 histos["h_nTracks"     ].Fill(len(selected_tracks))
@@ -1026,20 +1025,27 @@ if __name__ == "__main__":
                 histos["h_nTracks_zoom"].Fill(len(selected_tracks))
                 
                 
-                #TODO: split here to tracks in/out the butterfly cut
+                ### split here to tracks in/out the butterfly cut
                 butterfly_tracks_mask = []
                 n_butterfly_tracks = 0
-                if(cfg["cut_RoI_btrfly"]):
-                    for track in selected_tracks:
-                        pass_butterfly = selections.tilted_butterfly_RoI_cut(track)
-                        butterfly_tracks_mask.append( pass_butterfly )
-                        n_butterfly_tracks += pass_butterfly
+                for track in selected_tracks:
+                    pass_butterfly = True
+                    if(cfg["cut_RoI_btrfly"]): pass_butterfly = selections.tilted_butterfly_RoI_cut(track)
+                    butterfly_tracks_mask.append( pass_butterfly )
+                    n_butterfly_tracks += pass_butterfly
+                
+                ##############################################################################
+                ### fill the last counter ####################################################
+                counters.set_global_counter("Selected Tracks",icounter,n_butterfly_tracks) ###
+                ##############################################################################
                 histos["h_nTracks_btrfly"     ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_log" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_full"].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
                 nbtrtrk += n_butterfly_tracks
+                
+                
                 
                 ### event displays
                 if(cfg["plot_offline_evtdisp"] and len(good_tracks)>0):
@@ -1901,6 +1907,8 @@ if __name__ == "__main__":
     cnv = ROOT.TCanvas("cnv_dipole_window","",500,500)
     cnv.SetTicks(1,1)
     hmax = h1h2max(histos["hChi2DoF_full_alowshrcls"],histos["hChi2DoF_full_zeroshrcls"])
+    histos["hChi2DoF_full_alowshrcls"].SetMinimum(0)
+    histos["hChi2DoF_full_zeroshrcls"].SetMinimum(0)
     histos["hChi2DoF_full_alowshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_full_zeroshrcls"].SetMaximum(1.1*hmax)  
     histos["hChi2DoF_full_alowshrcls"].SetLineColor(ROOT.kBlack)
@@ -1918,6 +1926,8 @@ if __name__ == "__main__":
     cnv = ROOT.TCanvas("cnv_dipole_window","",500,500)
     cnv.SetTicks(1,1)
     hmax = h1h2max(histos["hChi2DoF_mid_alowshrcls"],histos["hChi2DoF_mid_zeroshrcls"])
+    histos["hChi2DoF_mid_alowshrcls"].SetMinimum(0)
+    histos["hChi2DoF_mid_zeroshrcls"].SetMinimum(0)
     histos["hChi2DoF_mid_alowshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_mid_zeroshrcls"].SetMaximum(1.1*hmax)  
     histos["hChi2DoF_mid_alowshrcls"].SetLineColor(ROOT.kBlack)
@@ -1937,6 +1947,8 @@ if __name__ == "__main__":
     hmax = h1h2max(histos["hChi2DoF_alowshrcls"],histos["hChi2DoF_zeroshrcls"])
     histos["hChi2DoF_alowshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_zeroshrcls"].SetMaximum(1.1*hmax)
+    histos["hChi2DoF_alowshrcls"].SetMinimum(0)
+    histos["hChi2DoF_zeroshrcls"].SetMinimum(0)
     histos["hChi2DoF_alowshrcls"].SetLineColor(ROOT.kBlack)
     histos["hChi2DoF_zeroshrcls"].SetLineColor(ROOT.kRed)
     histos["hChi2DoF_alowshrcls"].Draw("hist")
@@ -1952,6 +1964,8 @@ if __name__ == "__main__":
     cnv = ROOT.TCanvas("cnv_dipole_window","",500,500)
     cnv.SetTicks(1,1)
     hmax = h1h2max(histos["hChi2DoF_small_alowshrcls"],histos["hChi2DoF_small_zeroshrcls"])
+    histos["hChi2DoF_small_alowshrcls"].SetMinimum(0)
+    histos["hChi2DoF_small_zeroshrcls"].SetMinimum(0)
     histos["hChi2DoF_small_alowshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_small_zeroshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_small_alowshrcls"].SetLineColor(ROOT.kBlack)
@@ -1969,6 +1983,8 @@ if __name__ == "__main__":
     cnv = ROOT.TCanvas("cnv_dipole_window","",500,500)
     cnv.SetTicks(1,1)
     hmax = h1h2max(histos["hChi2DoF_zoom_alowshrcls"],histos["hChi2DoF_zoom_zeroshrcls"])
+    histos["hChi2DoF_zoom_alowshrcls"].SetMinimum(0)
+    histos["hChi2DoF_zoom_zeroshrcls"].SetMinimum(0)
     histos["hChi2DoF_zoom_alowshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_zoom_zeroshrcls"].SetMaximum(1.1*hmax)
     histos["hChi2DoF_zoom_alowshrcls"].SetLineColor(ROOT.kBlack)
@@ -2602,7 +2618,7 @@ if __name__ == "__main__":
     
     ### summary of tracking
     # print(f"\nTracks:{nacctrk}, GoodTriggers:{nevents-nbadtrigs}  (with AllTriggers:{nevents} and BadTriggers: {nbadtrigs})")
-    print(f"\nAll tracks:{nalltrk}, Selected tracks:{nacctrk}, GoodTriggers:{nevents-nbadtrigs_actual} Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
+    print(f"\nAll tracks:{nalltrk}, Accepted tracks:{nacctrk}, Selected tracks:{nseltrk}, Butterfly tracks:{nbtrtrk}, GoodTriggers:{nevents-nbadtrigs_actual} Actual triggers: {ntrigs_actual} (with AllTriggers:{nevents} and BadTriggers in the range: {nbadtrigs_actual} (or {nbadtrigs} in the full run))")
     
     
     tracks_triggers_dict["all"]["pix"]["all"]  /= tracks_triggers_dict["all"]["trgs"]["all"]

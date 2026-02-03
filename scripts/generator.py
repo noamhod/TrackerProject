@@ -43,7 +43,7 @@ parser.add_argument('-shw', metavar='show plots?', required=False,  help='show p
 parser.add_argument('-gif', metavar='do gif?', required=False,  help='do gif?')
 argus = parser.parse_args()
 MagnetsSettings = float(argus.mag)
-magset = [502, 490.0,490.1,490.2,490.5]
+magset = [502, 490.0,490.1,490.2,490.5, 729]
 if(MagnetsSettings not in magset):
     print(f"Unsupported magnets settings run: {MagnetsSettings}")
     quit()
@@ -119,15 +119,36 @@ tmax    = ZMAX / (0.99 * c) ### time range for propagation (seconds): approximat
 t_span  = (0, tmax)
 max_dt  = 1e-9
 dy_det  = 0 # cm
-X0   = 35.3  if(MagnetsSettings==502) else 8.897 # cm for Beryllium of Aluminum
-t_cm = 0.005 if(MagnetsSettings==502) else 0.01 # cm (50 or 100 µm)
+X0 = None
+t_cm = None
+if(MagnetsSettings==502):
+    X0 = 35.3 # cm for Beryllium
+    t_cm = 0.005  # cm (50 µm)
+else:
+    X0 = 8.897 # cm for Aluminum
+    t_cm = 0.01  # cm (100 µm)
 E_vals, photons, eplus = br.build_pdfs(Emin,E_GeV,X0,t_cm)
 rng = np.random.default_rng(123)
 
-### magnets
-magsetvals = {502:[-7.637,28.55,-7.637], 490.0:[-30.68,46.42,-30.68], 490.1:[-27.99,44.98,-27.99], 490.2:[-20.38,40.42,-20.38], 490.5:[-6.66,28.86,-6.66] }
+### quads
+quadsvals = {502:[-7.637,28.55,-7.637],
+             490.0:[-30.68,46.42,-30.68],
+             490.1:[-27.99,44.98,-27.99],
+             490.2:[-20.38,40.42,-20.38],
+             490.5:[-6.66,28.86,-6.66],
+             729:[-24.93,36.95,-24.93]
+}
+### dipoles
+dipolesvals = {502:  {"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
+               490.0:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
+               490.1:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
+               490.2:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
+               490.5:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
+               729:  {"dipole":[0.175,0,0],"xcorr":[0,-0.0278,0]}
+}
+
+### misalignments
 magsetdelt = {"quad0":[0,0],   "quad1":[0,0],   "quad2":[0,0],   "xcorr":[0,0],   "dipole":[0,0]} ### x,y displacement, cm
-# magsetangl = {"quad0":[0,0,0], "quad1":[0,0,0], "quad2":[0.004,0,0], "xcorr":[0,0,0], "dipole":[0,0,0]} ### 3D rotation, degrees
 magsetangl = {"quad0":[0,0,0], "quad1":[0,0,0], "quad2":[0,0,0], "xcorr":[0,0,0], "dipole":[0,0,0]} ### 3D rotation, degrees
 detangl    = [0,0,0]
 for name,angles in magsetangl.items():
@@ -179,7 +200,7 @@ hPy_zoom  = ROOT.TH1D("hPy_zoom", ";p_{y} [GeV];Particles",40, -1e-4,+1e-4)
 
 # Define detector x range
 # detector_x_center_cm = -1.0 # cm
-detector_x_center_cm = 0. # cm
+detector_x_center_cm = 0. if(MagnetsSettings!=729) else +0.4 # cm
 detector_x_center_m = detector_x_center_cm*cm_to_m
 
 # Define detector y range
@@ -625,7 +646,7 @@ quad0 = Quadrupole(
     x_min=-2.4610+magsetdelt["quad0"][0], x_max=2.4610+magsetdelt["quad0"][0], # cm
     y_min=-2.4610+magsetdelt["quad0"][1], y_max=2.4610+magsetdelt["quad0"][1], # cm
     z_min=367.33336, z_max=464.6664, # cm
-    gradient=magsetvals[MagnetsSettings][0], # kG/m
+    gradient=quadsvals[MagnetsSettings][0], # kG/m
     angles=magsetangl["quad0"]
 )
 quad1 = Quadrupole(
@@ -634,7 +655,7 @@ quad1 = Quadrupole(
     y_min=-2.4610+magsetdelt["quad1"][1], y_max=2.4610+magsetdelt["quad1"][1], # cm
     z_min=590.3336, z_max=687.6664, # cm
     # gradient=+28.55 if(MagnetsSettings==502) else +46.42 # kG/m
-    gradient=magsetvals[MagnetsSettings][1], # kG/m
+    gradient=quadsvals[MagnetsSettings][1], # kG/m
     angles=magsetangl["quad1"]
 )
 quad2 = Quadrupole(
@@ -642,7 +663,7 @@ quad2 = Quadrupole(
     x_min=-2.4610+magsetdelt["quad2"][0], x_max=2.4610+magsetdelt["quad2"][0], # cm
     y_min=-2.4610+magsetdelt["quad2"][1], y_max=2.4610+magsetdelt["quad2"][1], # cm
     z_min=812.3336, z_max=909.6664, # cm
-    gradient=magsetvals[MagnetsSettings][2], # kG/m
+    gradient=quadsvals[MagnetsSettings][2], # kG/m
     angles=magsetangl["quad2"]
 )
 xcorr = Dipole(
@@ -650,7 +671,8 @@ xcorr = Dipole(
     x_min=-10.795+magsetdelt["xcorr"][0], x_max=+10.795+magsetdelt["xcorr"][0], # cm 
     y_min=-4.6990+magsetdelt["xcorr"][1], y_max=+4.6990+magsetdelt["xcorr"][1], # cm
     z_min=987.779, z_max=1011.15, # cm
-    B_x=0, B_y=+0.026107, B_z=0,  # Tesla
+    # B_x=0, B_y=+0.026107, B_z=0,  # Tesla
+    B_x=dipolesvals[MagnetsSettings]["xcorr"][0], B_y=dipolesvals[MagnetsSettings]["xcorr"][1], B_z=dipolesvals[MagnetsSettings]["xcorr"][2], # Tesla
     angles=magsetangl["xcorr"]
 )
 dipole = Dipole(
@@ -658,7 +680,8 @@ dipole = Dipole(
     x_min=-2.2352+magsetdelt["dipole"][0], x_max=2.2352+magsetdelt["dipole"][0], # cm
     y_min=-6.6927+magsetdelt["dipole"][1], y_max=3.4927+magsetdelt["dipole"][1], # cm
     z_min=1260.34, z_max=1351.78, # cm
-    B_x=0.219, B_y=0, B_z=0,  # Tesla
+    # B_x=0.219, B_y=0, B_z=0,  # Tesla
+    B_x=dipolesvals[MagnetsSettings]["dipole"][0], B_y=dipolesvals[MagnetsSettings]["dipole"][1], B_z=dipolesvals[MagnetsSettings]["dipole"][2],  # Tesla
     angles=magsetangl["dipole"]
 )
 flange = Element(
@@ -1264,7 +1287,6 @@ if __name__ == "__main__":
     #####################################################
     #####################################################
     
-    
     # Propagate particles and check for collisions (including beampipe)
     particle_trajectories = []
     particle_collisions   = []
@@ -1696,7 +1718,7 @@ if __name__ == "__main__":
         max_counts = hOcc[i][0].max()
         x_of_max   = hOcc[i][1][max_idx[0]]
         y_of_max   = hOcc[i][2][max_idx[1]]
-        print(f"{detector.name}: x={statistics.mean(X):.3f}+-{statistics.stdev(X):.3f} mm with total counts={tot_counts} and max counts={max_counts} at (xmax,ymax)=({x_of_max:.2f},{y_of_max:.2f})")
+        # print(f"{detector.name}: x={statistics.mean(X):.3f}+-{statistics.stdev(X):.3f} mm with total counts={tot_counts} and max counts={max_counts} at (xmax,ymax)=({x_of_max:.2f},{y_of_max:.2f})")
         if(i==0):
             P0 = P
             P0_X = P_X

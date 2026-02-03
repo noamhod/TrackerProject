@@ -241,6 +241,7 @@ if __name__ == "__main__":
     histos.update( { "h_q0act"  : ROOT.TH1D("h_q0act",";;Quad0 gradient [kG/m]",1,0,1) } )
     histos.update( { "h_q1act"  : ROOT.TH1D("h_q1act",";;Quad1 gradient [kG/m]",1,0,1) } )
     histos.update( { "h_q2act"  : ROOT.TH1D("h_q2act",";;Quad2 gradient [kG/m]",1,0,1) } )
+    histos.update( { "h_xcoract": ROOT.TH1D("h_xcoract",";;XCORR gradient [kG*m]",1,0,1) } )
     histos.update( { "h_time"   : ROOT.TH1D("h_time",";Processing time [ms];Triggers",500,0,50) } )
     histos.update( { "h_radmon" : ROOT.TH1D("h_radmon",";RadMon [mRem/h];Triggers",500,0,10) } )
     
@@ -267,6 +268,7 @@ if __name__ == "__main__":
     y_q2act       = np.zeros(nentries)
     y_m12         = np.zeros(nentries)
     y_m34         = np.zeros(nentries)
+    y_xcoract     = np.zeros(nentries)
     y_rad         = np.zeros(nentries)
     y_toro2040    = np.zeros(nentries)
     y_toro2452    = np.zeros(nentries)
@@ -317,6 +319,8 @@ if __name__ == "__main__":
             y_q2act[counter]    = float(str(entry.event.ev_epics_frame.pv_map['LI20:LGPS:3091:BACT'].value))
             y_m12[counter]      = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT054'].value))
             y_m34[counter]      = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT055'].value))
+            y_xcoract[counter]  = float(str(entry.event.ev_epics_frame.pv_map['LI20:XCOR:3276:BACT'].value))
+            
             y_rad[counter]      = float(str(entry.event.ev_epics_frame.pv_map['RADM:LI20:1:CH01:MEAS'].value))
             y_toro2040[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:2040:TMIT_PC'].value))
             y_toro2452[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:2452:TMIT_PC'].value))
@@ -628,6 +632,7 @@ if __name__ == "__main__":
     histos["h_q0act"].SetBinContent(1, np.average(y_q0act))
     histos["h_q1act"].SetBinContent(1, np.average(y_q1act))
     histos["h_q2act"].SetBinContent(1, np.average(y_q2act))
+    histos["h_xcoract"].SetBinContent(1, np.average(y_xcoract))
     
     
     maxhits = -1
@@ -647,6 +652,7 @@ if __name__ == "__main__":
     add_graph("q2act",x_trg,y_q2act,ROOT.kGreen+1)
     add_graph("m12",x_trg,y_m12,ROOT.kBlack)
     add_graph("m34",x_trg,y_m34,ROOT.kRed)
+    add_graph("xcoract",x_trg,y_xcoract,ROOT.kRed)
     add_graph("rad",x_trg,y_rad,ROOT.kBlack)
     add_graph("foilm1",x_trg,y_foilm1,ROOT.kBlack)
     add_graph("foilm2",x_trg,y_foilm2,ROOT.kRed)
@@ -833,6 +839,19 @@ if __name__ == "__main__":
     mg.SetMaximum(13.1)
     mg.Draw("al")
     mg.SetTitle(f";Trigger number;Dipole [GeV] (for a 6 mrad deflection at 10 GeV)")
+    mg.GetXaxis().SetLimits(x_trg[0],x_trg[-1])
+    cnv.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{ftrgname}")
+    
+    cnv = ROOT.TCanvas("c3.1","",1200,500)
+    cnv.SetTicks(1,1)
+    mg = ROOT.TMultiGraph()
+    mg.Add(graphs["xcoract"])
+    mg.SetMinimum(0)
+    mg.SetMaximum(13.1)
+    mg.Draw("al")
+    mg.SetTitle(f";Trigger number;XCORR [kG*m]")
     mg.GetXaxis().SetLimits(x_trg[0],x_trg[-1])
     cnv.RedrawAxis()
     cnv.Update()

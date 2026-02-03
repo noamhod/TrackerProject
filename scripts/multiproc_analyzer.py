@@ -189,11 +189,13 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
 
         ### get the pixels
         n_active_tandem_layers, n_active_staves, n_active_chips, pixels = Pixels.get_all_pixels(ttree,hPixMatix,pix_matrix_max_frac=1)
+        npixperdet = 0
         histos["h_nStaves"].Fill(n_active_staves)
         histos["h_nDetectors"].Fill(n_active_chips)
         histos["h_nTandemLayers"].Fill(n_active_tandem_layers)
         sprnt = f"ievt={ievt}:"
         for det in cfg["detectors"]:
+            npixperdet += len(pixels[det])/len(cfg["detectors"])
             sprnt += f" Npixels[{det}]={len(pixels[det])},"
             hists.fillPixOcc(det,pixels[det],masked[det],histos) ### fill pixel occupancy
         if(cfg["dbg"]): print(sprnt)
@@ -250,12 +252,14 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         ### run clustering
         clusters = {}
         nclusters = 0
+        nclsperdet = 0
         sprnt = f"ievt={ievt}:"
         for det in cfg["detectors"]:
             det_clusters = Clusters.BFS_GetAllClusters(pixels[det],det)
             clusters.update( {det:det_clusters} )
             hists.fillClsHists(det,clusters[det],masked[det],histos)
             if(len(det_clusters)>0): nclusters += 1
+            nclsperdet += len(det_clusters)/len(cfg["detectors"])
             sprnt += f" Nclusters[{det}]={len(det_clusters)},"
         if(cfg["dbg"]): print(sprnt)
         eventslist[out_event_index].set_event_clusters(clusters)
@@ -270,7 +274,6 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         #####################################
         if(cfg["skiptracking"]): continue ###
         #####################################
-        
         
 
         ### run the seeding
@@ -378,7 +381,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             chi2ndof = chisq/ndof if(ndof>0) else 99999
             pass_fit       = (success and chi2ndof<=cfg["cut_chi2dof"])
             pass_selection = (pass_fit and selections.pass_geoacc_selection(track,ismultiproc=True))
-            pass_butterfly = (pass_selection and (cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut(track)))
+            pass_butterfly = (pass_selection and selections.tilted_butterfly_RoI_cut(track)) if(cfg["cut_RoI_btrfly"]) else pass_selection
             if(success):        n_successful_tracks += 1
             if(pass_fit):       n_goodchi2_tracks   += 1
             if(pass_selection): n_selected_tracks   += 1
@@ -445,7 +448,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nTracks_butterfly_mid"].Fill( n_btterfly_tracks )
         histos["h_nTracks_butterfly_zoom"].Fill( n_btterfly_tracks )
         
-        print(f"eventid={ievt}: Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}, Butterfly={n_btterfly_tracks}")
+        print(f"Eventid={ievt}: Pix/det={int(npixperdet)}, Cls/det={int(nclsperdet)} -->  Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}, Butterfly={n_btterfly_tracks}")
         
         if(n_successful_tracks<1): continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
