@@ -404,7 +404,7 @@ def book_histos():
     
     histos.update({ "hPf_zoom": ROOT.TH1D("hPf_zoom",";p(fit) [GeV];Tracks",40,1.5,3.5)})
     histos.update({ "hPd_zoom": ROOT.TH1D("hPd_zoom",";p(d_{exit}) [GeV];Tracks",40,1.5,3.5)})
-    histos.update({ "hPr_zoom": ROOT.TH1D("hPr_zoom",";p(r) [GeV];Tracks",40,1.5,3.5)})
+    histos.update({ "hPr_zoom": ROOT.TH1D("hPr_zoom",";p(r) [GeV];Tracks",40,1.5,3.5)})    
 
     thetaxmin = 0     #np.pi/2-cfg["seed_thetax_scale_mid"]*np.pi/2.
     thetaxmax = np.pi #np.pi/2+cfg["seed_thetax_scale_mid"]*np.pi/2.
@@ -430,7 +430,14 @@ def book_histos():
         elif(tdm==4): limtnl.update({det:[0.0,0.95]})
     bintnl = 60
     
+    
+    histos.update({ "h_cls_absdx": ROOT.TH1D("h_cls_absdx",";dx(detA,detB) [mm];Tracks",100,0,2)})
+    histos.update({ "h_cls_absdy": ROOT.TH1D("h_cls_absdy",";dy(detA,detB) [mm];Tracks",100,0,5)})
+    
     for det in cfg["detectors"]:
+        name = f"h_cls_occ_2D_{det}"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Track clusters",128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
+        name = f"h_trk_occ_2D_{det}"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Tracks",        128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
+        
         name = f"h_residual_alowshrcls_x_sml_{det}"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
         name = f"h_residual_alowshrcls_y_sml_{det}"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
         name = f"h_residual_alowshrcls_x_mid_{det}"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
@@ -845,7 +852,7 @@ if __name__ == "__main__":
                     # if(not inROI): continue
                     
                     ### fill some quantities before alignment
-                    if(track.chi2ndof<=cfg["cut_chi2dof"] and selections.pass_geoacc_selection(track,ismultiproc=False)): ##TODO: missing the shared hits cut here...
+                    if(track.chi2ndof<=cfg["cut_chi2dof"] and track.chi2ndof>=cfg["minchi2align"] and selections.pass_geoacc_selection(track,ismultiproc=False)): ##TODO: missing the shared hits cut here...
                         histos["hChi2DoF_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_full_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_mid_alowshrcls"].Fill(track.chi2ndof)
@@ -858,8 +865,24 @@ if __name__ == "__main__":
                         histos["hChi2_zoom_alowshrcls"].Fill(track.chisq)
                         histos["hChi2_small_alowshrcls"].Fill(track.chisq)
                         
+                        
+                        histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_1"].xTnoGmm-track.trkcls["ALPIDE_0"].xTnoGmm))
+                        histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_2"].xTnoGmm-track.trkcls["ALPIDE_1"].xTnoGmm))
+                        histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_3"].xTnoGmm-track.trkcls["ALPIDE_2"].xTnoGmm))
+                        histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_4"].xTnoGmm-track.trkcls["ALPIDE_3"].xTnoGmm))
+                        ##
+                        histos["h_cls_absdy"].Fill(abs(track.trkcls["ALPIDE_1"].yTnoGmm-track.trkcls["ALPIDE_0"].yTnoGmm))
+                        histos["h_cls_absdy"].Fill(abs(track.trkcls["ALPIDE_2"].yTnoGmm-track.trkcls["ALPIDE_1"].yTnoGmm))
+                        histos["h_cls_absdy"].Fill(abs(track.trkcls["ALPIDE_3"].yTnoGmm-track.trkcls["ALPIDE_2"].yTnoGmm))
+                        histos["h_cls_absdy"].Fill(abs(track.trkcls["ALPIDE_4"].yTnoGmm-track.trkcls["ALPIDE_3"].yTnoGmm))
+                        
                         for det in cfg["detectors"]:
                             if(det not in track.detectors): continue
+                            
+                            histos[f"h_cls_occ_2D_{det}"].Fill(track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm)
+                            xTnoG,yTnoG,zTnoG = utils.get_track_at_det_noG(det,track)
+                            histos[f"h_trk_occ_2D_{det}"].Fill(xTnoG,yTnoG)
+                            
                             dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
                             histos[f"h_residual_alowshrcls_x_sml_{det}"].Fill(dx)
                             histos[f"h_residual_alowshrcls_x_mid_{det}"].Fill(dx)
@@ -886,6 +909,8 @@ if __name__ == "__main__":
                     ### then require chi2 ###
                     #########################
                     if(track.chi2ndof>cfg["cut_chi2dof"]): continue ### this is the new chi2!
+                    if(track.chi2ndof<cfg["minchi2align"]): continue
+                    
                     # if(weudaqout):
                     #     if(track.chi2ndof<cfg["minchi2align"]): continue
                     #     if(track.chi2ndof>cfg["maxchi2align"]): continue
@@ -1997,6 +2022,52 @@ if __name__ == "__main__":
     cnv.SaveAs(f"{foupdfname}")
     del cnv
     print("---------------19")
+    
+    
+    
+    cnv = ROOT.TCanvas("cnv_occupancy_clusters","",1500,500)
+    cnv.Divide(5,1)
+    for idet,det in enumerate(cfg["detectors"]):
+        cnv.cd(idet+1)
+        ROOT.gPad.SetTicks(1,1)
+        histos[f"h_cls_occ_2D_{det}"].Draw("colz")
+        ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.1")
+    
+    cnv = ROOT.TCanvas("cnv_occupancy_clusters","",1500,500)
+    cnv.Divide(5,1)
+    for idet,det in enumerate(cfg["detectors"]):
+        cnv.cd(idet+1)
+        ROOT.gPad.SetTicks(1,1)
+        histos[f"h_trk_occ_2D_{det}"].Draw("colz")
+        ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.2")
+    
+    cnv = ROOT.TCanvas("cnv_occupancy_clusters","",1000,500)
+    cnv.Divide(2,1)
+    cnv.cd(1)
+    ROOT.gPad.SetTicks(1,1)
+    ROOT.gPad.SetLogy()
+    histos[f"h_cls_absdx"].Draw("hist")
+    ROOT.gPad.RedrawAxis()
+    cnv.cd(2)
+    ROOT.gPad.SetTicks(1,1)
+    ROOT.gPad.SetLogy()
+    histos[f"h_cls_absdy"].Draw("hist")
+    ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.3")
+    
+    
+    
     
     
     cnv = ROOT.TCanvas("cnv_dipole_window","",1500,1000)

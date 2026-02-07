@@ -84,15 +84,15 @@ seed_nbins_rhox_low   = 650
 seed_nbins_rhoy_low   = 650
 ###
 ### TIGHT seed_nbins_thetarho (after alignment)
-seed_nbins_thetax_mid = 1700
-seed_nbins_thetay_mid = 1700
-seed_nbins_rhox_mid   = 1700
-seed_nbins_rhoy_mid   = 1700
+# seed_nbins_thetax_mid = 1700
+# seed_nbins_thetay_mid = 1700
+# seed_nbins_rhox_mid   = 1700
+# seed_nbins_rhoy_mid   = 1700
 ### LOOSE seed_nbins_thetarho (use for alignment)
-# seed_nbins_thetax_mid = 650
-# seed_nbins_thetay_mid = 650
-# seed_nbins_rhox_mid   = 650
-# seed_nbins_rhoy_mid   = 650
+seed_nbins_thetax_mid = 650
+seed_nbins_thetay_mid = 650
+seed_nbins_rhox_mid   = 650
+seed_nbins_rhoy_mid   = 650
 ###
 seed_nbins_thetax_hgh = 1000
 seed_nbins_thetay_hgh = 1000
@@ -126,11 +126,11 @@ lut_scaleY = 0.20
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX Geo Btrfly
 # cut_chi2dof = 1000
-# cut_chi2dof = 20
-cut_chi2dof = 3
+cut_chi2dof = 20
+# cut_chi2dof = 3
 # cut_chi2dof = 1
 # only during alignment !!!
-cut_dk_algn       = 0
+cut_dk_algn       = 1
 cut_dk_algn_det   = ALPIDE_3
 cut_dk_algn_dxmin = 0.025
 cut_dk_algn_dxmax = 0.075
@@ -142,9 +142,9 @@ cut_allow_negative_yz_slope = 0
 cut_windowaprtr = 1
 cut_flangeaprtr = 1
 cut_dipoleaprtr = 1
-cut_strip         = 0
-cut_strip_xcenter = 7.8
-cut_strip_ycenter = -2.8
+cut_strip         = 1
+cut_strip_xcenter = 9
+cut_strip_ycenter = -3
 cut_strip_xwidth  = 5
 cut_strip_ywidth  = 5
 cut_spot          = 0
@@ -180,32 +180,37 @@ cut_ROI_ymax = 512
 
 [ALIGNMENT]
 ### if the misalignment is zero, then use_large_clserr_for_algnmnt must be 1!!!
-use_large_clserr_for_algnmnt = 0
+use_large_clserr_for_algnmnt = 1
 
 #####################################
 ### DEFAULT MISALIGNMENT (before doing the alignment procedure):
-# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
+misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
 #####################################
 
 #####################################
+### USING CHI2 FITS
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=4.75E-03,dy=1.09E-02,theta=-1.59E-03 ALPIDE_2:dx=5.31E-02,dy=-7.84E-02,theta=1.34E-03 ALPIDE_3:dx=8.93E-02,dy=-9.09E-02,theta=-1.74E-03 ALPIDE_4:dx=0,dy=0,theta=0
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=4.75E-03,dy=1.09E-02,theta=-1.59E-03 ALPIDE_2:dx=5.31E-02,dy=-7.84E-02,theta=1.34E-03 ALPIDE_3:dx=8.93E-02,dy=-9.09E-02,theta=-1.74E-03 ALPIDE_4:dx=-1.16E-01,dy=1.30E-01,theta=1.06E-03
+
+
 ### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 10<CHI2<20 USING ALPIDE_0 AS REF
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-03,dy=9.59E-03,theta=-1.34E-03 ALPIDE_2:dx=4.12E-02,dy=-7.33E-02,theta=1.74E-03 ALPIDE_3:dx=7.08E-02,dy=-7.82E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.45E-02,dy=1.96E-02,theta=3.98E-04
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-03,dy=9.59E-03,theta=-1.34E-03 ALPIDE_2:dx=4.12E-02,dy=-7.33E-02,theta=1.74E-03 ALPIDE_3:dx=7.08E-02,dy=-7.82E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.45E-02,dy=1.96E-02,theta=3.98E-04
 ### 1st iteration with the 5x5 mm2 square cut and the chi2_inf<1 cut (still inflated errors)
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-2.91E-03,dy=9.99E-03,theta=-1.45E-03 ALPIDE_2:dx=4.23E-02,dy=-7.55E-02,theta=1.85E-03 ALPIDE_3:dx=7.16E-02,dy=-7.88E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.49E-02,dy=2.00E-02,theta=3.79E-04
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-2.91E-03,dy=9.99E-03,theta=-1.45E-03 ALPIDE_2:dx=4.23E-02,dy=-7.55E-02,theta=1.85E-03 ALPIDE_3:dx=7.16E-02,dy=-7.88E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.49E-02,dy=2.00E-02,theta=3.79E-04
 ### 2nd iteration after running tight HT seeding and tight selection with the 5x5 mm2 square cut and the chi2<3 cut with proper errors
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-2.34E-03,dy=1.02E-02,theta=-1.49E-03 ALPIDE_2:dx=4.30E-02,dy=-7.55E-02,theta=1.85E-03 ALPIDE_3:dx=7.16E-02,dy=-7.87E-02,theta=-1.51E-03 ALPIDE_4:dx=-2.50E-02,dy=2.00E-02,theta=4.26E-04
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-2.34E-03,dy=1.02E-02,theta=-1.49E-03 ALPIDE_2:dx=4.30E-02,dy=-7.55E-02,theta=1.85E-03 ALPIDE_3:dx=7.16E-02,dy=-7.87E-02,theta=-1.51E-03 ALPIDE_4:dx=-2.50E-02,dy=2.00E-02,theta=4.26E-04
 ### 3rd iteration after running tight HT seeding and tight selection with the 5x5 mm2 square cut and the chi2<3 cut with proper errors
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.68E-03,dy=1.03E-02,theta=-1.53E-03 ALPIDE_2:dx=4.35E-02,dy=-7.54E-02,theta=1.81E-03 ALPIDE_3:dx=7.18E-02,dy=-7.87E-02,theta=-1.50E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.41E-04
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.68E-03,dy=1.03E-02,theta=-1.53E-03 ALPIDE_2:dx=4.35E-02,dy=-7.54E-02,theta=1.81E-03 ALPIDE_3:dx=7.18E-02,dy=-7.87E-02,theta=-1.50E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.41E-04
 ### 4th iteration after running tight HT seeding and tight selection with the 5x5 mm2 square cut and the chi2<3 cut with proper errors
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.05E-03,dy=1.05E-02,theta=-1.57E-03 ALPIDE_2:dx=4.38E-02,dy=-7.52E-02,theta=1.78E-03 ALPIDE_3:dx=7.19E-02,dy=-7.87E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.39E-04
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.05E-03,dy=1.05E-02,theta=-1.57E-03 ALPIDE_2:dx=4.38E-02,dy=-7.52E-02,theta=1.78E-03 ALPIDE_3:dx=7.19E-02,dy=-7.87E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.39E-04
 
 #####################################
 
-minchi2align  = 0.01
-# minchi2align  = 10
+# minchi2align  = 0.01
+minchi2align  = 10
 # maxchi2align  = 1000
-# maxchi2align  = 20
-maxchi2align  = 3
+maxchi2align  = 20
+# maxchi2align  = 3
 # maxchi2align  = 1
 axes2align    = xytheta
 naligniter    = 200
@@ -236,9 +241,8 @@ global_corr_dz     = 0
 
 
 [FIT]
-# fit_method = SVD CHI2
-# fit_method = CHI2
-fit_method = SVD
+fit_method = CHI2
+# fit_method = SVD
 fit_chi2_fast = 1
 fit_chi2_method0 = Powell
 fit_chi2_method1 = Nelder-Mead Powell

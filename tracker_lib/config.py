@@ -387,7 +387,7 @@ class Config:
         self.add("offsets_y", offsets_y)
         self.add("offsets_z", offsets_z)
         
-        self.add("fit_method",       self.getArrS('FIT','fit_method'))
+        self.add("fit_method",       self.getS('FIT',   'fit_method'))
         self.add("fit_chi2_fast",    self.getB('FIT',   'fit_chi2_fast'))
         self.add("fit_chi2_method0", self.getS('FIT',   'fit_chi2_method0'))
         self.add("fit_chi2_method1", self.getArrS('FIT','fit_chi2_method1'))
@@ -467,8 +467,8 @@ class Config:
         #     self.error(f"use_large_clserr_for_algnmnt must not be 1 if seed_allow_negative_vertical_inclination is 0")
         if(self.map["use_large_clserr_for_algnmnt"] and self.map["maxchi2align"]>1000):
             self.error(f'use_large_clserr_for_algnmnt must not be 1 if maxchi2align is>1000 (it is set to {self.map["maxchi2align"]})')
-        if(self.map["use_large_clserr_for_algnmnt"] and self.map["fit_method"][0]!="SVD"):
-            self.error(f'if use_large_clserr_for_algnmnt is 1 then fit_method must be SVD (it is set to {self.map["fit_method"]})')
+        # if(self.map["use_large_clserr_for_algnmnt"] and self.map["fit_method"][0]!="SVD"):
+            # self.error(f'if use_large_clserr_for_algnmnt is 1 then fit_method must be SVD (it is set to {self.map["fit_method"]})')
         if(self.map["use_large_clserr_for_algnmnt"] and self.map["maxchi2align"]!=self.map["cut_chi2dof"]):
             self.error(f'if use_large_clserr_for_algnmnt is 1 then maxchi2align must be equal to cut_chi2dof')
         if(self.map["use_large_clserr_for_algnmnt"] and self.map["minchi2align"]==0):

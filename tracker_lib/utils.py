@@ -456,18 +456,28 @@ def get_track_point_at_z(track,z):
     return r
 
 
-def get_trak_at_det(det,track):
+def get_track_at_det(det,track):
     cfg = config.Config().map
     r0 = [0,0,cfg["rdetectors"][det][2]]
     rT = transform_to_real_space(r0,det)
     xT,yT,zT = line(rT[2],track.params)
     return xT,yT,zT
-    
+ 
+
+def get_track_at_det_noG(det,track):
+    xT,yT,zT = get_track_at_det(det,track)
+    rT = [xT,yT,zT]
+    rTnoG = undo_global_offsets(rT,det)
+    xTnoG = rTnoG[0]
+    yTnoG = rTnoG[1]
+    zTnoG = rTnoG[2]
+    return xTnoG,yTnoG,zTnoG
+
 
 def get_track_point_at_extremes(track,ismultiproc=False):
     cfg = config.Config().map
-    x0,y0,z0 = get_trak_at_det(cfg["det_frst"],track)
-    xN,yN,zN = get_trak_at_det(cfg["det_last"],track)
+    x0,y0,z0 = get_track_at_det(cfg["det_frst"],track)
+    xN,yN,zN = get_track_at_det(cfg["det_last"],track)
     zW = cfg["zWindow"]
     zF = cfg["zFlangeExit"]
     zD = cfg["zDipoleExit"]

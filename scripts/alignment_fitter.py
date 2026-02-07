@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 from scipy.optimize import curve_fit,basinhopping,least_squares
+from iminuit import Minuit
 import pickle
 from pathlib import Path
 import ctypes
@@ -71,91 +72,6 @@ def get_selected_tracks(event):
     return tracks
 
 
-def fitSVD(track,dx,dy,theta,refdet=[]):
-    cfg = config.Config().map
-    clsx  = {}
-    clsy  = {}
-    clsz  = {}
-    clsdx = {}
-    clsdy = {}
-    
-    ### initialize the misalignments per detector
-    dX    = {}
-    dY    = {}
-    Theta = {}
-    i = 0
-    for det in cfg["detectors"]:
-        if(len(refdet)>0 and det in refdet): continue
-        dX.update({det:dx[i]})
-        dY.update({det:dy[i]})
-        Theta.update({det:theta[i]})
-        i += 1
-    
-    ### prepare the track's clusters with misalignments
-    # for det in cfg["detectors"]:
-    for det in track.detectors:
-        x = track.trkcls[det].xTnoGmm
-        y = track.trkcls[det].yTnoGmm
-        z = track.trkcls[det].zTnoGmm
-        ex = track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dxTnoGmm
-        ey = track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
-        ### only for the non-reference detectors or all detectors?
-        if(len(refdet)>0):
-            if(det not in refdet):
-                x,y = utils.rotate(Theta[det],x,y)
-                x = x+dX[det]
-                y = y+dY[det]
-        else:
-            x,y = utils.rotate(Theta[det],x,y)
-            x = x+dX[det]
-            y = y+dY[det]
-        clsx.update({det:x})
-        clsy.update({det:y})
-        clsz.update({det:z})
-        clsdx.update({det:ex})
-        clsdy.update({det:ey})
-    vtx  = [cfg["xVtx"], cfg["yVtx"],  cfg["zVtx"]]  if(cfg["doVtx"]) else []
-    evtx = [cfg["exVtx"],cfg["eyVtx"], cfg["ezVtx"]] if(cfg["doVtx"]) else []
-    # points_SVD,errors_SVD = candidate.SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
-    points_SVD,errors_SVD = candidate.SVD_candidate(track.detectors,clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
-    chisq_SVD,ndof_SVD,direction_SVD,centroid_SVD = svd_fit.fit_3d_SVD(points_SVD,errors_SVD)
-    
-    dabs = 0
-    dxabs = {}
-    dyabs = {}
-    # for idet,det in enumerate(cfg["detectors"]):
-    for idet,det in enumerate(track.detectors):
-        dx = 0 
-        dy = 0
-        if(cfg["alignmentwerr"]):
-            dx,dy = utils.res_track2clusterErr(det,track.detectors,points_SVD,errors_SVD,direction_SVD,centroid_SVD)
-        else:
-            dx,dy = utils.res_track2cluster(det,track.detectors,points_SVD,direction_SVD,centroid_SVD)
-
-        # ##############
-        # idet = cfg["detectors"].index(det)
-        # r1,r2 = utils.r1r2(direction_SVD, centroid_SVD)
-        # xonline,yonline = utils.xyofz(r1,r2,points_SVD[idet][2])
-        # print(f"{det}: z={points_SVD[idet][2]} --> dx={dx:.2E}, dy={dy:.2E}  x={points_SVD[idet][0]}-->fitx={xonline}, y={points_SVD[idet][1]}-->fity={yonline}")
-        # ##############
-            
-        dxabs.update( {det:abs(dx)} )
-        dyabs.update( {det:abs(dy)} )
-        dabs += math.sqrt(dx*dx + dy*dy)
-    
-    for det in cfg["detectors"]:
-        # dxabs[det] /= len(cfg["detectors"])
-        dxabs[det] /= len(track.detectors)
-        # dyabs[det] /= len(cfg["detectors"])
-        dyabs[det] /= len(track.detectors)
-
-    # dabs /= len(cfg["detectors"])
-    dabs /= len(track.detectors)
-    
-    return chisq_SVD,ndof_SVD,dabs,dxabs,dyabs
-
-
-
 def init_params(axes,ndet2align,params):
     cfg = config.Config().map
     dxFinal    = [0]*ndet2align
@@ -195,75 +111,161 @@ def init_params(axes,ndet2align,params):
 
 
 
-def fit_misalignment(events,ndet2align,refdet,axes):
+def RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map):
+    ### make a working copy to avoid modify the shared data
+    working_coords = coords.copy()
+    for i, det in enumerate(dets):
+        if det not in refdet and det in det_map:
+            idx = det_map[det]
+            theta = dt_f[idx]
+            c, s = np.cos(theta), np.sin(theta)
+            x_old, y_old = working_coords[i, 0], working_coords[i, 1]
+            working_coords[i, 0] = x_old * c - y_old * s + dx_f[idx]
+            working_coords[i, 1] = x_old * s + y_old * c + dy_f[idx]
+    
+    # Perform fit on working_coords
+    x, y, z = working_coords[:, 0], working_coords[:, 1], working_coords[:, 2]
+    ex, ey = working_coords[:, 3], working_coords[:, 4]
+    ex, ey = working_coords[:, 3], working_coords[:, 4]
+    ez = np.zeros_like(ex)
+    params, parerr, parcov, chisq, ndof, success = chi2_fit.fit_line_3d_chi2err(x, y, z, ex, ey, ez)
+    
+    # Calculate residuals
+    x0, mx, y0, my = params
+    fit_x = x0 + mx * z
+    fit_y = y0 + my * z
+    dx_res = x - fit_x
+    dy_res = y - fit_y
+    dabs = np.mean(np.sqrt(dx_res**2 + dy_res**2))
+    
+    return chisq, ndof, dabs, dx_res, dy_res
+
+
+
+def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
     cfg = config.Config().map
-    ### Define the objective function to minimize (the chi^2 function)
-    ### similar to https://root.cern.ch/doc/master/line3Dfit_8C_source.html
+    
+    ### map only aligned detectors to 0...ndet2align indices
+    aligned_detectors = [d for d in cfg["detectors"] if d not in refdet]
+    det_map = {det: i for i, det in enumerate(aligned_detectors)}
+    
+    ### pre-extract data into numpy arrays to avoid object overhead in the loop (this is a one-time cost)
+    track_data = []
+    for event in events:
+        for track in get_selected_tracks(event):
+            t_dets = []
+            t_coords = [] # [x, y, z, ex, ey]
+            for det in track.detectors:
+                t_dets.append(det)
+                t_coords.append([
+                    track.trkcls[det].xTnoGmm,
+                    track.trkcls[det].yTnoGmm,
+                    track.trkcls[det].zTnoGmm,
+                    track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dxTnoGmm,
+                    track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
+                ])
+            track_data.append((t_dets, np.array(t_coords), track.params))
+
+    dorefit=True
+
     def metric_function_to_minimize(params):
-        dx,dy,dt,nparperdet = init_params(axes,ndet2align,params)
-        sum_dx = 0
-        sum_dy = 0
-        sum_dabs = 0
-        sum_chi2 = 0
-        nvalidevents = 0
-        nvalidtracks = 0
-        for event in events:
-            selected_tracks = get_selected_tracks(event)
-            for track in selected_tracks:
-                chisq,ndof,dabs,dX,dY = fitSVD(track,dx,dy,dt,refdet)
-                nvalidtracks += 1
-                sum_dabs     += dabs
+        dx_f, dy_f, dt_f, _ = init_params(axes, ndet2align, params)
+        total_chisq = 0.0
+        n_tracks = len(track_data)
+        for dets, coords, trackpars in track_data:
+            chisq = 0
+            if(dorefit):
+                chisq, _, _, _, _ = RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map)
+            else:
+                x_aligned = coords[:,0].copy()
+                y_aligned = coords[:,1].copy()
+                z = coords[:,2]
+                ex = coords[:,3]
+                ey = coords[:,4]
+                
+                for i, det in enumerate(dets):
+                    if det not in refdet and det in det_map:
+                        idx = det_map[det]
+                        theta = dt_f[idx]
+                        c, s = np.cos(theta), np.sin(theta)
+                        x_old, y_old = x_aligned[i], y_aligned[i]
+                        x_aligned[i] = x_old * c - y_old * s + dx_f[idx]
+                        y_aligned[i] = x_old * s + y_old * c + dy_f[idx]
+                fitx = trackpars[0]+trackpars[1]*(z+cfg["zGlobalOffset"]) - cfg["xGlobalOffset"]
+                fity = trackpars[2]+trackpars[3]*(z+cfg["zGlobalOffset"]) - cfg["yGlobalOffset"]
+                res_x = fitx-x_aligned
+                res_y = fity-y_aligned
+                # print(f"z={z}")
+                # print(f"x={x_aligned} --> {fitx}")
+                # print(f"y={y_aligned} --> {fity}")
+                # print(f"res_x={res_x},   ex={ex}")
+                # print(f"res_y={res_y},   ey={ey}")
+                chisq = np.sum((res_x**2 / ex**2) + (res_y**2 / ey**2))
             
-
-
-        return sum_dabs/nvalidtracks
+            total_chisq += chisq
+        return total_chisq
     
-    nparperdet = -1
-    if  (axes=="xytheta"):                                nparperdet = 3
-    elif(axes=="xy" or axes=="xtheta" or axes=="ytheta"): nparperdet = 2
-    elif(axes=="x"  or axes=="y"      or axes=="theta"):  nparperdet = 1
-    else:
-        print("Unknown axes combination. Quitting.")
-        quit()
+    ### define parameter names for Minuit
+    n_params = nparperdet * ndet2align
+    param_names = [f"p{i}" for i in range(n_params)]
+    ### initial guesses
+    initial_values = np.zeros(n_params)
+    ### create the Minuit object
+    m = Minuit(metric_function_to_minimize, initial_values)
+    for i, name in enumerate(param_names): m.var2pos[name] = i
     
-    ### https://stackoverflow.com/questions/24767191/scipy-is-not-optimizing-and-returns-desired-error-not-necessarily-achieved-due
-    initial_params = [0]*(nparperdet*ndet2align)
-    dx_range = [(cfg["alignmentbounds"]["dx"]["min"],    cfg["alignmentbounds"]["dx"]["max"])]*ndet2align    if("x"     in axes) else []
-    dy_range = [(cfg["alignmentbounds"]["dy"]["min"],    cfg["alignmentbounds"]["dy"]["max"])]*ndet2align    if("y"     in axes) else []
-    dt_range = [(cfg["alignmentbounds"]["theta"]["min"], cfg["alignmentbounds"]["theta"]["max"])]*ndet2align if("theta" in axes) else []
+    ### apply bounds from config
     ranges = []
-    if("x"     in axes): ranges.extend(dx_range)
-    if("y"     in axes): ranges.extend(dy_range)
-    if("theta" in axes): ranges.extend(dt_range)
-    range_params = tuple(ranges)
-    print("initial_params:",initial_params)
-    print("range_params:",range_params)
-    ### https://stackoverflow.com/questions/52438263/scipy-optimize-gets-trapped-in-local-minima-what-can-i-do
-    ### https://stackoverflow.com/questions/25448296/scipy-basin-hopping-minimization-on-function-with-free-and-fixed-parameters
-    result = None
-    if(cfg["alignmentmethod"]=="SLSQP"):
-        result = basinhopping(metric_function_to_minimize, initial_params, niter=cfg["naligniter"], minimizer_kwargs={"method":"SLSQP", "bounds":range_params})
-    elif(cfg["alignmentmethod"]=="COBYLA"):
-        result = minimize(metric_function_to_minimize, initial_params, method='COBYLA', bounds=range_params, options={'disp': True, 'maxiter':2000})
-    elif(cfg["alignmentmethod"]=="Powell"):
-        result = minimize(metric_function_to_minimize, initial_params, method='Powell', bounds=range_params, options={'disp': True, 'maxiter':2000})
-    elif(cfg["alignmentmethod"]=="least_squares"):
-        lower_bounds = np.array([lo for (lo, hi) in range_params])
-        upper_bounds = np.array([hi for (lo, hi) in range_params])
-        # result = least_squares(metric_function_to_minimize, initial_params, bounds=(lower_bounds, upper_bounds), verbose=2, xtol=1e-15, ftol=1e-15)
-        result = least_squares(metric_function_to_minimize, initial_params, bounds=(lower_bounds, upper_bounds), verbose=2)
-    else:
-        print(f'alignmentmethod={cfg["alignmentmethod"]} is not supported. Quitting.')
-        quit()
+    if "x" in axes: ranges.extend([(cfg["alignmentbounds"]["dx"]["min"], cfg["alignmentbounds"]["dx"]["max"])] * ndet2align)
+    if "y" in axes: ranges.extend([(cfg["alignmentbounds"]["dy"]["min"], cfg["alignmentbounds"]["dy"]["max"])] * ndet2align)
+    if "theta" in axes: ranges.extend([(cfg["alignmentbounds"]["theta"]["min"], cfg["alignmentbounds"]["theta"]["max"])] * ndet2align)
+    for i, name in enumerate(param_names):
+        m.limits[name] = ranges[i]
+        m.errors[name] = 0.0001 if((i+1)%3==0) else 0.01  ### initial step size 0.1 mrad for thetas and 10 um for x/y
+    ### the miminization call
+    print("Starting Minuit Migrad Alignment...")
     
-    ### get the chi^2 value and the number of degrees of freedom
-    chisq = result.fun
-    params  = result.x
-    success = result.success
-    return params,chisq,success
+    
+    # # --- DEBUG SIGN CHECK ---
+    # # Manually test the chi2 with a +/- 100 micron shift on ALPIDE_3
+    # test_val = 0.05 # 50 microns
+    # test_params_pos = np.zeros(n_params)
+    # test_params_neg = np.zeros(n_params)
+    # # Assuming ALPIDE_0 dx is the 1th param (index 0) when refdet=ALPIDE_0
+    # print(f"params={initial_values}")
+    # test_params_pos[0] = test_val
+    # test_params_neg[0] = -test_val
+    # print(f"params_pos={test_params_pos}")
+    # print(f"params_neg={test_params_neg}")
+    # chi2_zero = metric_function_to_minimize(initial_values)
+    # chi2_pos  = metric_function_to_minimize(test_params_pos)
+    # chi2_neg  = metric_function_to_minimize(test_params_neg)
+    # print(f"DEBUG SIGN CHECK (ALPIDE_3):")
+    # print(f"  Chi2 @ 0.00 mm: {chi2_zero}")
+    # print(f"  Chi2 @ +0.10 mm: {chi2_pos}")
+    # print(f"  Chi2 @ -0.10 mm: {chi2_neg}")
+    # if chi2_pos > chi2_zero and chi2_neg > chi2_zero:
+    #     print("WARNING: Both directions increase Chi2. Track absorption is likely the culprit.")
+    # elif chi2_pos < chi2_zero:
+    #     print("RESULT: Positive shift is correct direction.")
+    # else:
+    #     print("RESULT: Negative shift is correct direction.")
+    # # -------------------------
+    
+    
+    m.migrad()  ### the gradient descent
+    m.hesse()   ### to get correlations
+    params = np.array(m.values)
+    parerr = np.array(m.errors) ### the calculated errors from Hesse
+    parcov = m.covariance.tolist()
+    chisq  = m.fval
+    valid  = m.valid
+    return params, parerr, parcov, chisq, valid
+    
 
-
-
+####################################
+####################################
+####################################
 
 
 if __name__ == "__main__":
@@ -331,8 +333,13 @@ if __name__ == "__main__":
         name = f"h_response_y_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",100,-12.5,+12.5) } )
     
     
+    ### Correctly map only aligned detectors to 0...ndet2align indices
+    aligned_detectors = [d for d in cfg["detectors"] if d not in refdet]
+    det_map = {det: i for i, det in enumerate(aligned_detectors)}
+    
     ### save all relevant events with only the good tracks
     events = []
+    chisqtot0 = 0
     chisq0 = 0
     dabs0  = 0
     dX0    = 0
@@ -353,6 +360,8 @@ if __name__ == "__main__":
                 
                 selected_tracks = get_selected_tracks(event)
                 for track in selected_tracks:
+                    t_dets = []
+                    t_coords = [] # [x, y, z, ex, ey]
                     for det in track.detectors:
                         dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
                         histos[f"h_residual_xy_{det}"].Fill(dx,dy)
@@ -361,10 +370,19 @@ if __name__ == "__main__":
                         histos[f"h_residual_y_{det}"].Fill(dy)
                         histos[f"h_residual_x_mid_{det}"].Fill(dx)
                         histos[f"h_residual_y_mid_{det}"].Fill(dy)
-                        histos[f"h_response_x_{det}"].Fill(dx/track.trkcls[det].dxTnoGmm)
-                        histos[f"h_response_y_{det}"].Fill(dy/track.trkcls[det].dyTnoGmm)
-                    
-                    chisq,ndof,dabs,dX,dY = fitSVD(track,[0.]*ndet2align,[0.]*ndet2align,[0.]*ndet2align,refdet)
+                        histos[f"h_response_x_{det}"].Fill(dx/track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else dx/track.trkcls[det].dxTnoGmm)
+                        histos[f"h_response_y_{det}"].Fill(dy/track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else dy/track.trkcls[det].dyTnoGmm)
+                        t_dets.append(det)
+                        t_coords.append([track.trkcls[det].xTnoGmm,
+                                         track.trkcls[det].yTnoGmm,
+                                         track.trkcls[det].zTnoGmm,
+                                         track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dxTnoGmm,
+                                         track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
+                                     ])
+
+                    n_params = nparperdet * ndet2align
+                    dx_f, dy_f, dt_f, _ = init_params(axes, ndet2align, np.zeros(n_params))
+                    chisq,ndof,dabs,dX,dY = RefitTrack_Fast(t_dets, np.array(t_coords), dx_f, dy_f, dt_f, refdet, det_map)
                     chi2dof = chisq/ndof
                     
                     ### count and proceed
@@ -374,6 +392,7 @@ if __name__ == "__main__":
                     evtgoodtracks += 1 
                     chisq0 += chi2dof
                     dabs0  += dabs
+                    chisqtot0 += chisq
                 
                 if(evtgoodtracks>0):
                     minevt = objects.MinimalEvent(event.trigger,event.tracks)
@@ -386,7 +405,7 @@ if __name__ == "__main__":
         quit()
     chisq0 = chisq0/ngoodtracks
     dabs0  = dabs0/ngoodtracks
-    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks}) in {allevents} events, or {float(alltracks)/float(allevents)} trks/evt) with chisq0={chisq0} and dabs0={dabs0}. Now going to fit misalignments")
+    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks}) in {allevents} events, or {float(ngoodtracks)/float(allevents):.3f} trks/evt) with chisqtot0={chisqtot0}. Now going to fit misalignments")
     ### save histos
     fOut = ROOT.TFile(tfilenamein.replace(".root","_aligment_scan.root"),"RECREATE")
     fOut.cd()
@@ -400,12 +419,13 @@ if __name__ == "__main__":
     ### Run the fit !!! ###
     ### events is already not including the 
     #######################
-    params,result,success = fit_misalignment(events,ndet2align,refdet,axes)
+    params, parerr, parcov, result, success = fit_misalignment_fast(events,ndet2align,nparperdet,refdet,axes)
     
 
     ########################
     ### and now check it ###
     ########################
+    chisqtot1 = 0
     chisq1 = 0
     dabs1  = 0
     dX1    = 0
@@ -417,14 +437,32 @@ if __name__ == "__main__":
         
         selected_tracks = get_selected_tracks(event)
         for track in selected_tracks:
-            chisq,ndof,dabs,dX,dY = fitSVD(track,dxFinal,dyFinal,thetaFinal,refdet)
+            t_dets = []
+            t_coords = [] # [x, y, z, ex, ey]
+            for det in track.detectors:
+                t_dets.append(det)
+                t_coords.append([track.trkcls[det].xTnoGmm,
+                                 track.trkcls[det].yTnoGmm,
+                                 track.trkcls[det].zTnoGmm,
+                                 track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dxTnoGmm,
+                                 track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
+                             ])
+            n_params = nparperdet * ndet2align
+            chisq,ndof,dabs,dX,dY = RefitTrack_Fast(t_dets, np.array(t_coords), dxFinal,dyFinal,thetaFinal, refdet, det_map)
+            
             chi2dof = chisq/ndof
             ngoodtracks += 1
             chisq1 += chi2dof
             dabs1  += dabs
+            chisqtot1 += chisq
             
     chisq1 = chisq1/ngoodtracks
     dabs1  = dabs1/ngoodtracks
+    
+    
+    print(f"Parameters: {params}")
+    print(f"Errors: {parerr}")
+    # print(f"Covariance: {parcov}")
     
     ### sumarize
     print("\n----------------------------------------")
@@ -434,17 +472,17 @@ if __name__ == "__main__":
     print(f"Events used: {len(events)} out of {allevents}")
     print(f"Tracks used: {ngoodtracks}")
     print(f"Success? {success}")
-    print(f"chi2: {chisq1} (original: {chisq0})")
-    print(f"dabs: {dabs1} (original: {dabs0})")
+    print(f"chi2: {chisqtot1:3f} (original: {chisqtot0:3f})")
+    print(f"dabs: {dabs1:4f} (original: {dabs0:4f})")
     print(f"dx final   : {dxFinal}")
     print(f"dy final   : {dyFinal}")
     print(f"theta final: {thetaFinal}")
     print("----------------------------------------\n")
-    salignment = "misalignment  = "
+    salignment = "misalignment = "
     k = 0
     for det in cfg["detectors"]:
         if(det in refdet):
-            salignment += f"{det}:dx=0,dy=0,theta=0 "
+            salignment += f'{det}:dx={cfg["misalignment"][det]["dx"]:.2E},dy={cfg["misalignment"][det]["dy"]:.2E},theta={cfg["misalignment"][det]["theta"]:.2E} '
         else:
             dx = dxFinal[k]    + cfg["misalignment"][det]["dx"]
             dy = dyFinal[k]    + cfg["misalignment"][det]["dy"]

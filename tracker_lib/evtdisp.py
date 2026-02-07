@@ -104,8 +104,8 @@ def plot_event(run,start,duration,evt,fname,clusters,tracks,chi2threshold=1.,sho
         goodtrk += 1
         
         ### Plot the points and the fitted line
-        # xFrst,yFrst,zFrst = utils.get_trak_at_det(cfg["det_frst"],track)
-        # xLast,yLast,zLast = utils.get_trak_at_det(cfg["det_last"],track)
+        # xFrst,yFrst,zFrst = utils.get_track_at_det(cfg["det_frst"],track)
+        # xLast,yLast,zLast = utils.get_track_at_det(cfg["det_last"],track)
         r0,rN,rW,rF,rD = utils.get_track_point_at_extremes(track,ismultiproc=False)
         xFrst=r0[0]
         yFrst=r0[1]

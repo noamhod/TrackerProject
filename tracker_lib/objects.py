@@ -168,8 +168,8 @@ class TrackSeed:
 class Track:
     # Explicitly define allowed attributes to save memory
     __slots__ = ('detectors', 'trkcls', 'points', 'errors', 'chisq', 'ndof', 'chi2ndof',
-                 'direction', 'centroid', 'params', 'success', 'hough_coords', 'theta', 'phi', 'maxcls')
-    def __init__(self,detectors,trkcls,points,errors,chisq,ndof,direction,centroid,params,success,hough_coords={}):
+                 'direction', 'centroid', 'params', 'paramerr', 'paramcov', 'success', 'hough_coords', 'theta', 'phi', 'maxcls')
+    def __init__(self,detectors,trkcls,points,errors,chisq,ndof,direction,centroid,params,paramerr,paramcov,success,hough_coords={}):
         self.detectors = detectors
         self.trkcls = trkcls
         self.points = points
@@ -180,6 +180,8 @@ class Track:
         self.direction = direction
         self.centroid = centroid
         self.params = params
+        self.paramerr = paramerr
+        self.paramcov = paramcov
         self.success = success
         self.hough_coords = hough_coords
         self.theta,self.phi = self.angles(direction)

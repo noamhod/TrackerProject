@@ -75,6 +75,7 @@ def tilted_eliptic_RoI_cut(track):
         if(elipse>0.): return False
     return True
 
+
 def spot_cut(x,y):
     cfg = config.Config().map
     CX = cfg["cut_spot_xcenter"]
@@ -87,6 +88,7 @@ def spot_cut(x,y):
     Y2 = Y*Y
     if( (X2+Y2)>1. ): return False
     return True
+
 
 def strip_cut(x,y):
     cfg = config.Config().map
@@ -109,6 +111,8 @@ def pass_dk_at_detector(track,dxrange=[-999,+999],dyrange=[-999,+999]):
     return True
 
 
+# def dx_cut(track):
+    
 
 
 def pass_geoacc_selection(track,ismultiproc=False):

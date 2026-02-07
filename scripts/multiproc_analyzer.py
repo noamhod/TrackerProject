@@ -345,35 +345,45 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             ### get the points
             xclserr = seed.xsize if(cfg["use_large_clserr_for_algnmnt"]) else seed.dx
             yclserr = seed.ysize if(cfg["use_large_clserr_for_algnmnt"]) else seed.dy
-            if(cfg["dbg"]): print(f"before SVD_candidate")
-            points_SVD, errors_SVD  = candidate.SVD_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
-            if(cfg["dbg"]): print(f"after SVD_candidate")
-            points_Chi2,errors_Chi2 = candidate.Chi2_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
-            chisq     = None
-            ndof      = None
-            direction = None
-            centroid  = None
-            params    = None
-            success   = None
-            par_guess = None
+            
+            
+            ### do the fit
+            chisq       = None
+            ndof        = None
+            direction   = None
+            centroid    = None
+            params      = None
+            paramerr    = None   
+            paramcov    = None   
+            success     = None
+            par_guess   = None
+            cand_points = None
+            cand_errors = None
             if(cfg["dbg"]): print(f"starting track fitting")
             ### svd fit
-            if("SVD" in cfg["fit_method"]):
-                chisq,ndof,direction,centroid = svd_fit.fit_3d_SVD(points_SVD,errors_SVD)
+            if(cfg["fit_method"]=="SVD"):
+                points,pnterrs  = candidate.SVD_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
+                chisq,ndof,direction,centroid = svd_fit.fit_3d_SVD(points,pnterrs)
                 params = utils.get_pars_from_centroid_and_direction(centroid,direction)
-                par_guess = params
                 success = True
+                cand_points = points
+                cand_errors = pnterrs
                 if(cfg["dbg"]): print(f"SVD: success,chisq,ndof,direction,centroid={success,chisq,ndof,direction,centroid}")
             ### chi2 fit
-            if("CHI2" in cfg["fit_method"]):
-                chisq,ndof,direction,centroid,params,success = fit_chi2.fit_3d_chi2err(points_Chi2,errors_Chi2,par_guess)
+            if(cfg["fit_method"]=="CHI2"):
+                points,pnterrs = candidate.Chi2_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
+                chisq,ndof,direction,centroid,params,paramerr,paramcov,success = chi2_fit.fit_3d_chi2err(points,pnterrs,par_guess)
+                cand_points,cand_errors = candidate.Candidate_Chi2toSVD(points,pnterrs)
+                # print(f"params={params} --> paramerr={paramerr} --> paramcov={paramcov}")
+                if(cfg["dbg"]): print(f"CHI2: success,chisq,ndof,direction,centroid={success,chisq,ndof,direction,centroid}")
             ### prepae the track clusters
             trkcls = {}
             for det,icls in seed.clsids.items(): trkcls.update({det:clusters[det][icls]})
             ### set the track
-            track = objects.Track(seed.detectors,trkcls,points_SVD,errors_SVD,chisq,ndof,direction,centroid,params,success,seed.hough_coords)
+            track = objects.Track(seed.detectors,trkcls,cand_points,cand_errors,chisq,ndof,direction,centroid,params,paramerr,paramcov,success,seed.hough_coords)
             tracks.append(track)
             n_tracks += 1
+        
             
             if(cfg["dbg"]): print(f"after track fitting")
             
@@ -401,8 +411,8 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             if(cfg["dbg"]): print(f"after fill hists")
             
             ### Chi2 track to cluster residuals
-            hists.fill_trk2cls_residuals(seed.detectors,points_SVD,direction,centroid,chi2ndof,"h_Chi2fit_res_trk2cls",histos)
-            hists.fill_trk2cls_residuals(seed.detectors,points_SVD,direction,centroid,chi2ndof,"h_Chi2fit_res_trk2cls_pass",histos,chi2threshold=cfg["cut_chi2dof"])
+            hists.fill_trk2cls_residuals(seed.detectors,cand_points,direction,centroid,chi2ndof,"h_Chi2fit_res_trk2cls",histos)
+            hists.fill_trk2cls_residuals(seed.detectors,cand_points,direction,centroid,chi2ndof,"h_Chi2fit_res_trk2cls_pass",histos,chi2threshold=cfg["cut_chi2dof"])
             if(cfg["dbg"]): print(f"after track fill_trk2cls_residuals")
             ### response (residuals over cluster error)
             nxs = []
@@ -411,7 +421,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 nxs.append(clstr.nx)
                 nys.append(clstr.ny)
             if(cfg["dbg"]): print(f"after trkcls")
-            hists.fill_trk2cls_response(seed.detectors,points_SVD,errors_SVD,direction,centroid,nxs,nys,chi2ndof,"h_response",histos,chi2threshold=cfg["cut_chi2dof"])
+            hists.fill_trk2cls_response(seed.detectors,cand_points,cand_errors,direction,centroid,nxs,nys,chi2ndof,"h_response",histos,chi2threshold=cfg["cut_chi2dof"])
             if(cfg["dbg"]): print(f"after track fill_trk2cls_response")
             ### fit points occupancy
             if(pass_selection): hists.fillFitOcc(seed.detectors,params,"h_trk_occ_2D", "h_trk_3D",histos)
