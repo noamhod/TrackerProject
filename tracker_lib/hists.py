@@ -60,6 +60,9 @@ def book_histos():
     trkarr = GetLogBinning(75,0.5,3000)
     ntrkarr = len(trkarr)-1
 
+    theta2arr = GetLogBinning(100,1e-7,1e-3)
+    ntheta2arr = len(theta2arr)-1
+
     lab_space_edges = utils.getChips2D()
     pix_xlab_nbins = pix_y_nbins
     pix_ylab_nbins = pix_x_nbins
@@ -143,6 +146,7 @@ def book_histos():
     histos.update( { "h_nTracks_butterfly_mid" : ROOT.TH1D("h_nTracks_butterfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
     histos.update( { "h_nTracks_butterfly_zoom": ROOT.TH1D("h_nTracks_butterfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
     
+    histos.update( { "h_MLE_theta2"           : ROOT.TH1D("h_MLE_theta2",";MLE #theta^{2};Tracks",ntheta2arr, theta2arr) } )
 
     histos.update( { "h_Chi2_phi"             : ROOT.TH1D("h_Chi2_phi",";Chi2 fit: #phi;Tracks",100,-np.pi,+np.pi) } )
     histos.update( { "h_Chi2_theta"           : ROOT.TH1D("h_Chi2_theta",";Chi2 fit: #theta;Tracks",100,0,np.pi) } )

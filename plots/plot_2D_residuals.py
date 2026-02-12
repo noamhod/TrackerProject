@@ -25,7 +25,7 @@ ROOT.gErrorIgnoreLevel = ROOT.kError
 detectors = ["ALPIDE_0","ALPIDE_1","ALPIDE_2","ALPIDE_3","ALPIDE_4"]
 
 basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
-fnamein = f"{basedir}/tree_Run502_allplots.root"
+fnamein = f"{basedir}/tree_Run502_allplots_nocuts.root"
 hstname = "h_residual_zeroshrcls_xy_mid"
 fIn  = ROOT.TFile(fnamein,"READ")
 

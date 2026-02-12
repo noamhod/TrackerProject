@@ -182,9 +182,9 @@ if(isnoalgn):
     h1.SetMinimum(0)
     h2.SetMinimum(0)
     if("_small_" in hstname):
-        h0.SetMaximum(160)
-        h1.SetMaximum(160)
-        h2.SetMaximum(160)
+        h0.SetMaximum(180)
+        h1.SetMaximum(180)
+        h2.SetMaximum(180)
     else:
         h0.SetMaximum(310)
         h1.SetMaximum(310)
@@ -192,7 +192,7 @@ if(isnoalgn):
 else:
     h.GetXaxis().SetTitle("#tilde{#chi}^{2}")
     h.SetMinimum(0)
-    h.SetMaximum(160 if("DoF" in hstname) else 110)
+    h.SetMaximum(180 if("DoF" in hstname) else 110)
 
 if(isnoalgn):
     h0.SetLineColor(ROOT.kBlack)

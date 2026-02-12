@@ -59,8 +59,8 @@ def fit_line_3d_chi2err(x, y, z, ex, ey, ez, guess=None):
     params = np.array(m.values)
     parerr = np.array(m.errors) # the calculated statistical errors from Hesse
     parcov = m.covariance.tolist()
-    chisq = m.fval
-    ndof = 2 * len(x) - len(params)
+    chisq  = m.fval
+    ndof   = 2 * len(x) - len(params)
     success = m.valid
     ### return
     return params, parerr, parcov, chisq, ndof, success

@@ -20,15 +20,15 @@ detevtlib        = 20250223
 # nmax2process  = 100
 # inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run490.root
 
-# ### run502 (Be window in):
-# first2process = 357
-# nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
-
-### run503 (beam-only, focusing on foil, 6h-long)
-first2process = 0
+### run502 (Be window in):
+first2process = 357
 nmax2process  = 0
-inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run503.root
+inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run502.root
+
+# ### run503 (beam-only, focusing on foil, 6h-long)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Feb2025/runs/tree_Run503.root
 
 # ### run510 (Be window in long run, parasitic)
 # first2process = 0
@@ -125,8 +125,8 @@ lut_scaleY = 0.20
 
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX Geo Btrfly
-cut_chi2dof = 3
 # cut_chi2dof = 1000
+cut_chi2dof = 3
 # only during alignment !!!
 cut_dk_algn       = 0
 cut_dk_algn_det   = ALPIDE_3
@@ -145,7 +145,7 @@ cut_strip_xcenter = -2.8
 cut_strip_ycenter = 10.2
 cut_strip_xwidth  = 7
 cut_strip_ywidth  = 7
-cut_spot          = 1
+cut_spot          = 0
 cut_spot_xcenter  = -2.6
 cut_spot_ycenter  = 10.6
 cut_spot_radius_x = 2
@@ -187,11 +187,51 @@ use_large_clserr_for_algnmnt = 0
 #####################################
 
 #####################################
+### USING CHI2 FITS
+### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)+(-0.07,-0.03), strip cut (8,-3) 5x5, 10<chi2<20 cut, 2650 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-3.94E-03,dy=1.80E-02,theta=-1.43E-03 ALPIDE_2:dx=3.75E-02,dy=-6.21E-02,theta=1.48E-03 ALPIDE_3:dx=6.85E-02,dy=-6.87E-02,theta=-1.41E-03 ALPIDE_4:dx=-2.61E-02,dy=2.93E-02,theta=4.53E-04
+# Parameters: [-0.00393844  0.03753181  0.06846542 -0.02611889  0.01795876 -0.06212432 -0.06868826  0.02927292 -0.00142601  0.00147638 -0.00141478  0.00045255]
+# Errors: [0.00150821 0.00292365 0.00436257 0.00582404 0.00137893 0.0026967 0.00403378 0.00537792 0.00017195 0.00033352 0.00049576 0.00065714]
+### iteration 1 with the proper cls errors, HT binning 1700^4, strip cut (8,-3) 5x5, chi2<5 cut, 1265 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-4.85E-03,dy=2.01E-02,theta=-1.53E-03 ALPIDE_2:dx=4.00E-02,dy=-6.51E-02,theta=1.77E-03 ALPIDE_3:dx=6.93E-02,dy=-6.89E-02,theta=-1.51E-03 ALPIDE_4:dx=-2.67E-02,dy=2.98E-02,theta=4.41E-04
+### iteration 2 with the proper cls errors, HT binning 1700^4, strip cut (8,-3) 5x5, chi2<3 cut, 941 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-4.41E-03,dy=2.06E-02,theta=-1.50E-03 ALPIDE_2:dx=4.07E-02,dy=-6.53E-02,theta=1.83E-03 ALPIDE_3:dx=6.94E-02,dy=-6.86E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.68E-02,dy=2.98E-02,theta=4.28E-04
+### iteration 3 with the proper cls errors, HT binning 1700^4, strip cut (8,-3) 5x5, chi2<3 cut, 938 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-4.01E-03,dy=2.10E-02,theta=-1.45E-03 ALPIDE_2:dx=4.10E-02,dy=-6.54E-02,theta=1.86E-03 ALPIDE_3:dx=6.96E-02,dy=-6.86E-02,theta=-1.50E-03 ALPIDE_4:dx=-2.69E-02,dy=2.98E-02,theta=4.13E-04
+### iteration 4 with the proper cls errors, HT binning 1700^4, strip cut (8,-3) 5x5, chi2<3 cut, 942 tracks
+misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-3.56E-03,dy=2.12E-02,theta=-1.40E-03 ALPIDE_2:dx=4.13E-02,dy=-6.53E-02,theta=1.89E-03 ALPIDE_3:dx=6.97E-02,dy=-6.86E-02,theta=-1.49E-03 ALPIDE_4:dx=-2.70E-02,dy=2.98E-02,theta=3.99E-04
+
+
+#####################################
+### USING CHI2 FITS
+### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.01,0.09)+(-0.09,-0.02), strip cut (12,-7) 5x5, 10<chi2<20 cut, 1819 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=8.23E-03,dy=2.53E-04,theta=-9.32E-04 ALPIDE_2:dx=4.24E-02,dy=-6.53E-02,theta=1.25E-03 ALPIDE_3:dx=7.08E-02,dy=-7.31E-02,theta=-1.11E-03 ALPIDE_4:dx=-2.75E-02,dy=3.11E-02,theta=3.80E-04
+# Parameters: [ 0.0082319  0.0424352  0.0708047  -0.02750993 0.0002535  -0.06525947 -0.07309533 0.03113004 -0.00093195 0.00125383 -0.00111127 0.00038001]
+# Errors:     [0.00309807  0.00359123 0.00202312 0.00156775  0.00038918 0.00022117  0.00024348  0.00034444 0.00042484  0.00017506 0.00016612  0.00011436]
+### iteration 1 with the proper cls errors, HT binning 1700^4, strip cut (9,-3) 5x5, chi2<5 cut, 925 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=6.36E-03,dy=4.35E-03,theta=-1.23E-03 ALPIDE_2:dx=4.65E-02,dy=-7.35E-02,theta=1.82E-03 ALPIDE_3:dx=7.20E-02,dy=-7.25E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.84E-02,dy=3.20E-02,theta=4.08E-04
+# Parameters: [-1.875e-03  4.13456e-03  1.18057e-03 -8.9617e-04 4.097e-03 -8.2366e-03  5.7894e-04  8.7008e-04 -2.9313e-04 5.735e-04 -3.0637e-04  2.8139e-05]
+# Errors: [0.00092589 0.00178657 0.00265639 0.00353901 0.00087642 0.00171049 0.00255446 0.00340477 0.00011125 0.00021549 0.00032042 0.00042494]
+### iteration 2 with the proper cls errors, HT binning 1700^4, strip cut (9,-3) 5x5, chi2<5 cut, 1326 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=6.68E-03,dy=5.47E-03,theta=-1.31E-03 ALPIDE_2:dx=4.75E-02,dy=-7.42E-02,theta=1.92E-03 ALPIDE_3:dx=7.22E-02,dy=-7.22E-02,theta=-1.43E-03 ALPIDE_4:dx=-2.86E-02,dy=3.20E-02,theta=3.96E-04
+# Parameters: [ 3.188e-04  1.0487e-03  1.76177e-04 -1.9256e-04  1.12e-03 -7.347e-04  3.017e-04  1.665e-05 -7.5039e-05  9.5e-05 -1.001e-05 -1.238e-05]
+# Errors: [8.376e-04 1.64e-03 2.459e-03 3.2807e-03 3.377416e-04 5.866e-04 8.556e-04 1.1168e-03 5.91e-05 1.11e-04 1.642e-04 2.18e-04]
+### iteration 3 with the proper cls errors, HT binning 1700^4, strip cut (9,-3) 5x5, chi2<5 cut, 1331 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=6.92E-03,dy=6.35E-03,theta=-1.33E-03 ALPIDE_2:dx=4.79E-02,dy=-7.39E-02,theta=1.93E-03 ALPIDE_3:dx=7.23E-02,dy=-7.21E-02,theta=-1.43E-03 ALPIDE_4:dx=-2.87E-02,dy=3.19E-02,theta=3.93E-04
+# Parameters: [ 2.392e-04  4.148e-04  5.05e-05 -7.1e-05  8.84e-04  2.76e-04  1.114e-04 -5.92e-05 -2.235e-05  8.38e-06 -1.4016e-06 -3.33e-06]
+# Errors: [3.56e-04 5.335e-04 6.94e-04 8.23e-04 2.37e-04 3.58e-04 5.12e-04 6.9e-04 9.186e-05 1.8e-04 2.9e-04 3.62e-04]
+### iteration 4 with the proper cls errors, HT binning 1700^4, strip cut (9,-3) 5x5, chi2<3 cut, 924 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=7.03E-03,dy=6.77E-03,theta=-1.33E-03 ALPIDE_2:dx=4.81E-02,dy=-7.39E-02,theta=1.90E-03 ALPIDE_3:dx=7.24E-02,dy=-7.19E-02,theta=-1.43E-03 ALPIDE_4:dx=-2.88E-02,dy=3.19E-02,theta=3.95E-04
+# Parameters: [ 1.1e-04  2.435e-04  1.48e-04 -7.9e-05  4.19e-04 -1.8e-05  1.9e-04 -4.6e-05 -3.23e-06 -2.7e-05 -4.26e-06  1.97e-06]
+# Errors: [4.296e-04 8.42e-04 1.33e-03 1.995e-03 6.26e-04 1.21e-03 1.8e-03 2.56e-03 7.55e-05 1.416e-04 2.16e-04 2.71e-04]
+
+
+#####################################
 ### FITTED MISALIGNMENT WITH THE DX,DY CUT AT ALPIDE_3 AND 10<CHI2<20 USING ALPIDE_0 AS REF
 # misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.43E-03,dy=9.59E-03,theta=-1.34E-03 ALPIDE_2:dx=4.12E-02,dy=-7.33E-02,theta=1.74E-03 ALPIDE_3:dx=7.08E-02,dy=-7.82E-02,theta=-1.42E-03 ALPIDE_4:dx=-2.45E-02,dy=1.96E-02,theta=3.98E-04
 
 ### FITTED MISALIGNMENT WITH 4 ITERATIONS FOLLOWING THE NOMINAL
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.05E-03,dy=1.05E-02,theta=-1.57E-03 ALPIDE_2:dx=4.38E-02,dy=-7.52E-02,theta=1.78E-03 ALPIDE_3:dx=7.19E-02,dy=-7.87E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.39E-04
+# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-1.05E-03,dy=1.05E-02,theta=-1.57E-03 ALPIDE_2:dx=4.38E-02,dy=-7.52E-02,theta=1.78E-03 ALPIDE_3:dx=7.19E-02,dy=-7.87E-02,theta=-1.52E-03 ALPIDE_4:dx=-2.51E-02,dy=2.00E-02,theta=4.39E-04
 #####################################
 
 minchi2align  = 0.01
@@ -216,21 +256,20 @@ alignmentmintrks = 25
 # global_corr_thetax = 0
 # global_corr_thetay = 0
 # global_corr_thetaz = 0
-# global_corr_dx     = 0
-# global_corr_dy     = 0
-# global_corr_dz     = 0
+global_corr_dx     = 0
+global_corr_dy     = 0
+global_corr_dz     = 0
 global_corr_thetax = 0.2216
 global_corr_thetay = 0
 global_corr_thetaz = 0
-global_corr_dx     = -10.7
-global_corr_dy     = +1.3
-global_corr_dz     = 0
+# global_corr_dx     = -10.7
+# global_corr_dy     = +1.3
+# global_corr_dz     = 0
 
 
 [FIT]
-# fit_method = SVD CHI2
-# fit_method = CHI2
-fit_method = SVD
+fit_method = CHI2
+# fit_method = SVD
 fit_chi2_fast = 1
 fit_chi2_method0 = Powell
 fit_chi2_method1 = Nelder-Mead Powell

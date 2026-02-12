@@ -32,7 +32,7 @@ debug = True if(argus.dbg is not None and argus.dbg=="1") else False
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from tracker_lib import config, objects, Pixels, Clusters, candidate, hough_seeder, selections, evtdisp, hists, errors, counters, noise, utils, svd_fit, chi2_fit
+from tracker_lib import config, objects, Pixels, Clusters, candidate, hough_seeder, selections, evtdisp, hists, errors, counters, noise, utils, svd_fit, chi2_fit, mle_fit
 
 
 ROOT.gROOT.SetBatch(1)
@@ -125,7 +125,9 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
     ### start the event loop
     ievt_start = evt_range[0]
     ievt_end   = evt_range[-1]
+    neventstot = ievt_end-ievt_start
     eventslist = []
+    previous_fdone = 0
     for ievt in range(ievt_start,ievt_end+1):
         ### get the event
         ttree.GetEntry(ievt)
@@ -350,6 +352,8 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             ### do the fit
             chisq       = None
             ndof        = None
+            nll         = None
+            theta2      = None
             direction   = None
             centroid    = None
             params      = None
@@ -374,8 +378,13 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 points,pnterrs = candidate.Chi2_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
                 chisq,ndof,direction,centroid,params,paramerr,paramcov,success = chi2_fit.fit_3d_chi2err(points,pnterrs,par_guess)
                 cand_points,cand_errors = candidate.Candidate_Chi2toSVD(points,pnterrs)
-                # print(f"params={params} --> paramerr={paramerr} --> paramcov={paramcov}")
                 if(cfg["dbg"]): print(f"CHI2: success,chisq,ndof,direction,centroid={success,chisq,ndof,direction,centroid}")
+            ### MLE fit
+            if(cfg["fit_method"]=="MLE"):
+                points,pnterrs = candidate.Chi2_candidate(seed.detectors,seed.x,seed.y,seed.z,xclserr,yclserr,vtx,evtx)
+                theta2,nll,chisq,ndof,direction,centroid,params,paramerr,paramcov,success = mle_fit.fit_3d_mle(points,pnterrs)
+                cand_points,cand_errors = candidate.Candidate_Chi2toSVD(points,pnterrs)
+                if(cfg["dbg"]): print(f"MLE: success,theta2,nll,chisq,ndof,direction,centroid={success,theta2,nll,chisq,ndof,direction,centroid}")
             ### prepae the track clusters
             trkcls = {}
             for det,icls in seed.clsids.items(): trkcls.update({det:clusters[det][icls]})
@@ -384,6 +393,8 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             tracks.append(track)
             n_tracks += 1
         
+        
+            histos["h_MLE_theta2"].Fill(theta2)
             
             if(cfg["dbg"]): print(f"after track fitting")
             
@@ -459,6 +470,10 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nTracks_butterfly_zoom"].Fill( n_btterfly_tracks )
         
         print(f"Eventid={ievt}: Pix/det={int(npixperdet)}, Cls/det={int(nclsperdet)} -->  Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}, Butterfly={n_btterfly_tracks}")
+        fdone = int((float(ievt-ievt_start)/float(neventstot))*100)
+        if(fdone%5==0 and fdone>0 and fdone!=previous_fdone):
+            previous_fdone = fdone
+            print(f"Worker {irange} at {fdone}%")
         
         if(n_successful_tracks<1): continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )

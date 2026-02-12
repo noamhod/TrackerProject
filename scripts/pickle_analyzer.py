@@ -41,7 +41,7 @@ print(f"dotoyhsit={dotoyhsit}")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
-from tracker_lib import objects, candidate, selections, evtdisp, hists, counters, utils, svd_fit, chi2_fit
+from tracker_lib import objects, candidate, selections, evtdisp, hists, counters, utils, svd_fit, chi2_fit, mle_fit
 
 
 ROOT.gROOT.SetBatch(1)
@@ -200,16 +200,22 @@ def refit(track):
     direction = None
     centroid  = None
     params    = None
+    parerr    = None
+    parcov    = None
+    nll       = None
+    theta2    = None  
     success   = None
-    
-    ### svd fit
-    if("SVD" in cfg["fit_method"]):
+    ### SVD fit
+    if(cfg["fit_method"]=="SVD"):
         chisq,ndof,direction,centroid = svd_fit.fit_3d_SVD(points_SVD,errors_SVD)
         params = utils.get_pars_from_centroid_and_direction(centroid,direction)
         success = True
     ### chi2 fit
-    if("CHI2" in cfg["fit_method"]):
-        chisq,ndof,direction,centroid,params,success = fit_chi2.fit_3d_chi2err(points_Chi2,errors_Chi2,par_guess)
+    if(cfg["fit_method"]=="CHI2"):
+        chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_chi2.fit_3d_chi2err(points_Chi2,errors_Chi2,par_guess)
+    ### MLE fit
+    if(cfg["fit_method"]=="MLE"):
+        theta2,nll,chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_mle.fit_3d_mle(points_Chi2,errors_Chi2,par_guess)
     
     ### set the track
     track = objects.Track(detectors,clusters,points_SVD,errors_SVD,chisq,ndof,direction,centroid,params,success,hough_coords)
@@ -1565,8 +1571,8 @@ if __name__ == "__main__":
         hxz.SetLineColor(ROOT.kBlack)
         hyz.SetLineColor(ROOT.kBlack)
         #
-        hxz.SetMaximum(380)
-        hyz.SetMaximum(250)
+        hxz.SetMaximum(390)
+        hyz.SetMaximum(280)
         hxz.GetXaxis().SetTitleOffset(1.3)
         hyz.GetXaxis().SetTitleOffset(1.3)
         cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)

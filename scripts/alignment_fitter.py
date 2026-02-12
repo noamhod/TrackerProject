@@ -39,7 +39,7 @@ print(f"Reference detectors for alignment: {refdet}")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
-from tracker_lib import objects, Pixels, Clusters, candidate, selections, hists, errors, counters, noise, utils, svd_fit, chi2_fit
+from tracker_lib import objects, Pixels, Clusters, candidate, selections, hists, errors, counters, noise, utils, svd_fit, chi2_fit, mle_fit
 
 
 
@@ -128,10 +128,27 @@ def RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map):
     ex, ey = working_coords[:, 3], working_coords[:, 4]
     ex, ey = working_coords[:, 3], working_coords[:, 4]
     ez = np.zeros_like(ex)
-    params, parerr, parcov, chisq, ndof, success = chi2_fit.fit_line_3d_chi2err(x, y, z, ex, ey, ez)
+    params  = None
+    parerr  = None
+    parcov  = None
+    chisq   = None
+    ndof    = None
+    nll     = None
+    theta2  = None
+    success = None
+    x0           = None
+    mx           = None
+    y0           = None
+    my           = None
+    log_theta_sq = None
+    if(cfg["fit_method"]=="CHI2"):
+        params, parerr, parcov, chisq, ndof, success = chi2_fit.fit_line_3d_chi2err(x, y, z, ex, ey, ez)
+        x0, mx, y0, my = params
+    if(cfg["fit_method"]=="MLE"):
+        params, parerr, parcov, nll, chisq, ndof, success = mle_fit.fit_line_3d_mle(x, y, z, ex, ey, ez)
+        x0, mx, y0, my, log_theta_sq = params
     
     # Calculate residuals
-    x0, mx, y0, my = params
     fit_x = x0 + mx * z
     fit_y = y0 + my * z
     dx_res = x - fit_x
@@ -205,61 +222,80 @@ def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
             total_chisq += chisq
         return total_chisq
     
-    ### define parameter names for Minuit
-    n_params = nparperdet * ndet2align
-    param_names = [f"p{i}" for i in range(n_params)]
-    ### initial guesses
-    initial_values = np.zeros(n_params)
-    ### create the Minuit object
-    m = Minuit(metric_function_to_minimize, initial_values)
-    for i, name in enumerate(param_names): m.var2pos[name] = i
-    
     ### apply bounds from config
     ranges = []
-    if "x" in axes: ranges.extend([(cfg["alignmentbounds"]["dx"]["min"], cfg["alignmentbounds"]["dx"]["max"])] * ndet2align)
-    if "y" in axes: ranges.extend([(cfg["alignmentbounds"]["dy"]["min"], cfg["alignmentbounds"]["dy"]["max"])] * ndet2align)
+    if "x"     in axes: ranges.extend([(cfg["alignmentbounds"]["dx"]["min"],    cfg["alignmentbounds"]["dx"]["max"])] * ndet2align)
+    if "y"     in axes: ranges.extend([(cfg["alignmentbounds"]["dy"]["min"],    cfg["alignmentbounds"]["dy"]["max"])] * ndet2align)
     if "theta" in axes: ranges.extend([(cfg["alignmentbounds"]["theta"]["min"], cfg["alignmentbounds"]["theta"]["max"])] * ndet2align)
-    for i, name in enumerate(param_names):
-        m.limits[name] = ranges[i]
-        m.errors[name] = 0.0001 if((i+1)%3==0) else 0.01  ### initial step size 0.1 mrad for thetas and 10 um for x/y
-    ### the miminization call
-    print("Starting Minuit Migrad Alignment...")
+    range_params = tuple(ranges)
     
+    #################################################
+    #################################################
+    #################################################
+    minimizer = "scipy" ### or minuit
+    params = None
+    parerr = None
+    parcov = None
+    chisq  = None
+    valid  = None
+    n_params = nparperdet * ndet2align
+    param_names = [f"p{i}" for i in range(n_params)]
+    initial_values = np.zeros(n_params) ### initial guesses
+    if(minimizer=="minuit"):
+        ### create the Minuit object
+        m = Minuit(metric_function_to_minimize, initial_values)
+        for i, name in enumerate(param_names):
+            m.var2pos[name] = i
+            m.limits[name] = ranges[i]
+            m.errors[name] = 0.001 if((i+1)%3==0) else 0.05  ### initial step size 0.1 mrad for thetas and 10 um for x/y
+        ### the miminization call
+        print("Starting Minuit Migrad Alignment with Hesse errors...")
+        # # --- DEBUG SIGN CHECK ---
+        # # Manually test the chi2 with a +/- 100 micron shift on ALPIDE_3
+        # test_val = 0.05 # 50 microns
+        # test_params_pos = np.zeros(n_params)
+        # test_params_neg = np.zeros(n_params)
+        # # Assuming ALPIDE_0 dx is the 1th param (index 0) when refdet=ALPIDE_0
+        # print(f"params={initial_values}")
+        # test_params_pos[0] = test_val
+        # test_params_neg[0] = -test_val
+        # print(f"params_pos={test_params_pos}")
+        # print(f"params_neg={test_params_neg}")
+        # chi2_zero = metric_function_to_minimize(initial_values)
+        # chi2_pos  = metric_function_to_minimize(test_params_pos)
+        # chi2_neg  = metric_function_to_minimize(test_params_neg)
+        # print(f"DEBUG SIGN CHECK (ALPIDE_3):")
+        # print(f"  Chi2 @ 0.00 mm: {chi2_zero}")
+        # print(f"  Chi2 @ +0.10 mm: {chi2_pos}")
+        # print(f"  Chi2 @ -0.10 mm: {chi2_neg}")
+        # if chi2_pos > chi2_zero and chi2_neg > chi2_zero:
+        #     print("WARNING: Both directions increase Chi2. Track absorption is likely the culprit.")
+        # elif chi2_pos < chi2_zero:
+        #     print("RESULT: Positive shift is correct direction.")
+        # else:
+        #     print("RESULT: Negative shift is correct direction.")
+        # # -------------------------
+        m.migrad()  ### the gradient descent
+        m.hesse()   ### to get correlations
+        params = np.array(m.values)
+        parerr = np.array(m.errors) ### the calculated errors from Hesse
+        parcov = m.covariance.tolist()
+        chisq  = m.fval
+        valid  = m.valid
+    elif(minimizer=="scipy"):
+        print("Starting Powell Alignment with Hesse errors...")
+        # result = minimize(metric_function_to_minimize,initial_values,method='Nelder-Mead',options={'xatol':1e-4,'disp':True}) # Tolerance 0.1 micron
+        result = minimize(metric_function_to_minimize, initial_values, method='Powell', bounds=range_params, options={'disp': True, 'maxiter':2000})
+        params = result.x
+        chisq  = result.fun
+        valid  = result.success
+        m = Minuit(metric_function_to_minimize, params)
+        m.hesse() # This calculates the errors at the minimum found by Nelder-Mead
+        parerr = np.array(m.errors) ### the calculated errors from Hesse
+    ###########################################
+    ###########################################
+    ###########################################
     
-    # # --- DEBUG SIGN CHECK ---
-    # # Manually test the chi2 with a +/- 100 micron shift on ALPIDE_3
-    # test_val = 0.05 # 50 microns
-    # test_params_pos = np.zeros(n_params)
-    # test_params_neg = np.zeros(n_params)
-    # # Assuming ALPIDE_0 dx is the 1th param (index 0) when refdet=ALPIDE_0
-    # print(f"params={initial_values}")
-    # test_params_pos[0] = test_val
-    # test_params_neg[0] = -test_val
-    # print(f"params_pos={test_params_pos}")
-    # print(f"params_neg={test_params_neg}")
-    # chi2_zero = metric_function_to_minimize(initial_values)
-    # chi2_pos  = metric_function_to_minimize(test_params_pos)
-    # chi2_neg  = metric_function_to_minimize(test_params_neg)
-    # print(f"DEBUG SIGN CHECK (ALPIDE_3):")
-    # print(f"  Chi2 @ 0.00 mm: {chi2_zero}")
-    # print(f"  Chi2 @ +0.10 mm: {chi2_pos}")
-    # print(f"  Chi2 @ -0.10 mm: {chi2_neg}")
-    # if chi2_pos > chi2_zero and chi2_neg > chi2_zero:
-    #     print("WARNING: Both directions increase Chi2. Track absorption is likely the culprit.")
-    # elif chi2_pos < chi2_zero:
-    #     print("RESULT: Positive shift is correct direction.")
-    # else:
-    #     print("RESULT: Negative shift is correct direction.")
-    # # -------------------------
-    
-    
-    m.migrad()  ### the gradient descent
-    m.hesse()   ### to get correlations
-    params = np.array(m.values)
-    parerr = np.array(m.errors) ### the calculated errors from Hesse
-    parcov = m.covariance.tolist()
-    chisq  = m.fval
-    valid  = m.valid
     return params, parerr, parcov, chisq, valid
     
 
