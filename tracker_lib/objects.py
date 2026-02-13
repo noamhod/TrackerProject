@@ -167,15 +167,18 @@ class TrackSeed:
 
 class Track:
     # Explicitly define allowed attributes to save memory
-    __slots__ = ('detectors', 'trkcls', 'points', 'errors', 'chisq', 'ndof', 'chi2ndof',
+    __slots__ = ('detectors', 'trkcls', 'points', 'errors', 'chisq', 'ndof', 'chi2ndof', 'nll', 'theta2',
                  'direction', 'centroid', 'params', 'paramerr', 'paramcov', 'success', 'hough_coords', 'theta', 'phi', 'maxcls')
-    def __init__(self,detectors,trkcls,points,errors,chisq,ndof,direction,centroid,params,paramerr,paramcov,success,hough_coords={}):
+    def __init__(self,detectors,trkcls,points,errors,chisq,ndof,nll,theta2,
+                      direction,centroid,params,paramerr,paramcov,success,hough_coords={}):
         self.detectors = detectors
         self.trkcls = trkcls
         self.points = points
         self.errors = errors
         self.chisq = chisq
         self.ndof = ndof
+        self.nll = nll
+        self.theta2 = theta2
         self.chi2ndof = chisq/ndof if(ndof>0) else 99999
         self.direction = direction
         self.centroid = centroid
@@ -191,7 +194,7 @@ class Track:
         dy = direction[1]
         dz = direction[2]
         theta = np.arctan(np.sqrt(dx*dx+dy*dy)/dz)
-        phi   = np.arctan(dy/dx)
+        phi   = np.arctan(dy/dx) if(dx!=0) else -999
         return theta,phi
     def max_cls_size(self):
         maxcls = 0

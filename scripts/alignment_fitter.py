@@ -66,6 +66,7 @@ def pass_alignment_selections(track):
 def get_selected_tracks(event):
     tracks = []
     for track in event.tracks:
+        if(not track.success):                    continue
         if(not pass_alignment_selections(track)): continue
         tracks.append(track)
     tracks = tracks if(cfg["cut_allow_shared_clusters"]) else selections.remove_tracks_with_shared_clusters(tracks)
@@ -136,26 +137,10 @@ def RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map):
     nll     = None
     theta2  = None
     success = None
-    x0           = None
-    mx           = None
-    y0           = None
-    my           = None
-    log_theta_sq = None
-    if(cfg["fit_method"]=="CHI2"):
-        params, parerr, parcov, chisq, ndof, success = chi2_fit.fit_line_3d_chi2err(x, y, z, ex, ey, ez)
-        x0, mx, y0, my = params
-    if(cfg["fit_method"]=="MLE"):
-        params, parerr, parcov, nll, chisq, ndof, success = mle_fit.fit_line_3d_mle(x, y, z, ex, ey, ez)
-        x0, mx, y0, my, log_theta_sq = params
-    
-    # Calculate residuals
-    fit_x = x0 + mx * z
-    fit_y = y0 + my * z
-    dx_res = x - fit_x
-    dy_res = y - fit_y
-    dabs = np.mean(np.sqrt(dx_res**2 + dy_res**2))
-    
-    return chisq, ndof, dabs, dx_res, dy_res
+    if(cfg["fit_method"]=="CHI2"):  params,parerr,parcov,chisq,ndof,success = chi2_fit.fit_line_3d_chi2err(x,y,z,ex,ey,ez)
+    elif(cfg["fit_method"]=="MLE"): params,parerr,parcov,nll,chisq,ndof,success = mle_fit.fit_line_3d_mle(x,y,z,ex,ey,ez,fixtheta2=True)
+    else: print(f"unsupported version of the fit_method")
+    return chisq,ndof,nll,success
 
 
 
@@ -181,46 +166,27 @@ def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
                     track.trkcls[det].xTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dxTnoGmm,
                     track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
                 ])
-            track_data.append((t_dets, np.array(t_coords), track.params))
+            track_data.append((t_dets, np.array(t_coords)))
 
-    dorefit=True
-
+    ### the cost function
     def metric_function_to_minimize(params):
-        dx_f, dy_f, dt_f, _ = init_params(axes, ndet2align, params)
-        total_chisq = 0.0
+        dx_f, dy_f, dt_f, _ = init_params(axes,ndet2align,params)
+        total_metric = 0.0
         n_tracks = len(track_data)
-        for dets, coords, trackpars in track_data:
-            chisq = 0
-            if(dorefit):
-                chisq, _, _, _, _ = RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map)
-            else:
-                x_aligned = coords[:,0].copy()
-                y_aligned = coords[:,1].copy()
-                z = coords[:,2]
-                ex = coords[:,3]
-                ey = coords[:,4]
-                
-                for i, det in enumerate(dets):
-                    if det not in refdet and det in det_map:
-                        idx = det_map[det]
-                        theta = dt_f[idx]
-                        c, s = np.cos(theta), np.sin(theta)
-                        x_old, y_old = x_aligned[i], y_aligned[i]
-                        x_aligned[i] = x_old * c - y_old * s + dx_f[idx]
-                        y_aligned[i] = x_old * s + y_old * c + dy_f[idx]
-                fitx = trackpars[0]+trackpars[1]*(z+cfg["zGlobalOffset"]) - cfg["xGlobalOffset"]
-                fity = trackpars[2]+trackpars[3]*(z+cfg["zGlobalOffset"]) - cfg["yGlobalOffset"]
-                res_x = fitx-x_aligned
-                res_y = fity-y_aligned
-                # print(f"z={z}")
-                # print(f"x={x_aligned} --> {fitx}")
-                # print(f"y={y_aligned} --> {fity}")
-                # print(f"res_x={res_x},   ex={ex}")
-                # print(f"res_y={res_y},   ey={ey}")
-                chisq = np.sum((res_x**2 / ex**2) + (res_y**2 / ey**2))
-            
-            total_chisq += chisq
-        return total_chisq
+        for dets, coords in track_data:
+            chisq,ndof,nll,success = RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map)
+            #########################
+            ### important !!! #######
+            if(not success):
+                total_metric += 1e9 # Huge penalty
+                continue
+            #########################
+            ### collect all results
+            if(cfg["fit_method"]=="CHI2"):  total_metric += chisq
+            elif(cfg["fit_method"]=="MLE"): total_metric += nll
+            else: print("Error: fit_method unknown/not implemented")
+            #########################
+        return total_metric
     
     ### apply bounds from config
     ranges = []
@@ -250,31 +216,6 @@ def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
             m.errors[name] = 0.001 if((i+1)%3==0) else 0.05  ### initial step size 0.1 mrad for thetas and 10 um for x/y
         ### the miminization call
         print("Starting Minuit Migrad Alignment with Hesse errors...")
-        # # --- DEBUG SIGN CHECK ---
-        # # Manually test the chi2 with a +/- 100 micron shift on ALPIDE_3
-        # test_val = 0.05 # 50 microns
-        # test_params_pos = np.zeros(n_params)
-        # test_params_neg = np.zeros(n_params)
-        # # Assuming ALPIDE_0 dx is the 1th param (index 0) when refdet=ALPIDE_0
-        # print(f"params={initial_values}")
-        # test_params_pos[0] = test_val
-        # test_params_neg[0] = -test_val
-        # print(f"params_pos={test_params_pos}")
-        # print(f"params_neg={test_params_neg}")
-        # chi2_zero = metric_function_to_minimize(initial_values)
-        # chi2_pos  = metric_function_to_minimize(test_params_pos)
-        # chi2_neg  = metric_function_to_minimize(test_params_neg)
-        # print(f"DEBUG SIGN CHECK (ALPIDE_3):")
-        # print(f"  Chi2 @ 0.00 mm: {chi2_zero}")
-        # print(f"  Chi2 @ +0.10 mm: {chi2_pos}")
-        # print(f"  Chi2 @ -0.10 mm: {chi2_neg}")
-        # if chi2_pos > chi2_zero and chi2_neg > chi2_zero:
-        #     print("WARNING: Both directions increase Chi2. Track absorption is likely the culprit.")
-        # elif chi2_pos < chi2_zero:
-        #     print("RESULT: Positive shift is correct direction.")
-        # else:
-        #     print("RESULT: Negative shift is correct direction.")
-        # # -------------------------
         m.migrad()  ### the gradient descent
         m.hesse()   ### to get correlations
         params = np.array(m.values)
@@ -287,7 +228,7 @@ def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
         # result = minimize(metric_function_to_minimize,initial_values,method='Nelder-Mead',options={'xatol':1e-4,'disp':True}) # Tolerance 0.1 micron
         result = minimize(metric_function_to_minimize, initial_values, method='Powell', bounds=range_params, options={'disp': True, 'maxiter':2000})
         params = result.x
-        chisq  = result.fun
+        metric = result.fun
         valid  = result.success
         m = Minuit(metric_function_to_minimize, params)
         m.hesse() # This calculates the errors at the minimum found by Nelder-Mead
@@ -296,7 +237,7 @@ def fit_misalignment_fast(events, ndet2align, nparperdet, refdet, axes):
     ###########################################
     ###########################################
     
-    return params, parerr, parcov, chisq, valid
+    return params, parerr, parcov, metric, valid
     
 
 ####################################
@@ -308,7 +249,6 @@ if __name__ == "__main__":
     # get the start time
     st = time.time()
     
-    
     #############################################
     ### Initialize Config in the main process ###
     config.init_config(configfile, False)
@@ -316,13 +256,11 @@ if __name__ == "__main__":
     config.show_config(cfg)
     #############################################
     
-    
     if(len(refdet)>0):
         for det in refdet:
             if(det not in cfg["detectors"]):
                 print("Unknown detector:",det," --> quitting")
                 quit()
-    
     
     ### get all the files
     tfilenamein = ""
@@ -346,12 +284,11 @@ if __name__ == "__main__":
         print("Unknown axes combination. Quitting.")
         quit()
     
-    
     ### some histos
-    histos = {}
-    NscanBins = 50
-    absRes    = 0.05
-    nResBins  = 50
+    histos     = {}
+    NscanBins  = 50
+    absRes     = 0.05
+    nResBins   = 50
     nResBins2D = 80
     for det in cfg["detectors"]:
         name = f"dx_{det}"; histos.update( {name:ROOT.TH1D(name,det+";dx [mm];#sum#Deltax [mm]",NscanBins,cfg["alignmentbounds"]["dx"]["min"],cfg["alignmentbounds"]["dx"]["max"])} )
@@ -368,20 +305,17 @@ if __name__ == "__main__":
         name = f"h_response_x_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",100,-12.5,+12.5) } )
         name = f"h_response_y_{det}"; histos.update( {name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",100,-12.5,+12.5) } )
     
-    
     ### Correctly map only aligned detectors to 0...ndet2align indices
     aligned_detectors = [d for d in cfg["detectors"] if d not in refdet]
     det_map = {det: i for i, det in enumerate(aligned_detectors)}
     
     ### save all relevant events with only the good tracks
-    events = []
-    chisqtot0 = 0
-    chisq0 = 0
-    dabs0  = 0
-    dX0    = 0
-    dY0    = 0
-    allevents = 0
-    alltracks = 0
+    events      = []
+    chisqtot0   = 0
+    chisq0      = 0
+    nll0        = 0
+    allevents   = 0
+    alltracks   = 0
     ngoodtracks = 0
     for fpkl in files:
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
@@ -418,30 +352,32 @@ if __name__ == "__main__":
 
                     n_params = nparperdet * ndet2align
                     dx_f, dy_f, dt_f, _ = init_params(axes, ndet2align, np.zeros(n_params))
-                    chisq,ndof,dabs,dX,dY = RefitTrack_Fast(t_dets, np.array(t_coords), dx_f, dy_f, dt_f, refdet, det_map)
+                    chisq,ndof,nll,success = RefitTrack_Fast(t_dets, np.array(t_coords), dx_f, dy_f, dt_f, refdet, det_map)
                     chi2dof = chisq/ndof
+                    
+                    ### TODO: this is new
+                    if(not success): continue
                     
                     ### count and proceed
                     if(ngoodtracks%25==0 and ngoodtracks>0): print(f"Added {ngoodtracks} tracks")
                     
                     ngoodtracks   += 1
                     evtgoodtracks += 1 
-                    chisq0 += chi2dof
-                    dabs0  += dabs
-                    chisqtot0 += chisq
+                    chisq0        += chi2dof
+                    nll0          += nll if(nll is not None and cfg["fit_method"]=="MLE") else 0
+                    chisqtot0     += chisq
                 
                 if(evtgoodtracks>0):
                     minevt = objects.MinimalEvent(event.trigger,event.tracks)
                     events.append(minevt)
-                    # events.append(event)
 
     if(ngoodtracks<cfg["alignmentmintrks"]):
         print(f'Too few tracks collected ({ngoodtracks}) for the chi2/dof cut of maxchi2align={cfg["maxchi2align"]} --> try to increase it in the config file.')
         print("Quitting")
         quit()
     chisq0 = chisq0/ngoodtracks
-    dabs0  = dabs0/ngoodtracks
-    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks}) in {allevents} events, or {float(ngoodtracks)/float(allevents):.3f} trks/evt) with chisqtot0={chisqtot0}. Now going to fit misalignments")
+    nll0   = nll0/ngoodtracks
+    print(f"Done collecting {ngoodtracks} tracks (out of {alltracks}) in {allevents} events, or {float(ngoodtracks)/float(allevents):.3f} trks/evt) with chisqtot0={chisqtot0} and nll0={nll0}. Now going to fit misalignments")
     ### save histos
     fOut = ROOT.TFile(tfilenamein.replace(".root","_aligment_scan.root"),"RECREATE")
     fOut.cd()
@@ -455,22 +391,19 @@ if __name__ == "__main__":
     ### Run the fit !!! ###
     ### events is already not including the 
     #######################
-    params, parerr, parcov, result, success = fit_misalignment_fast(events,ndet2align,nparperdet,refdet,axes)
+    params, parerr, parcov, metric, success = fit_misalignment_fast(events,ndet2align,nparperdet,refdet,axes)
     
 
     ########################
     ### and now check it ###
     ########################
-    chisqtot1 = 0
-    chisq1 = 0
-    dabs1  = 0
-    dX1    = 0
-    dY1    = 0
-    allevents1 = 0
+    chisqtot1   = 0
+    chisq1      = 0
+    nll1        = 0 
+    allevents1  = 0
     ngoodtracks = 0
     dxFinal,dyFinal,thetaFinal,nparperdet = init_params(axes,ndet2align,params)
     for event in events:
-        
         selected_tracks = get_selected_tracks(event)
         for track in selected_tracks:
             t_dets = []
@@ -484,21 +417,22 @@ if __name__ == "__main__":
                                  track.trkcls[det].yTnoGsizemm if(cfg["use_large_clserr_for_algnmnt"]) else track.trkcls[det].dyTnoGmm
                              ])
             n_params = nparperdet * ndet2align
-            chisq,ndof,dabs,dX,dY = RefitTrack_Fast(t_dets, np.array(t_coords), dxFinal,dyFinal,thetaFinal, refdet, det_map)
+            chisq,ndof,nll,success = RefitTrack_Fast(t_dets, np.array(t_coords), dxFinal,dyFinal,thetaFinal, refdet, det_map)
             
-            chi2dof = chisq/ndof
+            #############################
+            ### important!!! ############
+            if(not success): continue ###
+            #############################
+            
+            nll1        += nll if(nll is not None and cfg["fit_method"]=="MLE") else 0
+            chi2dof     = chisq/ndof
             ngoodtracks += 1
-            chisq1 += chi2dof
-            dabs1  += dabs
-            chisqtot1 += chisq
-            
+            chisq1      += chi2dof
+            chisqtot1   += chisq
+
+    nll1   = nll1/ngoodtracks
     chisq1 = chisq1/ngoodtracks
-    dabs1  = dabs1/ngoodtracks
     
-    
-    print(f"Parameters: {params}")
-    print(f"Errors: {parerr}")
-    # print(f"Covariance: {parcov}")
     
     ### sumarize
     print("\n----------------------------------------")
@@ -507,12 +441,12 @@ if __name__ == "__main__":
     else:              print(f"No reference detector")
     print(f"Events used: {len(events)} out of {allevents}")
     print(f"Tracks used: {ngoodtracks}")
-    print(f"Success? {success}")
-    print(f"chi2: {chisqtot1:3f} (original: {chisqtot0:3f})")
-    print(f"dabs: {dabs1:4f} (original: {dabs0:4f})")
-    print(f"dx final   : {dxFinal}")
-    print(f"dy final   : {dyFinal}")
+    print(f"Success?     {success}")
+    if(cfg["fit_method"]=="MLE"): print(f"nll:     {nll1:3f} (original: {nll0:3f})")
+    print(f"chi2:        {chisqtot1:3f} (original: {chisqtot0:3f})")
     print(f"theta final: {thetaFinal}")
+    print(f"Parameters:  {params}")
+    print(f"Errors:      {parerr}")
     print("----------------------------------------\n")
     salignment = "misalignment = "
     k = 0
@@ -524,8 +458,6 @@ if __name__ == "__main__":
             dy = dyFinal[k]    + cfg["misalignment"][det]["dy"]
             dt = thetaFinal[k] + cfg["misalignment"][det]["theta"]
             salignment += f"{det}:dx={dx:.2E},dy={dy:.2E},theta={dt:.2E} "
-            # salignment += f"{det}:dx={dxFinal[k]:.2E},dy={dyFinal[k]:.2E},theta={thetaFinal[k]:.2E} "
-            # salignment += f"{det}:dx={dxf:.2E},dy={dyf:.2E},theta={dtf:.2E} "
             k += 1
     print(salignment)
     

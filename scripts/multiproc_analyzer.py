@@ -389,7 +389,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             trkcls = {}
             for det,icls in seed.clsids.items(): trkcls.update({det:clusters[det][icls]})
             ### set the track
-            track = objects.Track(seed.detectors,trkcls,cand_points,cand_errors,chisq,ndof,direction,centroid,params,paramerr,paramcov,success,seed.hough_coords)
+            track = objects.Track(seed.detectors,trkcls,cand_points,cand_errors,chisq,ndof,nll,theta2,direction,centroid,params,paramerr,paramcov,success,seed.hough_coords)
             tracks.append(track)
             n_tracks += 1
         

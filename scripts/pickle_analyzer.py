@@ -168,58 +168,58 @@ def fit1(h,col,xmin,xmax):
     print("g1 chi2/Ndof=",chi2dof)
     return g1
 
-def refit(track):
-    cfg = config.Config().map  
-    hough_coords = track.hough_coords
-    clusters = track.trkcls
-    detectors = track.detectors
-    seed_x = {}
-    seed_y = {}
-    seed_z = {}
-    seed_dx = {}
-    seed_dy = {}
-    # for det in cfg["detectors"]:
-    for det in track.detectors:
-        ### first get the track cluster in this det at the EUDAQ coordinates
-        rCLS = [clusters[det].xmm, clusters[det].ymm, clusters[det].zmm]
-        ### then transform (including alignment) to the real space
-        rCLS = transform_to_real_space(rCLS,det,algn=True)
-        seed_x.update({  det : rCLS[0]  })
-        seed_y.update({  det : rCLS[1]  })
-        seed_z.update({  det : rCLS[2]  })
-        seed_dx.update({ det : clusters[det].xTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dxTmm })
-        seed_dy.update({ det : clusters[det].yTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dyTmm })
-    ### then prepare for refit
-    vtx  = [cfg["xVtx"],cfg["yVtx"],cfg["zVtx"]]    if(cfg["doVtx"]) else []
-    evtx = [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] if(cfg["doVtx"]) else []
-    points_SVD, errors_SVD  = candidate.SVD_candidate(seed_x,seed_y,seed_z,seed_dx,seed_dy,vtx,evtx)
-    points_Chi2,errors_Chi2 = candidate.Chi2_candidate(seed_x,seed_y,seed_z,seed_dx,seed_dy,vtx,evtx)
-    
-    chisq     = None
-    ndof      = None
-    direction = None
-    centroid  = None
-    params    = None
-    parerr    = None
-    parcov    = None
-    nll       = None
-    theta2    = None  
-    success   = None
-    ### SVD fit
-    if(cfg["fit_method"]=="SVD"):
-        chisq,ndof,direction,centroid = svd_fit.fit_3d_SVD(points_SVD,errors_SVD)
-        params = utils.get_pars_from_centroid_and_direction(centroid,direction)
-        success = True
-    ### chi2 fit
-    if(cfg["fit_method"]=="CHI2"):
-        chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_chi2.fit_3d_chi2err(points_Chi2,errors_Chi2,par_guess)
-    ### MLE fit
-    if(cfg["fit_method"]=="MLE"):
-        theta2,nll,chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_mle.fit_3d_mle(points_Chi2,errors_Chi2,par_guess)
-    
-    ### set the track
-    track = objects.Track(detectors,clusters,points_SVD,errors_SVD,chisq,ndof,direction,centroid,params,success,hough_coords)
-    return track
+# def refit(track):
+#     cfg = config.Config().map
+#     hough_coords = track.hough_coords
+#     clusters = track.trkcls
+#     detectors = track.detectors
+#     seed_x = {}
+#     seed_y = {}
+#     seed_z = {}
+#     seed_dx = {}
+#     seed_dy = {}
+#     # for det in cfg["detectors"]:
+#     for det in track.detectors:
+#         ### first get the track cluster in this det at the EUDAQ coordinates
+#         rCLS = [clusters[det].xmm, clusters[det].ymm, clusters[det].zmm]
+#         ### then transform (including alignment) to the real space
+#         rCLS = transform_to_real_space(rCLS,det,algn=True)
+#         seed_x.update({  det : rCLS[0]  })
+#         seed_y.update({  det : rCLS[1]  })
+#         seed_z.update({  det : rCLS[2]  })
+#         seed_dx.update({ det : clusters[det].xTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dxTmm })
+#         seed_dy.update({ det : clusters[det].yTsizemm if(cfg["use_large_clserr_for_algnmnt"]) else clusters[det].dyTmm })
+#     ### then prepare for refit
+#     vtx  = [cfg["xVtx"],cfg["yVtx"],cfg["zVtx"]]    if(cfg["doVtx"]) else []
+#     evtx = [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] if(cfg["doVtx"]) else []
+#     points_SVD, errors_SVD  = candidate.SVD_candidate(seed_x,seed_y,seed_z,seed_dx,seed_dy,vtx,evtx)
+#     points_Chi2,errors_Chi2 = candidate.Chi2_candidate(seed_x,seed_y,seed_z,seed_dx,seed_dy,vtx,evtx)
+#
+#     chisq     = None
+#     ndof      = None
+#     direction = None
+#     centroid  = None
+#     params    = None
+#     parerr    = None
+#     parcov    = None
+#     nll       = None
+#     theta2    = None
+#     success   = None
+#     ### SVD fit
+#     if(cfg["fit_method"]=="SVD"):
+#         chisq,ndof,direction,centroid = svd_fit.fit_3d_SVD(points_SVD,errors_SVD)
+#         params = utils.get_pars_from_centroid_and_direction(centroid,direction)
+#         success = True
+#     ### chi2 fit
+#     if(cfg["fit_method"]=="CHI2"):
+#         chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_chi2.fit_3d_chi2err(points_Chi2,errors_Chi2,par_guess)
+#     ### MLE fit
+#     if(cfg["fit_method"]=="MLE"):
+#         theta2,nll,chisq,ndof,direction,centroid,params,parerr,parcov,success = fit_mle.fit_3d_mle(points_Chi2,errors_Chi2)
+#
+#     ### set the track
+#     track = objects.Track(detectors,clusters,points_SVD,errors_SVD,chisq,ndof,direction,centroid,params,success,hough_coords)
+#     return track
 
 
 
@@ -295,6 +295,9 @@ def book_histos():
     trkarr = hists.GetLogBinning(75,0.5,3000)
     ntrkarr = len(trkarr)-1
     
+    theta2arr = hists.GetLogBinning(100,1e-12,1e-3)
+    ntheta2arr = len(theta2arr)-1
+    
     histos.update({ "hTriggers": ROOT.TH1D("hTriggers",";;Triggers",2,0,2)})
     histos["hTriggers"].GetXaxis().SetBinLabel(1,"All")
     histos["hTriggers"].GetXaxis().SetBinLabel(2,"Good")
@@ -341,6 +344,8 @@ def book_histos():
     histos.update({ "hChi2_small_zeroshrcls": ROOT.TH1D("hChi2_small_zeroshrcls",";#chi^{2};Tracks",100,0,20*4)})
     histos.update({ "hChi2_zoom_alowshrcls": ROOT.TH1D("hChi2_zoom_alowshrcls",";#chi^{2};Tracks",200,0,5*4)})
     histos.update({ "hChi2_zoom_zeroshrcls": ROOT.TH1D("hChi2_zoon_zeroshrcls",";#chi^{2};Tracks",200,0,5*4)})
+    
+    histos.update({ "h_MLE_theta2": ROOT.TH1D("h_MLE_theta2",";MLE #theta^{2};Tracks",ntheta2arr,theta2arr)})
     
     histos.update({ "hPf_vs_dExit": ROOT.TH2D("hPf_vs_dExit",";d_{exit} [mm];p(#theta(fit)) [GeV];Tracks",50,0,+35, 50,0,10) })
     histos.update({ "hPd_vs_dExit": ROOT.TH2D("hPd_vs_dExit",";d_{exit} [mm];p(#theta(d_{exit}) [GeV];Tracks",50,0,+35, 50,0,10) })
@@ -836,12 +841,19 @@ if __name__ == "__main__":
                     # #############
                     
                     
+                    #####################################
+                    ### first require successful fit ####
+                    #####################################
+                    if(not track.success): continue
+
+                    
                     ##################################
                     ### first require max cluster ####
                     ##################################
                     if(track.maxcls>cfg["cut_maxcls"]): continue
                     
                     
+                    histos["h_MLE_theta2"].Fill(track.theta2)
                     
                     
                     # #####################
@@ -857,7 +869,10 @@ if __name__ == "__main__":
                     #     if(not inROI): break
                     # if(not inROI): continue
                     
-                    ### fill some quantities before alignment
+                    
+                    
+                    
+                    ### fill some quantities
                     if(track.chi2ndof<=cfg["cut_chi2dof"] and track.chi2ndof>=cfg["minchi2align"] and selections.pass_geoacc_selection(track,ismultiproc=False)): ##TODO: missing the shared hits cut here...
                         histos["hChi2DoF_alowshrcls"].Fill(track.chi2ndof)
                         histos["hChi2DoF_full_alowshrcls"].Fill(track.chi2ndof)
@@ -870,6 +885,8 @@ if __name__ == "__main__":
                         histos["hChi2_mid_alowshrcls"].Fill(track.chisq)
                         histos["hChi2_zoom_alowshrcls"].Fill(track.chisq)
                         histos["hChi2_small_alowshrcls"].Fill(track.chisq)
+                        
+                        
                         
                         
                         histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_1"].xTnoGmm-track.trkcls["ALPIDE_0"].xTnoGmm))
@@ -902,14 +919,21 @@ if __name__ == "__main__":
                             histos[f"h_response_alowshrcls_y_ful_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                     
                     
-                    #################################################
-                    ### refit the track if necessary
-                    if(not isAlignedAtProd and isNon0Mislaignment):
-                        print(f"Note I'm doing a refit!!")
-                        track = refit(track)
-                    ### will be the same if misalignment is 0
-                    #################################################
-                                        
+                    # #################################################
+                    # ### refit the track if necessary
+                    # if(not isAlignedAtProd and isNon0Mislaignment):
+                    #     print(f"Note I'm doing a refit!!")
+                    #     track = refit(track)
+                    # ### will be the same if misalignment is 0
+                    # #################################################
+                    
+                    # dxarr = [abs(track.trkcls["ALPIDE_1"].xTnoGmm-track.trkcls["ALPIDE_0"].xTnoGmm),
+                    #          abs(track.trkcls["ALPIDE_2"].xTnoGmm-track.trkcls["ALPIDE_1"].xTnoGmm),
+                    #          abs(track.trkcls["ALPIDE_3"].xTnoGmm-track.trkcls["ALPIDE_2"].xTnoGmm),
+                    #          abs(track.trkcls["ALPIDE_4"].xTnoGmm-track.trkcls["ALPIDE_3"].xTnoGmm)
+                    #         ]
+                    # if(max(dxarr)>0.15): continue
+                    
                     
                     #########################
                     ### then require chi2 ###
@@ -1075,6 +1099,7 @@ if __name__ == "__main__":
                 histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
                 nbtrtrk += n_butterfly_tracks
+                
                 
                 
                 
@@ -2072,6 +2097,17 @@ if __name__ == "__main__":
     del cnv
     print("---------------19.3")
     
+    cnv = ROOT.TCanvas("cnv_theta2","",500,500)
+    cnv.cd()
+    ROOT.gPad.SetTicks(1,1)
+    ROOT.gPad.SetLogx()
+    ROOT.gPad.SetLogy()
+    histos[f"h_MLE_theta2"].Draw("hist")
+    ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.4")
     
     
     

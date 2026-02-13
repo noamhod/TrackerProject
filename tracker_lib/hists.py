@@ -60,7 +60,7 @@ def book_histos():
     trkarr = GetLogBinning(75,0.5,3000)
     ntrkarr = len(trkarr)-1
 
-    theta2arr = GetLogBinning(100,1e-7,1e-3)
+    theta2arr = GetLogBinning(100,1e-8,1e-3)
     ntheta2arr = len(theta2arr)-1
 
     lab_space_edges = utils.getChips2D()
