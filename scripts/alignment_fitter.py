@@ -138,7 +138,7 @@ def RefitTrack_Fast(dets, coords, dx_f, dy_f, dt_f, refdet, det_map):
     theta2  = None
     success = None
     if(cfg["fit_method"]=="CHI2"):  params,parerr,parcov,chisq,ndof,success = chi2_fit.fit_line_3d_chi2err(x,y,z,ex,ey,ez)
-    elif(cfg["fit_method"]=="MLE"): params,parerr,parcov,nll,chisq,ndof,success = mle_fit.fit_line_3d_mle(x,y,z,ex,ey,ez,fixtheta2=True)
+    elif(cfg["fit_method"]=="MLE"): params,parerr,parcov,nll,chisq,ndof,success = mle_fit.fit_line_3d_mle(x,y,z,ex,ey,ez,fixtheta2=True,runsimplex=True)
     else: print(f"unsupported version of the fit_method")
     return chisq,ndof,nll,success
 

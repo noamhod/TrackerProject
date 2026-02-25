@@ -294,8 +294,11 @@ def book_histos():
     
     trkarr = hists.GetLogBinning(75,0.5,3000)
     ntrkarr = len(trkarr)-1
+
+    theta1arr = hists.GetLogBinning(100,1e-13,1e-1)
+    ntheta1arr = len(theta1arr)-1
     
-    theta2arr = hists.GetLogBinning(100,1e-12,1e-3)
+    theta2arr = hists.GetLogBinning(100,1e-22,1e-3)
     ntheta2arr = len(theta2arr)-1
     
     histos.update({ "hTriggers": ROOT.TH1D("hTriggers",";;Triggers",2,0,2)})
@@ -344,8 +347,16 @@ def book_histos():
     histos.update({ "hChi2_small_zeroshrcls": ROOT.TH1D("hChi2_small_zeroshrcls",";#chi^{2};Tracks",100,0,20*4)})
     histos.update({ "hChi2_zoom_alowshrcls": ROOT.TH1D("hChi2_zoom_alowshrcls",";#chi^{2};Tracks",200,0,5*4)})
     histos.update({ "hChi2_zoom_zeroshrcls": ROOT.TH1D("hChi2_zoon_zeroshrcls",";#chi^{2};Tracks",200,0,5*4)})
+
+    histos.update({ "h_MLE_theta1_linx_before_cuts": ROOT.TH1D("h_MLE_theta1_linx_before_cuts",";#theta_{RMS} [rad];Tracks",100,2e-7,1e-6)})
+    histos.update({ "h_MLE_theta2_linx_before_cuts": ROOT.TH1D("h_MLE_theta2_linx_before_cuts",";MLE #theta^{2} [rad^{2}];Tracks",100,5e-14,1e-12)})
+    histos.update({ "h_MLE_theta1_linx_after_cuts":  ROOT.TH1D("h_MLE_theta1_linx_after_cuts",";#theta_{RMS} [rad];Tracks",100,2e-7,1e-6)})
+    histos.update({ "h_MLE_theta2_linx_after_cuts":  ROOT.TH1D("h_MLE_theta2_linx_after_cuts",";MLE #theta^{2} [rad^{2}];Tracks",100,5e-14,1e-12)})
     
-    histos.update({ "h_MLE_theta2": ROOT.TH1D("h_MLE_theta2",";MLE #theta^{2};Tracks",ntheta2arr,theta2arr)})
+    histos.update({ "h_MLE_theta1_logx_before_cuts": ROOT.TH1D("h_MLE_theta1_logx_before_cuts",";#theta_{RMS} [rad];Tracks",ntheta1arr,theta1arr)})
+    histos.update({ "h_MLE_theta2_logx_before_cuts": ROOT.TH1D("h_MLE_theta2_logx_before_cuts",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
+    histos.update({ "h_MLE_theta1_logx_after_cuts": ROOT.TH1D("h_MLE_theta1_logx_after_cuts",";#theta_{RMS} [rad];Tracks",ntheta1arr,theta1arr)})
+    histos.update({ "h_MLE_theta2_logx_after_cuts": ROOT.TH1D("h_MLE_theta2_logx_after_cuts",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
     
     histos.update({ "hPf_vs_dExit": ROOT.TH2D("hPf_vs_dExit",";d_{exit} [mm];p(#theta(fit)) [GeV];Tracks",50,0,+35, 50,0,10) })
     histos.update({ "hPd_vs_dExit": ROOT.TH2D("hPd_vs_dExit",";d_{exit} [mm];p(#theta(d_{exit}) [GeV];Tracks",50,0,+35, 50,0,10) })
@@ -853,9 +864,6 @@ if __name__ == "__main__":
                     if(track.maxcls>cfg["cut_maxcls"]): continue
                     
                     
-                    histos["h_MLE_theta2"].Fill(track.theta2)
-                    
-                    
                     # #####################
                     # ### pixel ROI cut ###
                     # #####################
@@ -870,6 +878,10 @@ if __name__ == "__main__":
                     # if(not inROI): continue
                     
                     
+                    histos["h_MLE_theta1_logx_before_cuts"].Fill(math.sqrt(track.theta2))
+                    histos["h_MLE_theta2_logx_before_cuts"].Fill(track.theta2)
+                    histos["h_MLE_theta1_linx_before_cuts"].Fill(math.sqrt(track.theta2))
+                    histos["h_MLE_theta2_linx_before_cuts"].Fill(track.theta2)
                     
                     
                     ### fill some quantities
@@ -885,9 +897,6 @@ if __name__ == "__main__":
                         histos["hChi2_mid_alowshrcls"].Fill(track.chisq)
                         histos["hChi2_zoom_alowshrcls"].Fill(track.chisq)
                         histos["hChi2_small_alowshrcls"].Fill(track.chisq)
-                        
-                        
-                        
                         
                         histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_1"].xTnoGmm-track.trkcls["ALPIDE_0"].xTnoGmm))
                         histos["h_cls_absdx"].Fill(abs(track.trkcls["ALPIDE_2"].xTnoGmm-track.trkcls["ALPIDE_1"].xTnoGmm))
@@ -982,8 +991,7 @@ if __name__ == "__main__":
                         
                     histos["hTheta_xz_labframe_before_cuts"].Fill(thetaf_xz_labframe)
                     histos["hTheta_yz_labframe_before_cuts"].Fill(thetaf_yz_labframe)
-                    
-                    
+                                        
                     nalltrk += 1
                     
                     ########################################
@@ -992,7 +1000,6 @@ if __name__ == "__main__":
                     ### of the config file #################
                     ########################################
                     if(not selections.pass_geoacc_selection(track,ismultiproc=False)): continue
-                        
                     
                     ### the angle in y-z calculated from d_exit
                     thetad_yz = 2.*math.atan(dExit*mm2m/LB)
@@ -1039,6 +1046,11 @@ if __name__ == "__main__":
                     histos["hTheta_yz_labframe_after_cuts"].Fill(thetaf_yz_labframe)
                     
                     histos["hdExit"].Fill(dExit)
+                    
+                    histos["h_MLE_theta1_logx_after_cuts"].Fill(math.sqrt(track.theta2))
+                    histos["h_MLE_theta2_logx_after_cuts"].Fill(track.theta2)
+                    histos["h_MLE_theta1_linx_after_cuts"].Fill(math.sqrt(track.theta2))
+                    histos["h_MLE_theta2_linx_after_cuts"].Fill(track.theta2)
                     
                     if(pf>0):
                         histos["hPf"].Fill(pf)
@@ -1571,9 +1583,9 @@ if __name__ == "__main__":
         hyzh = histos["hTheta_yz_before_cuts"].Clone("hyz_up")
         hpzl = histos["hPf_small"].Clone("hpz_down")
         hpzh = histos["hPf_small"].Clone("hpz_up")
-        err_xz_rad      = 0.0009 ## [rad] ## From step 3 of the local-alignment process in the paper
-        err_yz_rad      = 0.0010 ## [rad] ## From step 3 of the local-alignment process in the paper
-        err_thet_yz_rad = 0.0010 ## [rad] ## This is due to the tilt: from the bin width of the θ_yz distribution (i.e., from the uncertainty on θ^max_yz)
+        err_xz_rad      = 0.001 ## [rad] ## From step 3 of the local-alignment process in the paper
+        err_yz_rad      = 0.001 ## [rad] ## From step 3 of the local-alignment process in the paper
+        err_thet_yz_rad = 0.001 ## [rad] ## This is due to the tilt: from the bin width of the θ_yz distribution (i.e., from the uncertainty on θ^max_yz)
         fOutToys = ROOT.TFile(tfilenamein.replace(".root","_toys.root"),"RECREATE")
         hyz.Write()
         hpz.Write()
@@ -1596,8 +1608,8 @@ if __name__ == "__main__":
         hxz.SetLineColor(ROOT.kBlack)
         hyz.SetLineColor(ROOT.kBlack)
         #
-        hxz.SetMaximum(390)
-        hyz.SetMaximum(280)
+        hxz.SetMaximum(420)
+        hyz.SetMaximum(250)
         hxz.GetXaxis().SetTitleOffset(1.3)
         hyz.GetXaxis().SetTitleOffset(1.3)
         cnv = ROOT.TCanvas("cnv_dipole_window","",1100,500)
@@ -2097,17 +2109,55 @@ if __name__ == "__main__":
     del cnv
     print("---------------19.3")
     
-    cnv = ROOT.TCanvas("cnv_theta2","",500,500)
-    cnv.cd()
-    ROOT.gPad.SetTicks(1,1)
+    cnv = ROOT.TCanvas("cnv_theta2","",1100,500)
+    cnv.Divide(2,1)
+    cnv.cd(1)
+    ROOT.gPad.SetTicks(2,1)
     ROOT.gPad.SetLogx()
     ROOT.gPad.SetLogy()
-    histos[f"h_MLE_theta2"].Draw("hist")
+    histos[f"h_MLE_theta1_logx_before_cuts"].SetLineColor(ROOT.kBlack)
+    histos[f"h_MLE_theta1_logx_before_cuts"].Draw("hist")
+    histos[f"h_MLE_theta1_logx_after_cuts"].SetLineColor(ROOT.kRed)
+    histos[f"h_MLE_theta1_logx_after_cuts"].Draw("hist same")
+    ROOT.gPad.RedrawAxis()
+    cnv.cd(2)
+    ROOT.gPad.SetTicks(2,1)
+    ROOT.gPad.SetLogx()
+    ROOT.gPad.SetLogy()
+    histos[f"h_MLE_theta2_logx_before_cuts"].SetLineColor(ROOT.kBlack)
+    histos[f"h_MLE_theta2_logx_before_cuts"].Draw("hist")
+    histos[f"h_MLE_theta2_logx_after_cuts"].SetLineColor(ROOT.kRed)
+    histos[f"h_MLE_theta2_logx_after_cuts"].Draw("hist same")
     ROOT.gPad.RedrawAxis()
     cnv.Update()
     cnv.SaveAs(f"{foupdfname}")
     del cnv
     print("---------------19.4")
+    
+    cnv = ROOT.TCanvas("cnv_theta2_lin","",1100,500)
+    cnv.Divide(2,1)
+    cnv.cd(1)
+    ROOT.gPad.SetTicks(2,1)
+    # ROOT.gPad.SetLogx()
+    # ROOT.gPad.SetLogy()
+    histos[f"h_MLE_theta1_linx_before_cuts"].SetLineColor(ROOT.kBlack)
+    histos[f"h_MLE_theta1_linx_before_cuts"].Draw("hist")
+    histos[f"h_MLE_theta1_linx_after_cuts"].SetLineColor(ROOT.kRed)
+    histos[f"h_MLE_theta1_linx_after_cuts"].Draw("hist same")
+    ROOT.gPad.RedrawAxis()
+    cnv.cd(2)
+    ROOT.gPad.SetTicks(2,1)
+    # ROOT.gPad.SetLogx()
+    # ROOT.gPad.SetLogy()
+    histos[f"h_MLE_theta2_linx_before_cuts"].SetLineColor(ROOT.kBlack)
+    histos[f"h_MLE_theta2_linx_before_cuts"].Draw("hist")
+    histos[f"h_MLE_theta2_linx_after_cuts"].SetLineColor(ROOT.kRed)
+    histos[f"h_MLE_theta2_linx_after_cuts"].Draw("hist same")
+    ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.5")
     
     
     

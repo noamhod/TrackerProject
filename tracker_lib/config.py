@@ -423,6 +423,8 @@ class Config:
         self.add("cut_maxcls", self.getF('CUTS','cut_maxcls'))
         self.add("cut_allow_shared_clusters", self.getB('CUTS','cut_allow_shared_clusters'))
         self.add("cut_allow_negative_yz_slope", self.getB('CUTS','cut_allow_negative_yz_slope'))
+        self.add("cut_theta2",        self.getB('CUTS','cut_theta2'))
+        self.add("cut_theta2_max",    self.getF('CUTS','cut_theta2_max'))
         self.add("cut_spot",          self.getB('CUTS','cut_spot'))
         self.add("cut_spot_radius_x", self.getF('CUTS','cut_spot_radius_x'))
         self.add("cut_spot_radius_y", self.getF('CUTS','cut_spot_radius_y'))

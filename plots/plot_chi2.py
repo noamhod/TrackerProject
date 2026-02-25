@@ -33,7 +33,7 @@ def fit2(h, poln=0):
     
     # Base Signal: [0] = Norm, [1] = NDF
     fit_formula = "[0] * ROOT::Math::chisquared_pdf(x, [1])"
-    # fit_formula = "[0] * ROOT::Math::chisquared_pdf(x*[1], [1])"
+    # fit_formula = "[0] * ROOT::Math::chisquared_pdf(x/[1], [1])"
     bkg_formula = ""
 
     # Helper to build the polynomial string dynamically
@@ -133,14 +133,15 @@ def fit2(h, poln=0):
 
 
 
-# basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
-# fnamein = f"{basedir}/tree_Run502_allplots.root"
-# hstname = "hChi2DoF_small_zeroshrcls"
-# # hstname = "hChi2_small_zeroshrcls"
-
-basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
+basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
 fnamein = f"{basedir}/tree_Run502_allplots.root"
-hstname = "hChi2DoF_zeroshrcls"
+### fnamein = f"{basedir}/tree_Run502_allplots_iter0_nocuts.root"
+hstname = "hChi2DoF_small_zeroshrcls"
+# hstname = "hChi2_small_zeroshrcls"
+
+# basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
+# fnamein = f"{basedir}/tree_Run502_allplots.root"
+# hstname = "hChi2DoF_zeroshrcls"
 
 isnoalgn = ("_no_alignment" in basedir)
 fIn  = None
@@ -222,9 +223,10 @@ if(isnoalgn):
     leg.Draw("same")
 else:
     h.Draw("e1p")
-    # sfunc,bfunc,frslt = fit2(h,-2)
-    # sfunc,bfunc,frslt = fit2(h,2)
-    sfunc,bfunc,frslt,h_band = fit2(h,5)
+    poln = 0
+    # sfunc,bfunc,frslt = fit2(h,poln=-2)
+    # sfunc,bfunc,frslt = fit2(h,poln=2)
+    sfunc,bfunc,frslt,h_band = fit2(h,poln)
     
     leg = ROOT.TLegend(0.5,0.5,0.88,0.88)
     leg.SetFillStyle(4000) # will be transparent
@@ -235,12 +237,12 @@ else:
     leg.AddEntry(h,"Post alignment data","ep")
     leg.AddEntry(sfunc,"Signal+Background","l")
     leg.AddEntry(h_band,"Fit uncertainty (2#sigma)","f")
-    leg.AddEntry(bfunc,"Background","l")
+    if(poln!=0): leg.AddEntry(bfunc,"Background","l")
     
     h_band.Draw("same e3")
     h.Draw("e1p same")
     sfunc.Draw("same")
-    bfunc.Draw("same")
+    if(poln!=0): bfunc.Draw("same")
     leg.Draw("same")
 
 s = ROOT.TLatex()
