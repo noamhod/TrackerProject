@@ -455,6 +455,32 @@ def book_histos():
     
     histos.update({ "h_cls_absdx": ROOT.TH1D("h_cls_absdx",";dx(detA,detB) [mm];Tracks",100,0,2)})
     histos.update({ "h_cls_absdy": ROOT.TH1D("h_cls_absdy",";dy(detA,detB) [mm];Tracks",100,0,5)})
+
+
+
+    name = f"h_residual_alowshrcls_x_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
+    name = f"h_residual_alowshrcls_y_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
+    name = f"h_residual_alowshrcls_x_mid_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
+    name = f"h_residual_alowshrcls_y_mid_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
+    name = f"h_residual_alowshrcls_x_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
+    name = f"h_residual_alowshrcls_y_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
+
+    name = f"h_response_alowshrcls_x_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",30,-12.5,+12.5) } )
+    name = f"h_response_alowshrcls_y_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",30,-12.5,+12.5) } )
+    name = f"h_response_alowshrcls_x_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",30,-12.5,+12.5) } )
+    name = f"h_response_alowshrcls_y_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",30,-12.5,+12.5) } )
+
+    name = f"h_residual_zeroshrcls_x_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
+    name = f"h_residual_zeroshrcls_y_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
+    name = f"h_residual_zeroshrcls_x_mid_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
+    name = f"h_residual_zeroshrcls_y_mid_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins,-absRes*3,+absRes*3) } )
+    name = f"h_residual_zeroshrcls_x_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
+    name = f"h_residual_zeroshrcls_y_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",nResBins*2,-absRes*5,+absRes*5) } )
+
+    name = f"h_response_zeroshrcls_x_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",30,-5,+5) } )
+    name = f"h_response_zeroshrcls_y_sml_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",30,-5,+5) } )
+    name = f"h_response_zeroshrcls_x_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{x_{trk}-x_{cls}}{#sigma(x_{cls})};Tracks",30,-12.5,+12.5) } )
+    name = f"h_response_zeroshrcls_y_ful_inc"; histos.update( { name:ROOT.TH1D(name,det+";#frac{y_{trk}-y_{cls}}{#sigma(y_{cls})};Tracks",30,-12.5,+12.5) } )
     
     for det in cfg["detectors"]:
         name = f"h_cls_occ_2D_{det}"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Track clusters",128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
@@ -916,6 +942,17 @@ if __name__ == "__main__":
                             histos[f"h_trk_occ_2D_{det}"].Fill(xTnoG,yTnoG)
                             
                             dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
+                            histos[f"h_residual_alowshrcls_x_sml_inc"].Fill(dx)
+                            histos[f"h_residual_alowshrcls_x_mid_inc"].Fill(dx)
+                            histos[f"h_residual_alowshrcls_x_ful_inc"].Fill(dx)
+                            histos[f"h_residual_alowshrcls_y_sml_inc"].Fill(dy)
+                            histos[f"h_residual_alowshrcls_y_mid_inc"].Fill(dy)
+                            histos[f"h_residual_alowshrcls_y_ful_inc"].Fill(dy)
+                            histos[f"h_response_alowshrcls_x_sml_inc"].Fill(dx/track.trkcls[det].dxTmm)
+                            histos[f"h_response_alowshrcls_x_ful_inc"].Fill(dx/track.trkcls[det].dxTmm)
+                            histos[f"h_response_alowshrcls_y_sml_inc"].Fill(dy/track.trkcls[det].dyTmm)
+                            histos[f"h_response_alowshrcls_y_ful_inc"].Fill(dy/track.trkcls[det].dyTmm)
+
                             histos[f"h_residual_alowshrcls_x_sml_{det}"].Fill(dx)
                             histos[f"h_residual_alowshrcls_x_mid_{det}"].Fill(dx)
                             histos[f"h_residual_alowshrcls_x_ful_{det}"].Fill(dx)
@@ -926,7 +963,8 @@ if __name__ == "__main__":
                             histos[f"h_response_alowshrcls_x_ful_{det}"].Fill(dx/track.trkcls[det].dxTmm)
                             histos[f"h_response_alowshrcls_y_sml_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                             histos[f"h_response_alowshrcls_y_ful_{det}"].Fill(dy/track.trkcls[det].dyTmm)
-                    
+                            
+                            
                     
                     # #################################################
                     # ### refit the track if necessary
@@ -1180,20 +1218,31 @@ if __name__ == "__main__":
                     # for det in cfg["detectors"]:
                     for det in track.detectors:
                         dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
+                        
+                        histos[f"h_residual_zeroshrcls_x_sml_inc"].Fill(dx)
+                        histos[f"h_residual_zeroshrcls_x_mid_inc"].Fill(dx)
+                        histos[f"h_residual_zeroshrcls_x_ful_inc"].Fill(dx)
+                        histos[f"h_residual_zeroshrcls_y_sml_inc"].Fill(dy)
+                        histos[f"h_residual_zeroshrcls_y_mid_inc"].Fill(dy)
+                        histos[f"h_residual_zeroshrcls_y_ful_inc"].Fill(dy)
+                        histos[f"h_response_zeroshrcls_x_sml_inc"].Fill(dx/track.trkcls[det].dxTmm)
+                        histos[f"h_response_zeroshrcls_x_ful_inc"].Fill(dx/track.trkcls[det].dxTmm)
+                        histos[f"h_response_zeroshrcls_y_sml_inc"].Fill(dy/track.trkcls[det].dyTmm)
+                        histos[f"h_response_zeroshrcls_y_ful_inc"].Fill(dy/track.trkcls[det].dyTmm)
+                        
                         histos[f"h_residual_zeroshrcls_x_sml_{det}"].Fill(dx)
                         histos[f"h_residual_zeroshrcls_x_mid_{det}"].Fill(dx)
                         histos[f"h_residual_zeroshrcls_x_ful_{det}"].Fill(dx)
                         histos[f"h_residual_zeroshrcls_y_sml_{det}"].Fill(dy)
                         histos[f"h_residual_zeroshrcls_y_mid_{det}"].Fill(dy)
                         histos[f"h_residual_zeroshrcls_y_ful_{det}"].Fill(dy)
-                        
-                        histos[f"h_residual_zeroshrcls_xy_{det}"].Fill(dx,dy)
-                        histos[f"h_residual_zeroshrcls_xy_mid_{det}"].Fill(dx,dy)
-                        
                         histos[f"h_response_zeroshrcls_x_sml_{det}"].Fill(dx/track.trkcls[det].dxTmm)
                         histos[f"h_response_zeroshrcls_x_ful_{det}"].Fill(dx/track.trkcls[det].dxTmm)
                         histos[f"h_response_zeroshrcls_y_sml_{det}"].Fill(dy/track.trkcls[det].dyTmm)
                         histos[f"h_response_zeroshrcls_y_ful_{det}"].Fill(dy/track.trkcls[det].dyTmm)
+                        
+                        histos[f"h_residual_zeroshrcls_xy_{det}"].Fill(dx,dy)
+                        histos[f"h_residual_zeroshrcls_xy_mid_{det}"].Fill(dx,dy)
                         
                         ### draw all waves
                         rChip = [track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm,track.trkcls[det].zTnoGmm]

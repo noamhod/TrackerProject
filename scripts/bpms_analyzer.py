@@ -236,3 +236,10 @@ if __name__ == "__main__":
     
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
+    
+    for hname,histo in histos.items():
+        print(f"\n{hname}")
+        print(f'mux={histo.GetMean(1):.3f} mm, sigx={histo.GetStdDev(1):.3f} mm')
+        print(f'muy={histo.GetMean(2):.3f} mm, sigy={histo.GetStdDev(2):.3f} mm')
+        print(f'Q={histo.Integral():.1f} pC')
+    

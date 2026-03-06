@@ -37,6 +37,7 @@ import argparse
 parser = argparse.ArgumentParser(description='generator.py...')
 parser.add_argument('-mag', metavar='magnets settings (run 502 or run 490)', required=True,  help='magnets settings (run 502 or run 490)')
 parser.add_argument('-gen', metavar='particles to generate', required=True,  help='particles to generate')
+parser.add_argument('-brm', metavar='do bremsstrahlung?', required=True,  help='do bremsstrahlung?')
 parser.add_argument('-acc', metavar='require full acceptance?', required=False,  help='require full acceptance?')
 parser.add_argument('-mlt', metavar='multi processing?', required=False,  help='multi processing?')
 parser.add_argument('-shw', metavar='show plots?', required=False,  help='show plots?')
@@ -55,6 +56,7 @@ fullacc = True if(argus.acc is not None and argus.acc=="1") else False
 mltprc  = True if(argus.mlt is not None and argus.mlt=="1") else False
 doshw   = True if(argus.shw is not None and argus.shw=="1") else False
 dogif   = True if(argus.gif is not None and argus.gif=="1") else False
+dobrm   = True if(argus.brm is not None and argus.brm=="1") else False
 
 
 
@@ -158,30 +160,37 @@ q1z=1999.207058; q1x=0.002642; q1y=-0.000164
 q2z=2001.431388; q2x=0.003546; q2y=+0.000042
 ######################
 ### linear shifts from CAD to reality:
-### --> dz0 = 1996.9899988-1996.983499 = 0.0064998 --> 6.4998 mm
-### --> dz1 = 1999.22-1999.207058      = 0.0129420 --> 12.942 mm
-### --> dz2 = 2001.44-2001.431388      = 0.0086120 --> 8.6120 mm
+### --> dz0 = 1996.983499-1996.9899988 = -0.0064998 --> -6.4998 mm
+### --> dz1 = 1999.207058-1999.22      = -0.0129420 --> -12.942 mm
+### --> dz2 = 2001.431388-2001.44      = -0.0086120 --> -8.6120 mm
 ### --> dx0 = +3.500 mm
 ### --> dx1 = +2.642 mm
 ### --> dx2 = +3.546 mm
 ### --> dy0 = -0.055 mm
 ### --> dy1 = -0.164 mm
 ### --> dy2 = +0.042 mm
+q0shft_mm = [3.500, -0.055, -6.4998]
+q1shft_mm = [2.642, -0.164, -12.942]
+q2shft_mm = [3.546, +0.042, -8.6120]
+q0shft_cm = [d/10 for d in q0shft_mm]
+q1shft_cm = [d/10 for d in q1shft_mm]
+q2shft_cm = [d/10 for d in q2shft_mm]
 ######################
 ### from BPMs [mm] ###
 ### using run502 (Feb 2025)
 ### this is where the beam passes wrt
 ### the magnetic center of the quad
-bpm0x=-0.1435; bpm0y=-0.06738
-bpm1x=-0.3546; bpm1y=-0.31770
-bpm2x=-0.3830; bpm2y=-0.32040
+bpm0x=-0.146; bpm0y=-0.078
+bpm1x=-0.357; bpm1y=-0.333
+bpm2x=-0.388; bpm2y=-0.343
 ######################
 
 
 
 ### misalignments
-magsetdelt = {"quad0":[0,0],   "quad1":[0,0],   "quad2":[0,0],   "xcorr":[0,0],   "dipole":[0,0]} ### x,y displacement, cm
-magsetangl = {"quad0":[0,0,0], "quad1":[0,0,0], "quad2":[0,0,0], "xcorr":[0,0,0], "dipole":[0,0,0]} ### 3D rotation, degrees
+# magsetdelt = {"quad0":[0,0,0], "quad1":[0,0,0], "quad2":[0,0,0], "xcorr":[0,0,0], "dipole":[0,0,0]} ### x,y,z displacement, cm
+magsetdelt = {"quad0":q0shft_cm, "quad1":q1shft_cm, "quad2":q2shft_cm, "xcorr":[0,0,0], "dipole":[0,0,0]} ### x,y,z displacement, cm
+magsetangl = {"quad0":[0,0,0],   "quad1":[0,0,0],    "quad2":[0,0,0],  "xcorr":[0,0,0], "dipole":[0,0,0]} ### 3D rotation, degrees
 detangl    = [0,0,0]
 for name,angles in magsetangl.items():
     for i in range(3):
@@ -675,26 +684,26 @@ for i in range(5):
 # Create magnetic elements
 quad0 = Quadrupole(
     name="quad0",
-    x_min=-2.4610+magsetdelt["quad0"][0], x_max=2.4610+magsetdelt["quad0"][0], # cm
-    y_min=-2.4610+magsetdelt["quad0"][1], y_max=2.4610+magsetdelt["quad0"][1], # cm
-    z_min=367.33336, z_max=464.6664, # cm
+    x_min=-2.4610+magsetdelt["quad0"][0],   x_max=2.4610+magsetdelt["quad0"][0], # cm
+    y_min=-2.4610+magsetdelt["quad0"][1],   y_max=2.4610+magsetdelt["quad0"][1], # cm
+    z_min=367.33336+magsetdelt["quad0"][2], z_max=464.6664+magsetdelt["quad0"][2], # cm
     gradient=quadsvals[MagnetsSettings][0], # kG/m
     angles=magsetangl["quad0"]
 )
 quad1 = Quadrupole(
     name="quad1",
-    x_min=-2.4610+magsetdelt["quad1"][0], x_max=2.4610+magsetdelt["quad1"][0], # cm
-    y_min=-2.4610+magsetdelt["quad1"][1], y_max=2.4610+magsetdelt["quad1"][1], # cm
-    z_min=590.3336, z_max=687.6664, # cm
+    x_min=-2.4610+magsetdelt["quad1"][0],  x_max=2.4610+magsetdelt["quad1"][0], # cm
+    y_min=-2.4610+magsetdelt["quad1"][1],  y_max=2.4610+magsetdelt["quad1"][1], # cm
+    z_min=590.3336+magsetdelt["quad1"][2], z_max=687.6664+magsetdelt["quad1"][2], # cm
     # gradient=+28.55 if(MagnetsSettings==502) else +46.42 # kG/m
     gradient=quadsvals[MagnetsSettings][1], # kG/m
     angles=magsetangl["quad1"]
 )
 quad2 = Quadrupole(
     name="quad2",
-    x_min=-2.4610+magsetdelt["quad2"][0], x_max=2.4610+magsetdelt["quad2"][0], # cm
-    y_min=-2.4610+magsetdelt["quad2"][1], y_max=2.4610+magsetdelt["quad2"][1], # cm
-    z_min=812.3336, z_max=909.6664, # cm
+    x_min=-2.4610+magsetdelt["quad2"][0],  x_max=2.4610+magsetdelt["quad2"][0], # cm
+    y_min=-2.4610+magsetdelt["quad2"][1],  y_max=2.4610+magsetdelt["quad2"][1], # cm
+    z_min=812.3336+magsetdelt["quad2"][2], z_max=909.6664+magsetdelt["quad2"][2], # cm
     gradient=quadsvals[MagnetsSettings][2], # kG/m
     angles=magsetangl["quad2"]
 )
@@ -702,7 +711,7 @@ xcorr = Dipole(
     name="xcorr",
     x_min=-10.795+magsetdelt["xcorr"][0], x_max=+10.795+magsetdelt["xcorr"][0], # cm 
     y_min=-4.6990+magsetdelt["xcorr"][1], y_max=+4.6990+magsetdelt["xcorr"][1], # cm
-    z_min=987.779, z_max=1011.15, # cm
+    z_min=987.779+magsetdelt["xcorr"][2], z_max=1011.15+magsetdelt["xcorr"][2], # cm
     # B_x=0, B_y=+0.026107, B_z=0,  # Tesla
     B_x=dipolesvals[MagnetsSettings]["xcorr"][0], B_y=dipolesvals[MagnetsSettings]["xcorr"][1], B_z=dipolesvals[MagnetsSettings]["xcorr"][2], # Tesla
     angles=magsetangl["xcorr"]
@@ -711,7 +720,7 @@ dipole = Dipole(
     name="dipole",
     x_min=-2.2352+magsetdelt["dipole"][0], x_max=2.2352+magsetdelt["dipole"][0], # cm
     y_min=-6.6927+magsetdelt["dipole"][1], y_max=3.4927+magsetdelt["dipole"][1], # cm
-    z_min=1260.34, z_max=1351.78, # cm
+    z_min=1260.34+magsetdelt["dipole"][2], z_max=1351.78+magsetdelt["dipole"][2], # cm
     # B_x=0.219, B_y=0, B_z=0,  # Tesla
     B_x=dipolesvals[MagnetsSettings]["dipole"][0], B_y=dipolesvals[MagnetsSettings]["dipole"][1], B_z=dipolesvals[MagnetsSettings]["dipole"][2],  # Tesla
     angles=magsetangl["dipole"]
@@ -1306,15 +1315,22 @@ if __name__ == "__main__":
         electron_state = GenerateGaussianBeam(E_GeV,mGeV,-QQ)
         ### propagate the primary to the foil in vacuum
         electron_state_at_foil = propagate_state_in_vacuum_to_z(electron_state,Z0_m)
-        ### smear at the foil to get the secondary
-        positron_state_at_foil = simulate_secondary_production(electron_state_at_foil,q=QQ,Emin=Emin,Emax=Emax,smear_T=smearT,smear_pT=smearP,truncate_pT=truncate_smear_pT)
-        ### convert to mks
-        positron_state_at_foil_mks = state_GeV_to_kgms(positron_state_at_foil)
-        # positron_state_at_foil_mks = state_GeV_to_kgms(electron_state_at_foil)
-        ### fill the initial states list
-        initial_states.append(positron_state_at_foil_mks)
-        ### fill the PZ0 list for book-keeping
-        PZ0.append(positron_state_at_foil[5])
+        electron_state_at_foil_mks = state_GeV_to_kgms(electron_state_at_foil)
+        if(dobrm):
+            ### smear at the foil to get the secondary
+            positron_state_at_foil = simulate_secondary_production(electron_state_at_foil,q=QQ,Emin=Emin,Emax=Emax,smear_T=smearT,smear_pT=smearP,truncate_pT=truncate_smear_pT)
+            ### convert to mks
+            positron_state_at_foil_mks = state_GeV_to_kgms(positron_state_at_foil)
+            # positron_state_at_foil_mks = state_GeV_to_kgms(electron_state_at_foil)
+            ### fill the initial states list
+            initial_states.append(positron_state_at_foil_mks)
+            ### fill the PZ0 list for book-keeping
+            PZ0.append(positron_state_at_foil[5])
+        else:
+            ### fill the initial states list
+            initial_states.append(electron_state_at_foil_mks)
+            ### fill the PZ0 list for book-keeping
+            PZ0.append(electron_state_at_foil[5])
     #####################################################
     #####################################################
     #####################################################
@@ -1370,6 +1386,7 @@ if __name__ == "__main__":
         et = time.time()
         elapsed_time = et - st
         print('end time:', elapsed_time, 'seconds')
+        print(f"len(particle_trajectories)={len(particle_trajectories)}")
     ##########################
     
     
@@ -1905,11 +1922,52 @@ if __name__ == "__main__":
     flangeTPL.SetNextPoint(flange.x_min*m_to_mm,flange.y_min*m_to_mm)
     flangeTPL.SetLineColor(ROOT.kAzure+1)
     flangeTPL.SetLineWidth(1)
+    quad0TPL = ROOT.TPolyLine()
+    quad0TPL.SetNextPoint(quad0.x_min*m_to_mm,quad0.y_min*m_to_mm)
+    quad0TPL.SetNextPoint(quad0.x_min*m_to_mm,quad0.y_max*m_to_mm)
+    quad0TPL.SetNextPoint(quad0.x_max*m_to_mm,quad0.y_max*m_to_mm)
+    quad0TPL.SetNextPoint(quad0.x_max*m_to_mm,quad0.y_min*m_to_mm)
+    quad0TPL.SetNextPoint(quad0.x_min*m_to_mm,quad0.y_min*m_to_mm)
+    quad0TPL.SetLineColor(ROOT.kBlue)
+    quad0TPL.SetLineWidth(1)
+    quad1TPL = ROOT.TPolyLine()
+    quad1TPL.SetNextPoint(quad1.x_min*m_to_mm,quad1.y_min*m_to_mm)
+    quad1TPL.SetNextPoint(quad1.x_min*m_to_mm,quad1.y_max*m_to_mm)
+    quad1TPL.SetNextPoint(quad1.x_max*m_to_mm,quad1.y_max*m_to_mm)
+    quad1TPL.SetNextPoint(quad1.x_max*m_to_mm,quad1.y_min*m_to_mm)
+    quad1TPL.SetNextPoint(quad1.x_min*m_to_mm,quad1.y_min*m_to_mm)
+    quad1TPL.SetLineColor(ROOT.kBlue)
+    quad1TPL.SetLineWidth(1)
+    quad2TPL = ROOT.TPolyLine()
+    quad2TPL.SetNextPoint(quad2.x_min*m_to_mm,quad2.y_min*m_to_mm)
+    quad2TPL.SetNextPoint(quad2.x_min*m_to_mm,quad2.y_max*m_to_mm)
+    quad2TPL.SetNextPoint(quad2.x_max*m_to_mm,quad2.y_max*m_to_mm)
+    quad2TPL.SetNextPoint(quad2.x_max*m_to_mm,quad2.y_min*m_to_mm)
+    quad2TPL.SetNextPoint(quad2.x_min*m_to_mm,quad2.y_min*m_to_mm)
+    quad2TPL.SetLineColor(ROOT.kBlue)
+    quad2TPL.SetLineWidth(1)
+    
+    
     # histD_entrance = ROOT.TH2D("histD_entrance","Dipole entrance plane;x [mm];y [mm];particles",120,-80,+80, 120,-70,+90)
     # histD_exit     = ROOT.TH2D("histD_exit",    "Dipole exit plane;x [mm];y [mm];particles",    120,-80,+80, 120,-70,+90)
     ztitle = "Particles in full acceptance" if(fullacc) else "Particles"
     histD_entrance = ROOT.TH2D("histD_entrance",f"Dipole entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}",200,-80,+80, 200,-70,+90)
     histD_exit     = ROOT.TH2D("histD_exit",    f"Dipole exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}",    200,-80,+80, 200,-70,+90)
+
+    histQ0_entr = ROOT.TH2D("histQ0_entr", f"Quad_{{0}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+    histQ1_entr = ROOT.TH2D("histQ1_entr", f"Quad_{{1}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+    histQ2_entr = ROOT.TH2D("histQ2_entr", f"Quad_{{2}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+    histQ0_exit = ROOT.TH2D("histQ0_exit", f"Quad_{{0}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+    histQ1_exit = ROOT.TH2D("histQ1_exit", f"Quad_{{1}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+    histQ2_exit = ROOT.TH2D("histQ2_exit", f"Quad_{{2}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 100,-50,+50, 100,-50,+50)
+
+
+    histQ0_entr_zoom = ROOT.TH2D("histQ0_entr_zoom", f"Quad_{{0}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
+    histQ1_entr_zoom = ROOT.TH2D("histQ1_entr_zoom", f"Quad_{{1}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
+    histQ2_entr_zoom = ROOT.TH2D("histQ2_entr_zoom", f"Quad_{{2}} entrance plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
+    histQ0_exit_zoom = ROOT.TH2D("histQ0_exit_zoom", f"Quad_{{0}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
+    histQ1_exit_zoom = ROOT.TH2D("histQ1_exit_zoom", f"Quad_{{1}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
+    histQ2_exit_zoom = ROOT.TH2D("histQ2_exit_zoom", f"Quad_{{2}} exit plane;x_{{LAB}} [mm];y_{{LAB}} [mm];{ztitle}", 50,-1,+1, 50,-1,+1)
     
     
     def getrect():
@@ -2145,6 +2203,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad0.z_min)>1e-6):        continue
+        histQ0_entr.Fill(point['x']*1000,point['y']*1000)
+        histQ0_entr_zoom.Fill(point['x']*1000,point['y']*1000)
         X0.append(point['x'])
         Y0.append(point['y'])
     hq0ent = axs[0][0].hist2d(X0, Y0, bins=(150,150),range=[[quad0.x_min*1.5,quad0.x_max*1.5],[quad0.y_min*1.5,quad0.y_max*1.5]], rasterized=True)
@@ -2164,6 +2224,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad1.z_min)>1e-6):        continue
+        histQ1_entr.Fill(point['x']*1000,point['y']*1000)
+        histQ1_entr_zoom.Fill(point['x']*1000,point['y']*1000)
         X1.append(point['x'])
         Y1.append(point['y'])
     hq1ent = axs[0][1].hist2d(X1, Y1, bins=(150,150),range=[[quad1.x_min*1.5,quad1.x_max*1.5],[quad1.y_min*1.5,quad1.y_max*1.5]], rasterized=True)
@@ -2183,6 +2245,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad2.z_min)>1e-6):        continue
+        histQ2_entr.Fill(point['x']*1000,point['y']*1000)
+        histQ2_entr_zoom.Fill(point['x']*1000,point['y']*1000)
         X2.append(point['x'])
         Y2.append(point['y'])
     hq2ent = axs[0][2].hist2d(X2, Y2, bins=(150,150),range=[[quad2.x_min*1.5,quad2.x_max*1.5],[quad2.y_min*1.5,quad2.y_max*1.5]], rasterized=True)
@@ -2203,6 +2267,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad0.z_max)>1e-6):        continue
+        histQ0_exit.Fill(point['x']*1000,point['y']*1000)
+        histQ0_exit_zoom.Fill(point['x']*1000,point['y']*1000)
         X0.append(point['x'])
         Y0.append(point['y'])
     hq0ext = axs[1][0].hist2d(X0, Y0, bins=(150,150),range=[[quad0.x_min*1.5,quad0.x_max*1.5],[quad0.y_min*1.5,quad0.y_max*1.5]], rasterized=True)
@@ -2222,6 +2288,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad1.z_max)>1e-6):        continue
+        histQ1_exit.Fill(point['x']*1000,point['y']*1000)
+        histQ1_exit_zoom.Fill(point['x']*1000,point['y']*1000)
         X1.append(point['x'])
         Y1.append(point['y'])
     hq1ext = axs[1][1].hist2d(X1, Y1, bins=(150,150),range=[[quad1.x_min*1.5,quad1.x_max*1.5],[quad1.y_min*1.5,quad1.y_max*1.5]], rasterized=True)
@@ -2241,6 +2309,8 @@ if __name__ == "__main__":
         pid = point['particle_id']
         if(fullacc and pid not in list_good_tracks): continue
         if(abs(point['z']-quad2.z_max)>1e-6):        continue
+        histQ2_exit.Fill(point['x']*1000,point['y']*1000)
+        histQ2_exit_zoom.Fill(point['x']*1000,point['y']*1000)
         X2.append(point['x'])
         Y2.append(point['y'])
     hq2ext = axs[1][2].hist2d(X2, Y2, bins=(150,150),range=[[quad2.x_min*1.5,quad2.x_max*1.5],[quad2.y_min*1.5,quad2.y_max*1.5]], rasterized=True)
@@ -2258,6 +2328,278 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(f"{pdfname}_quads_exit.pdf")
     if(doshw): plt.show()
+    
+    
+    
+    
+    
+    
+    cnv = ROOT.TCanvas("cquads","",1800,1200)
+    cnv.Divide(3,2)
+    cnv.cd(1)
+    ROOT.gPad.SetTicks(1,1)
+    histQ0_entr.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ0_entr.GetMean(1):.3f} mm, #sigma_{{x}}={histQ0_entr.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ0_entr.GetMean(2):.3f} mm, #sigma_{{y}}={histQ0_entr.GetStdDev(2):.3f} mm')
+    quad0TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(2)
+    ROOT.gPad.SetTicks(1,1)
+    histQ1_entr.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ1_entr.GetMean(1):.3f} mm, #sigma_{{x}}={histQ1_entr.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ1_entr.GetMean(2):.3f} mm, #sigma_{{y}}={histQ1_entr.GetStdDev(2):.3f} mm')
+    quad1TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(3)
+    ROOT.gPad.SetTicks(1,1)
+    histQ2_entr.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ2_entr.GetMean(1):.3f} mm, #sigma_{{x}}={histQ2_entr.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ2_entr.GetMean(2):.3f} mm, #sigma_{{y}}={histQ2_entr.GetStdDev(2):.3f} mm')
+    quad2TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    #####################
+    #####################
+    #####################
+    cnv.cd(4)
+    ROOT.gPad.SetTicks(1,1)
+    histQ0_exit.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ0_exit.GetMean(1):.3f} mm, #sigma_{{x}}={histQ0_exit.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ0_exit.GetMean(2):.3f} mm, #sigma_{{y}}={histQ0_exit.GetStdDev(2):.3f} mm')
+    quad0TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(5)
+    ROOT.gPad.SetTicks(1,1)
+    histQ1_exit.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ1_exit.GetMean(1):.3f} mm, #sigma_{{x}}={histQ1_exit.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ1_exit.GetMean(2):.3f} mm, #sigma_{{y}}={histQ1_exit.GetStdDev(2):.3f} mm')
+    quad1TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(6)
+    ROOT.gPad.SetTicks(1,1)
+    histQ2_exit.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ2_exit.GetMean(1):.3f} mm, #sigma_{{x}}={histQ2_exit.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ2_exit.GetMean(2):.3f} mm, #sigma_{{y}}={histQ2_exit.GetStdDev(2):.3f} mm')
+    quad2TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.Update()
+    cnv.SaveAs(f"{pdfname}_ROOT_quads_exit.pdf")
+    
+    
+    cnv = ROOT.TCanvas("cquads_zoom","",1800,1200)
+    cnv.Divide(3,2)
+    cnv.cd(1)
+    ROOT.gPad.SetTicks(1,1)
+    histQ0_entr_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ0_entr_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ0_entr_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ0_entr_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ0_entr_zoom.GetStdDev(2):.3f} mm')
+    quad0TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(2)
+    ROOT.gPad.SetTicks(1,1)
+    histQ1_entr_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ1_entr_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ1_entr_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ1_entr_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ1_entr_zoom.GetStdDev(2):.3f} mm')
+    quad1TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(3)
+    ROOT.gPad.SetTicks(1,1)
+    histQ2_entr_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ2_entr_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ2_entr_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ2_entr_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ2_entr_zoom.GetStdDev(2):.3f} mm')
+    quad2TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    #####################
+    #####################
+    #####################
+    cnv.cd(4)
+    ROOT.gPad.SetTicks(1,1)
+    histQ0_exit_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ0_exit_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ0_exit_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ0_exit_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ0_exit_zoom.GetStdDev(2):.3f} mm')
+    quad0TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(5)
+    ROOT.gPad.SetTicks(1,1)
+    histQ1_exit_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ1_exit_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ1_exit_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ1_exit_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ1_exit_zoom.GetStdDev(2):.3f} mm')
+    quad1TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.cd(6)
+    ROOT.gPad.SetTicks(1,1)
+    histQ2_exit_zoom.Draw("colz")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(22)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.88,f"Run {MagnetsSettings}")
+    s = ROOT.TLatex()
+    s.SetNDC(1)
+    s.SetTextAlign(13)
+    s.SetTextColor(ROOT.kBlack)
+    s.SetTextFont(132)
+    s.SetTextSize(0.045)
+    s.DrawLatex(0.17,0.83,f'#mu_{{x}}={histQ2_exit_zoom.GetMean(1):.3f} mm, #sigma_{{x}}={histQ2_exit_zoom.GetStdDev(1):.3f} mm')
+    s.DrawLatex(0.17,0.78,f'#mu_{{y}}={histQ2_exit_zoom.GetMean(2):.3f} mm, #sigma_{{y}}={histQ2_exit_zoom.GetStdDev(2):.3f} mm')
+    quad2TPL.Draw()
+    ROOT.gPad.RedrawAxis()
+    ###########
+    cnv.Update()
+    cnv.SaveAs(f"{pdfname}_ROOT_quads_exit_zoom.pdf")
     
     
     
