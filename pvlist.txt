@@ -1,0 +1,86 @@
+pvList = [
+'PATT:SYS1:1:SEC', # timestamp in sec
+'PATT:SYS1:1:NSEC', # timestamp in nsec
+
+'PATT:SYS1:1:PULSEID', # tigger ID
+'SIOC:SYS1:ML02:AO400', # run number
+
+# Field Actual
+'LI20:LGPS:3141:BACT', # ESPEC_Q0 BACT (m * kGauss/m) -- itegrated field strength (length 1m)
+'LI20:LGPS:3261:BACT', # ESPEC_Q1 BACT
+'LI20:LGPS:3091:BACT', # ESPEC_Q2 BACT
+'LI20:LGPS:3330:BACT', # ESPEC_DIPOLE BACT (GeV and deduce from the angle)
+'LI20:XCOR:3276:BACT', # ESPEC_XCOR BACT (Also integrated m * kG)
+
+# Field design
+'LI20:LGPS:3141:BDES', # ESPEC_Q0 BDES (same but what we want) (shold be the same as BACT)
+'LI20:LGPS:3261:BDES', # ESPEC_Q1 BDES
+'LI20:LGPS:3091:BDES', # ESPEC_Q2 BDES
+'LI20:LGPS:3330:BDES', # ESPEC_DIPOLE BDES
+
+# From the MatLab calculator (should be in agreement with the BACT, BDES, if using the grid)
+'SIOC:SYS1:ML00:CALCOUT051', # Magnet calc Energy in GeV (energy you wish to transport)
+'SIOC:SYS1:ML00:CALCOUT052', # Magnet calc Z Object in m (z location of the object plane) (the foil, for example)
+'SIOC:SYS1:ML00:CALCOUT053', # Magnet calc Z Image in m (z location of the image plane) (the first tracking layer)
+'SIOC:SYS1:ML00:CALCOUT054', # Magnet calc M12 (transport matrix coefficients you want)
+'SIOC:SYS1:ML00:CALCOUT055', # Magnet calc M34 (transport matrix coefficients you want)
+
+# Beta and waist
+'SIOC:SYS1:ML00:AO395', # Beta function x
+'SIOC:SYS1:ML00:AO396', # Beta function y
+'SIOC:SYS1:ML00:CA902', # Closest element in the beamline to the waist (name in ASCII numbers)
+
+# DTORT2
+'CAMR:LI20:107:X',
+'CAMR:LI20:107:Y',
+'CAMR:LI20:107:XRMS',
+'CAMR:LI20:107:YRMS',
+'CAMR:LI20:107:SUM',
+
+# BPMS
+'BPMS:LI20:2445:X', # Energy_BPM_2445_X
+'BPMS:LI20:2445:Y', # Energy_BPM_2445_Y
+'BPMS:LI20:2445:TMIT', # Energy_BPM_2445_TMIT
+
+'BPMS:LI20:3156:X', # BPM_PB_3156_X
+'BPMS:LI20:3156:Y', # BPM_PB_3156_Y
+'BPMS:LI20:3156:TMIT', # BPM_PB_3156_TMIT
+
+'BPMS:LI20:3218:X', # BPM_Q0_3218_X
+'BPMS:LI20:3218:Y', # BPM_Q0_3218_Y
+'BPMS:LI20:3218:TMIT', # BPM_Q0_3218_TMIT
+
+'BPMS:LI20:3265:X', # BPM_Q1_3265_X
+'BPMS:LI20:3265:Y', # BPM_Q1_3265_Y
+'BPMS:LI20:3265:TMIT', # BPM_Q1_3265_TMIT
+
+'BPMS:LI20:3315:X', # BPM_Q2_3315_X
+'BPMS:LI20:3315:Y', # BPM_Q2_3315_Y
+'BPMS:LI20:3315:TMIT', # BPM_Q2_3315_TMIT
+
+'PMT:LI20:3060:QDCRAW', # PMT_S20_3060
+'PMT:LI20:3070:QDCRAW', # PMT_S20_3070
+'PMT:LI20:3179:QDCRAW', # PMT_S20_3179
+'PMT:LI20:3350:QDCRAW', # PMT_S20_3350
+'PMT:LI20:3360:QDCRAW', # PMT_S20_3360
+
+# Foil
+'RADM:LI20:1:CH01:MEAS',
+'XPS:LI20:MC05:M1.RBV', # Vertical
+'XPS:LI20:MC05:M2.RBV', # Horizontal
+
+# Wire
+'WIRE:LI20:3179:MOTR.RBV', # IP wire scanner 
+
+# Beam charge
+'TORO:LI20:1988:TMIT_PC',
+'TORO:LI20:2040:TMIT_PC',
+'TORO:LI20:2452:TMIT_PC',
+'TORO:LI20:3163:TMIT_PC', # before the IP
+'TORO:LI20:3255:TMIT_PC', # after the IP
+
+'XPS:LI20:MC10:M1.RBV', # Vertical YAG motor position in mm
+'MOTR:LI20:MC08:S6:CH2:MOTOR.RBV', # Horizontal YAG motor position
+
+'OSC:LA20:10:FS_TGT_TIME', # Laser timing relative to the beam
+]
