@@ -728,7 +728,7 @@ def state_GeV_to_kgms(state):
 # Create the detector objects
 detectors = []
 for i in range(5):
-    zpos = detector_z_base_cm + i ### detectors are spaced by 1 cm
+    zpos = detector_z_base_cm + 2*i ### detectors are spaced by 1 cm
     detector = Detector(
         name=f"ALPIDE_{i}",
         x_min=detector_x_center_cm-chipYcm/2., x_max=detector_x_center_cm+chipYcm/2.,

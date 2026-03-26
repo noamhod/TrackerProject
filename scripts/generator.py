@@ -35,7 +35,7 @@ from tracker_lib import bremss as br
 
 import argparse
 parser = argparse.ArgumentParser(description='generator.py...')
-parser.add_argument('-mag', metavar='magnets settings (run 502 or run 490)', required=True,  help='magnets settings (run 502 or run 490)')
+parser.add_argument('-mag', metavar='magnets settings (run 502 or run 490 or 856)', required=True,  help='magnets settings (run 502 or run 490 or 856)')
 parser.add_argument('-gen', metavar='particles to generate', required=True,  help='particles to generate')
 parser.add_argument('-brm', metavar='do bremsstrahlung?', required=True,  help='do bremsstrahlung?')
 parser.add_argument('-acc', metavar='require full acceptance?', required=False,  help='require full acceptance?')
@@ -44,7 +44,7 @@ parser.add_argument('-shw', metavar='show plots?', required=False,  help='show p
 parser.add_argument('-gif', metavar='do gif?', required=False,  help='do gif?')
 argus = parser.parse_args()
 MagnetsSettings = float(argus.mag)
-magset = [502, 490.0,490.1,490.2,490.5, 729]
+magset = [502, 490.0,490.1,490.2,490.5, 729, 856]
 if(MagnetsSettings not in magset):
     print(f"Unsupported magnets settings run: {MagnetsSettings}")
     quit()
@@ -103,7 +103,10 @@ fsigmay = 50*um_to_m ## beam sigma
 fsigmaz = 150*um_to_m ## beam sigma
 zAL     = +30 ### the aluminum foil, cm
 zBe     = -84 ### the beryllium window, cm
-Z0      = zBe if(MagnetsSettings==502) else zAL
+Z0      = 0
+if(MagnetsSettings==502):   Z0 = zBe # cm
+elif(MagnetsSettings==856): Z0 = 0   # cm
+else:                       Z0 = zAL # cm
 Z0_m    = Z0*cm_to_m
 MM      = m_e ## kg, positron
 QQ      = +1  ## unit charge, positron
@@ -120,7 +123,6 @@ ZMAX    = 18 ## METERES
 tmax    = ZMAX / (0.99 * c) ### time range for propagation (seconds): approximate time to travel 18 meters (last detector is at ~18 meters, relativistic particles going ~c)
 t_span  = (0, tmax)
 max_dt  = 1e-9
-dy_det  = 0 # cm
 X0 = None
 t_cm = None
 if(MagnetsSettings==502):
@@ -138,7 +140,8 @@ quadsvals = {502:[-7.637,28.55,-7.637],
              490.1:[-27.99,44.98,-27.99],
              490.2:[-20.38,40.42,-20.38],
              490.5:[-6.66,28.86,-6.66],
-             729:[-24.93,36.95,-24.93]
+             729:[-24.93,36.95,-24.93],
+             856:[-31.16,46.18,-31.16],
 }
 ### dipoles
 dipolesvals = {502:  {"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
@@ -146,7 +149,8 @@ dipolesvals = {502:  {"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
                490.1:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
                490.2:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
                490.5:{"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
-               729:  {"dipole":[0.175,0,0],"xcorr":[0,-0.0278,0]}
+               729:  {"dipole":[0.175,0,0],"xcorr":[0,-0.0278,0]},
+               856:  {"dipole":[0.219,0,0],"xcorr":[0,+0.026107,0]},
 }
 
 ZIP=1992.83 # [m]
@@ -169,12 +173,20 @@ q2z=2001.431388; q2x=0.003546; q2y=+0.000042
 ### --> dy0 = -0.055 mm
 ### --> dy1 = -0.164 mm
 ### --> dy2 = +0.042 mm
-q0shft_mm = [3.500, -0.055, -6.4998]
-q1shft_mm = [2.642, -0.164, -12.942]
-q2shft_mm = [3.546, +0.042, -8.6120]
+# q0shft_mm = [3.500, -0.055, -6.4998]
+# q1shft_mm = [2.642, -0.164, -12.942]
+# q2shft_mm = [3.546, +0.042, -8.6120]
+# q0shft_cm = [d/10 for d in q0shft_mm]
+# q1shft_cm = [d/10 for d in q1shft_mm]
+# q2shft_cm = [d/10 for d in q2shft_mm]
+
+q0shft_mm = [0,0,0]
+q1shft_mm = [0,0,0]
+q2shft_mm = [0,0,0]
 q0shft_cm = [d/10 for d in q0shft_mm]
 q1shft_cm = [d/10 for d in q1shft_mm]
 q2shft_cm = [d/10 for d in q2shft_mm]
+
 ######################
 ### from BPMs [mm] ###
 ### using run502 (Feb 2025)
@@ -185,13 +197,17 @@ bpm1x=-0.357; bpm1y=-0.333
 bpm2x=-0.388; bpm2y=-0.343
 ######################
 
-
+### the detector tilts
+detanglx = 0.28
+# detanglx = 0.
+detangly = 0.
+detanglz = 0.
 
 ### misalignments
 # magsetdelt = {"quad0":[0,0,0], "quad1":[0,0,0], "quad2":[0,0,0], "xcorr":[0,0,0], "dipole":[0,0,0]} ### x,y,z displacement, cm
 magsetdelt = {"quad0":q0shft_cm, "quad1":q1shft_cm, "quad2":q2shft_cm, "xcorr":[0,0,0], "dipole":[0,0,0]} ### x,y,z displacement, cm
 magsetangl = {"quad0":[0,0,0],   "quad1":[0,0,0],    "quad2":[0,0,0],  "xcorr":[0,0,0], "dipole":[0,0,0]} ### 3D rotation, degrees
-detangl    = [0,0,0]
+detangl    = [detanglx,detangly,detanglz]
 for name,angles in magsetangl.items():
     for i in range(3):
         angles[i] = angles[i]*np.pi/180.
@@ -241,10 +257,13 @@ hPy_zoom  = ROOT.TH1D("hPy_zoom", ";p_{y} [GeV];Particles",40, -1e-4,+1e-4)
 
 # Define detector x range
 # detector_x_center_cm = -1.0 # cm
-detector_x_center_cm = 0. if(MagnetsSettings!=729) else +0.4 # cm
+# detector_x_center_cm = 0. if(MagnetsSettings!=729) else +0.4 # cm
+dx_det  = 0. # cm
+detector_x_center_cm = dx_det
 detector_x_center_m = detector_x_center_cm*cm_to_m
 
 # Define detector y range
+dy_det  = 0. # cm
 detector_y_center_cm = 5.165 + 0.1525 + 3.685 + dy_det # cm
 detector_y_center_m  = detector_y_center_cm*cm_to_m
 
@@ -303,16 +322,29 @@ class Element:
         self.hits = []
         
         if(len(angles)==3):
-            umin = [self.x_min,self.y_min,self.z_min]
-            umax = [self.x_max,self.y_max,self.z_max]
+            ### remove offsets:
+            xoffset = (self.x_min + self.x_max)/2
+            yoffset = (self.y_min + self.y_max)/2
+            zoffset = (self.z_min + self.z_max)/2
+            umin = [self.x_min-xoffset,self.y_min-yoffset,self.z_min-zoffset]
+            umax = [self.x_max-xoffset,self.y_max-yoffset,self.z_max-zoffset]
+            ### do the rotations w/o the offsets
             vmin = Rot3D(umin,thetax=angles[0],thetay=angles[1],thetaz=angles[2])
             vmax = Rot3D(umax,thetax=angles[0],thetay=angles[1],thetaz=angles[2])
-            self.x_min = vmin[0]
-            self.y_min = vmin[1]
-            self.z_min = vmin[2]
-            self.x_max = vmax[0]
-            self.y_max = vmax[1]
-            self.z_max = vmax[2]
+            ### add the offsets back
+            self.x_min = vmin[0]+xoffset
+            self.y_min = vmin[1]+yoffset
+            self.z_min = vmin[2]+zoffset
+            self.x_max = vmax[0]+xoffset
+            self.y_max = vmax[1]+yoffset
+            self.z_max = vmax[2]+zoffset
+            # print(f"{self.name}:")
+            # print(f"   x_min={self.x_min}, x_max={self.x_max}")
+            # print(f"   y_min={self.y_min}, y_max={self.y_max}")
+            # print(f"   z_min={self.z_min}, z_max={self.z_max}")
+            # print(f"   xoffset={xoffset}, yoffset={yoffset}, zoffset={zoffset}")
+            # print(f"   umin={umin} --> vmin={vmin}")
+            # print(f"   umax={umax} --> vmax={vmax}")
         
     def is_inside(self, x, y, z):
         return (self.x_min <= x <= self.x_max and 
@@ -671,7 +703,7 @@ def state_GeV_to_kgms(state):
 # Create the detector objects
 detectors = []
 for i in range(5):
-    zpos = detector_z_base_cm + i ### detectors are spaced by 1 cm
+    zpos = detector_z_base_cm + i*2 ### detectors are spaced by 2 cm in z
     detector = Detector(
         name=f"ALPIDE_{i}",
         x_min=detector_x_center_cm-chipYcm/2., x_max=detector_x_center_cm+chipYcm/2.,
@@ -695,7 +727,6 @@ quad1 = Quadrupole(
     x_min=-2.4610+magsetdelt["quad1"][0],  x_max=2.4610+magsetdelt["quad1"][0], # cm
     y_min=-2.4610+magsetdelt["quad1"][1],  y_max=2.4610+magsetdelt["quad1"][1], # cm
     z_min=590.3336+magsetdelt["quad1"][2], z_max=687.6664+magsetdelt["quad1"][2], # cm
-    # gradient=+28.55 if(MagnetsSettings==502) else +46.42 # kG/m
     gradient=quadsvals[MagnetsSettings][1], # kG/m
     angles=magsetangl["quad1"]
 )

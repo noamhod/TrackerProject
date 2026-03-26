@@ -73,6 +73,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
     ispreproc = utils.is_preprocessed()
     
     
+    
     ### the metadata:
     tfmeta = ROOT.TFile(tfilenamein,"READ")
     tmeta = tfmeta.Get("MyTreeMeta")
@@ -97,6 +98,7 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
     meta = objects.Meta(runnumber,starttime,endtime,duration)
     # tfmeta.Close()
     if(cfg["dbg"]): print("Got the meta tree")
+    
     
     
     ### open the pickle:
@@ -469,7 +471,9 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         histos["h_nTracks_butterfly_mid"].Fill( n_btterfly_tracks )
         histos["h_nTracks_butterfly_zoom"].Fill( n_btterfly_tracks )
         
-        print(f"Eventid={ievt}: Pix/det={int(npixperdet)}, Cls/det={int(nclsperdet)} -->  Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}, Butterfly={n_btterfly_tracks}")
+        sout = f"Eventid={ievt}: Pix/det={int(npixperdet)}, Cls/det={int(nclsperdet)} -->  Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}"
+        sout += f", Butterfly={n_btterfly_tracks}" if(cfg["cut_RoI_btrfly"]) else ""
+        print(sout)
         fdone = int((float(ievt-ievt_start)/float(neventstot))*100)
         if(fdone%5==0 and fdone>0 and fdone!=previous_fdone):
             previous_fdone = fdone

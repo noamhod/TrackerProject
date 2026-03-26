@@ -41,10 +41,17 @@ def fit1(h,col,xmin,xmax):
 
 detectors = ["ALPIDE_0","ALPIDE_1","ALPIDE_2","ALPIDE_3","ALPIDE_4"]
 
-basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
-# basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
-fnamein = f"{basedir}/tree_Run502_allplots.root"
+
+
+# basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
+# # basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
+# fnamein = f"{basedir}/tree_Run502_allplots.root"
+# fIn  = ROOT.TFile(fnamein,"READ")
+
+basedir = "data/e320_prototype_beam_Mar2026/runs/run_0000856"
+fnamein = f"{basedir}/tree_Run856_allplots.root"
 fIn  = ROOT.TFile(fnamein,"READ")
+
 
 
 fnameout = fnamein.replace(".root","")

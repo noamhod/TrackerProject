@@ -18,11 +18,11 @@ ROOT.gStyle.SetPadLeftMargin(0.13)
 ROOT.gStyle.SetPadRightMargin(0.16)
 
 
-X0 = 330            ### x center
-Y0 = 84             ### y center
+X0 = 335            ### x center
+Y0 = 80             ### y center
 a  = 500            ### long radius
 b  = 35             ### short radius  
-t  = 5*(np.pi/180.) ### angle wrt the x axis
+t  = 4*(np.pi/180.) ### angle wrt the x axis
 c  = 300            ### NEW: Opening curvature. Smaller c = wider "wings". (Physically similar to the Rayleigh length or beta*)
 
 def tilted_eliptic_RoI_cut(x, y):
@@ -103,7 +103,9 @@ if __name__ == "__main__":
     detectors = ["ALPIDE_0","ALPIDE_1","ALPIDE_2","ALPIDE_3","ALPIDE_4"]
     detectorids = [8,6,4,2,0]
     
-    fInName = "data/e320_prototype_beam_Nov2025/runs/run_0000729/tree_Run729_multiprocess_histograms_notrk.root"
+    # fInName = "data/e320_prototype_beam_Nov2025/runs/run_0000729/tree_Run729_multiprocess_histograms_notrk.root"
+    # fInName = "data/e320_prototype_beam_Mar2026/runs/run_0000872/tree_Run872_multiprocess_histograms_notrk.root"
+    fInName = "data/e320_prototype_beam_Mar2026/runs/run_0000872/beam_quality/tree_Run872_trigger_analysis.root"
     fOutName = fInName.replace(".root","_replot.pdf")
     fIn = ROOT.TFile(fInName,"READ")
 
@@ -111,11 +113,13 @@ if __name__ == "__main__":
     histos = {}
     for det in detectors:
         name = f"h_pix_occ_2D_{det}"
-        histos.update( { name : fIn.Get(f"{det}/{name}").Clone(f"{name}_clone") } )
+        if("multiprocess_histograms_notrk" in fInName): histos.update( { name : fIn.Get(f"{det}/{name}").Clone(f"{name}_clone") } )
+        else:                                           histos.update( { name : fIn.Get(f"{name}").Clone(f"{name}_clone") } )
         histos[name].SetDirectory(0)
 
         name_roi = f"h_pix_occ_2D_{det}_roi"
-        histos.update( { name_roi : fIn.Get(f"{det}/{name}").Clone(f"{name}_clone_roi") } )
+        if("multiprocess_histograms_notrk" in fInName): histos.update( { name_roi : fIn.Get(f"{det}/{name}").Clone(f"{name}_clone_roi") } )
+        else:                                           histos.update( { name_roi : fIn.Get(f"{name}").Clone(f"{name}_clone_roi") } )
         histos[name_roi].SetDirectory(0)
         for ix in range(1,histos[name_roi].GetNbinsX()+1):
             for iy in range(1,histos[name_roi].GetNbinsY()+1):
@@ -125,8 +129,9 @@ if __name__ == "__main__":
                 if(not tilted_butterfly_RoI_cut(x,y)):
                     histos[name_roi].SetBinContent(ix,iy,0)
     
-    # NTRG = fIn.Get("h_ntrgs").GetBinContent(1)
-    NTRG = fIn.Get("h_cutflow").GetBinContent(2) ## BeamQC
+    NTRG = -1
+    if("multiprocess_histograms_notrk" in fInName): NTRG = fIn.Get("h_cutflow").GetBinContent(2) ## BeamQC
+    else:                                           NTRG = fIn.Get("h_ntrgs").GetBinContent(1)
     print(f"NTRG={NTRG}")
     
     

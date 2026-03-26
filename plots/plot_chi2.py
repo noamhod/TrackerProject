@@ -133,15 +133,20 @@ def fit2(h, poln=0):
 
 
 
-basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
-fnamein = f"{basedir}/tree_Run502_allplots.root"
-### fnamein = f"{basedir}/tree_Run502_allplots_iter0_nocuts.root"
-hstname = "hChi2DoF_small_zeroshrcls"
-# hstname = "hChi2_small_zeroshrcls"
+# basedir = "data/e320_prototype_beam_Feb2025/runs/run_0000502"
+# fnamein = f"{basedir}/tree_Run502_allplots.root"
+# ### fnamein = f"{basedir}/tree_Run502_allplots_iter0_nocuts.root"
+# hstname = "hChi2DoF_small_zeroshrcls"
+# # hstname = "hChi2_small_zeroshrcls"
 
 # basedir = "data/e320_prototype_beam_Feb2025_no_alignment/runs/run_0000502"
 # fnamein = f"{basedir}/tree_Run502_allplots.root"
 # hstname = "hChi2DoF_zeroshrcls"
+
+basedir = "data/e320_prototype_beam_Mar2026/runs/run_0000856"
+fnamein = f"{basedir}/tree_Run856_allplots.root"
+hstname = "hChi2DoF_small_zeroshrcls"
+# hstname = "hChi2_small_zeroshrcls"
 
 isnoalgn = ("_no_alignment" in basedir)
 fIn  = None

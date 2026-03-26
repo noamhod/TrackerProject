@@ -485,6 +485,9 @@ def book_histos():
     for det in cfg["detectors"]:
         name = f"h_cls_occ_2D_{det}"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Track clusters",128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
         name = f"h_trk_occ_2D_{det}"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Tracks",        128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
+
+        name = f"h_cls_occ_2D_{det}_after_cuts"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Track clusters",128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
+        name = f"h_trk_occ_2D_{det}_after_cuts"; histos.update({name : ROOT.TH2D(name,f"{det};x [mm];y [mm];Tracks",        128,-cfg["chipY"]/2.,+cfg["chipY"]/2., 64,-cfg["chipX"]/2.,+cfg["chipX"]/2.) } )
         
         name = f"h_residual_alowshrcls_x_sml_{det}"; histos.update( { name:ROOT.TH1D(name,det+";x_{trk}-x_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
         name = f"h_residual_alowshrcls_y_sml_{det}"; histos.update( { name:ROOT.TH1D(name,det+";y_{trk}-y_{cls} [mm];Tracks",int(nResBins*0.6),-absRes*0.6,+absRes*0.6) } )
@@ -1138,6 +1141,13 @@ if __name__ == "__main__":
                     if(cfg["cut_RoI_btrfly"]): pass_butterfly = selections.tilted_butterfly_RoI_cut(track)
                     butterfly_tracks_mask.append( pass_butterfly )
                     n_butterfly_tracks += pass_butterfly
+                    ### fill the track occupancies after the cuts
+                    if(pass_butterfly):
+                        for det in cfg["detectors"]:
+                            if(det not in track.detectors): continue
+                            histos[f"h_cls_occ_2D_{det}_after_cuts"].Fill(track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm)
+                            xTnoG,yTnoG,zTnoG = utils.get_track_at_det_noG(det,track)
+                            histos[f"h_trk_occ_2D_{det}_after_cuts"].Fill(xTnoG,yTnoG)
                 
                 ##############################################################################
                 ### fill the last counter ####################################################
@@ -1149,8 +1159,6 @@ if __name__ == "__main__":
                 histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
                 nbtrtrk += n_butterfly_tracks
-                
-                
                 
                 
                 ### event displays
@@ -1313,6 +1321,7 @@ if __name__ == "__main__":
     if(weudaqout): print(f"\nnweudaqtrks={nweudaqtrks}\n")
     
     ### plot the counters
+    counters.counters_x_trg[0] = counters.counters_x_trg[0] if(counters.counters_x_trg[0]!=0 and cfg["first2process"]!=0) else 0
     fmultpdfname = tfilenamein.replace(".root",f"_multiplicities_vs_triggers.pdf")
     counters.plot_counters(fmultpdfname,runnum)
 
@@ -2129,6 +2138,18 @@ if __name__ == "__main__":
     del cnv
     print("---------------19.1")
     
+    cnv = ROOT.TCanvas("cnv_occupancy_clusters_after","",1500,500)
+    cnv.Divide(5,1)
+    for idet,det in enumerate(cfg["detectors"]):
+        cnv.cd(idet+1)
+        ROOT.gPad.SetTicks(1,1)
+        histos[f"h_cls_occ_2D_{det}_after_cuts"].Draw("colz")
+        ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.11")
+    
     cnv = ROOT.TCanvas("cnv_occupancy_clusters","",1500,500)
     cnv.Divide(5,1)
     for idet,det in enumerate(cfg["detectors"]):
@@ -2140,6 +2161,19 @@ if __name__ == "__main__":
     cnv.SaveAs(f"{foupdfname}")
     del cnv
     print("---------------19.2")
+    
+    cnv = ROOT.TCanvas("cnv_occupancy_clusters_after","",1500,500)
+    cnv.Divide(5,1)
+    for idet,det in enumerate(cfg["detectors"]):
+        cnv.cd(idet+1)
+        ROOT.gPad.SetTicks(1,1)
+        histos[f"h_trk_occ_2D_{det}_after_cuts"].Draw("colz")
+        ROOT.gPad.RedrawAxis()
+    cnv.Update()
+    cnv.SaveAs(f"{foupdfname}")
+    del cnv
+    print("---------------19.22")
+    
     
     cnv = ROOT.TCanvas("cnv_occupancy_clusters","",1000,500)
     cnv.Divide(2,1)

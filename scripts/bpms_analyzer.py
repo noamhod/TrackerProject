@@ -41,7 +41,7 @@ ROOT.gStyle.SetPadLeftMargin(0.13)
 ROOT.gStyle.SetPadRightMargin(0.16)
 
 import argparse
-parser = argparse.ArgumentParser(description='analyze_triggers.py...')
+parser = argparse.ArgumentParser(description='bpms_analyze.py...')
 parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
 parser.add_argument('-imin', metavar='first entry', required=False, help='first entry')
 parser.add_argument('-imax', metavar='last entry', required=False,  help='last entry')

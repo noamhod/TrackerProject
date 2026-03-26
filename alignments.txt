@@ -1,5 +1,5 @@
 #####################################
-### USING MLE FITS WITH THETA2 CUTS
+### USING MLE FITS WITH THETA2 CUTS FROM RUN 502
 ### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)+(-0.07,-0.03), strip cut (8,-2) 5x5, theta2<1e-10, 13<chi2<20 cut, 1356 tracks
 ALPIDE_1:dx=-2.10E-02
 ALPIDE_2:dx=2.56E-02
@@ -75,3 +75,91 @@ ALPIDE_1:theta=-1.78E-03
 ALPIDE_2:theta=1.62E-03
 ALPIDE_3:theta=-1.55E-03
 ALPIDE_4:theta=5.08E-04
+
+
+
+
+
+
+
+
+
+#####################################
+### USING MLE FITS WITH THETA2 CUTS BASED ON RUN 856
+### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)x(-0.07,-0.03), strip cut (-2,-8) 7x7, theta2<1e-8, 13<chi2inf<20 cut, 4344 tracks
+ALPIDE_1:dx=-1.09E-02
+ALPIDE_2:dx=2.00E-02
+ALPIDE_3:dx=6.61E-02
+ALPIDE_4:dx=-2.37E-02
+ALPIDE_1:dy=2.67E-02
+ALPIDE_2:dy=-4.39E-02
+ALPIDE_3:dy=-6.25E-02
+ALPIDE_4:dy=2.55E-02
+ALPIDE_1:theta=-9.65E-04
+ALPIDE_2:theta=1.57E-03
+ALPIDE_3:theta=-1.31E-03
+ALPIDE_4:theta=4.89E-04
+X = -0.010900  +0.02000  +0.06610 -0.023700
+Y = +0.026700  -0.04390  -0.06250 +0.025500 
+T = -0.000965  +0.00157  -0.00131 +0.000489
+DX = 3.53e-04  5.42e-04 1.24e-03 1.43e-03
+DY = 1.07e-03  1.29e-03 2.03e-03 2.97e-03
+DT = 5.78e-05  1.86e-04 2.13e-04 3.19e-04
+
+
+### iteration 1 with the proper clusters errors, HT binning 1700^4, theta2<1e-8, chi2<5 cut, 1139 tracks
+ALPIDE_1:dx=-1.63E-02
+ALPIDE_2:dx=2.63E-02
+ALPIDE_3:dx=6.85E-02
+ALPIDE_4:dx=-2.54E-02
+ALPIDE_1:dy=3.39E-02
+ALPIDE_2:dy=-5.30E-02
+ALPIDE_3:dy=-6.46E-02
+ALPIDE_4:dy=2.74E-02
+ALPIDE_1:theta=-1.15E-03
+ALPIDE_2:theta=1.93E-03
+ALPIDE_3:theta=-1.45E-03
+ALPIDE_4:theta=5.12E-04
+
+### iteration 2 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1400 tracks
+ALPIDE_1:dx=-1.75E-02
+ALPIDE_2:dx=2.75E-02
+ALPIDE_3:dx=6.89E-02
+ALPIDE_4:dx=-2.57E-02
+ALPIDE_1:dy=3.52E-02
+ALPIDE_2:dy=-5.47E-02
+ALPIDE_3:dy=-6.47E-02
+ALPIDE_4:dy=2.77E-02
+ALPIDE_1:theta=-1.17E-03
+ALPIDE_2:theta=2.03E-03
+ALPIDE_3:theta=-1.46E-03
+ALPIDE_4:theta=5.13E-04
+
+### iteration 3 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1422 tracks
+ALPIDE_1:dx=-1.77E-02
+ALPIDE_2:dx=2.78E-02
+ALPIDE_3:dx=6.90E-02
+ALPIDE_4:dx=-2.58E-02
+ALPIDE_1:dy=3.56E-02
+ALPIDE_2:dy=-5.51E-02
+ALPIDE_3:dy=-6.48E-02
+ALPIDE_4:dy=2.78E-02
+ALPIDE_1:theta=-1.18E-03
+ALPIDE_2:theta=2.05E-03
+ALPIDE_3:theta=-1.46E-03
+ALPIDE_4:theta=5.14E-04
+
+### iteration 4 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1432 tracks
+ALPIDE_1:dx=-1.78E-02
+ALPIDE_2:dx=2.79E-02
+ALPIDE_3:dx=6.91E-02
+ALPIDE_4:dx=-2.58E-02
+ALPIDE_1:dy=3.57E-02
+ALPIDE_2:dy=-5.52E-02
+ALPIDE_3:dy=-6.49E-02
+ALPIDE_4:dy=2.78E-02
+ALPIDE_1:theta=-1.19E-03
+ALPIDE_2:theta=2.06E-03
+ALPIDE_3:theta=-1.45E-03
+ALPIDE_4:theta=5.13E-04
+

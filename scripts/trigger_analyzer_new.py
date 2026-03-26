@@ -43,7 +43,7 @@ import argparse
 parser = argparse.ArgumentParser(description='analyze_triggers.py...')
 parser.add_argument('-conf',   metavar='config file', required=True,  help='full path to config file')
 parser.add_argument('-pvs',    metavar='analyze pvs?', required=True,  help='analyze pvs?')
-parser.add_argument('-maxocc', metavar='max occupancy to keep', required=True,  help='max occupancy to keep')
+parser.add_argument('-maxocc', metavar='max occupancy to keep', required=False,  help='max occupancy to keep')
 parser.add_argument('-imin',   metavar='first entry', required=False,  help='first entry')
 parser.add_argument('-imax',   metavar='last entry', required=False,  help='last entry')
 parser.add_argument('-hits',   metavar='plot hits?', required=False,  help='plot hits?')
@@ -51,9 +51,7 @@ argus = parser.parse_args()
 configfile = argus.conf
 fillhits = (int(argus.hits)==1) if(argus.hits   is not None) else False
 dopvs    = (int(argus.pvs)==1)  if(argus.pvs    is not None) else False
-maxocc   = int(argus.maxocc)    if(argus.maxocc is not None) else int(argus.maxocc)
-
-
+maxocc   = int(argus.maxocc)    if(argus.maxocc is not None) else 1e7
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tracker_lib import config
@@ -184,8 +182,6 @@ def plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytit
     plt.close(fig)
 
 
-    
-
 
 
 if __name__ == "__main__":
@@ -248,7 +244,6 @@ if __name__ == "__main__":
     fltr_trgs = {}
     
     x_trg = np.zeros(nentries)
-    x_ent = np.zeros(nentries)
     x_tim = []
     hits_vs_trg = {}
     hits_vs_ent = {}
@@ -268,6 +263,9 @@ if __name__ == "__main__":
     y_q2act       = np.zeros(nentries)
     y_m12         = np.zeros(nentries)
     y_m34         = np.zeros(nentries)
+    y_E_img       = np.zeros(nentries)
+    y_z_img       = np.zeros(nentries)
+    y_z_obj       = np.zeros(nentries)
     y_xcoract     = np.zeros(nentries)
     y_rad         = np.zeros(nentries)
     y_toro2040    = np.zeros(nentries)
@@ -307,10 +305,9 @@ if __name__ == "__main__":
         dt     = (ts_end-ts_bgn)/1e6
         
         x_trg[counter] = trgn
-        x_ent[counter] = ientry
         x_tim.append( utils.get_human_timestamp_ns(ts_bgn) )
         
-        y_dt[counter]       = dt
+        y_dt[counter] = dt
         
         if(dopvs and len(entry.event.ev_epics_frame.pv_map)>0):
             y_dipole[counter]   = float(str(entry.event.ev_epics_frame.pv_map['LI20:LGPS:3330:BACT'].value))
@@ -319,34 +316,40 @@ if __name__ == "__main__":
             y_q2act[counter]    = float(str(entry.event.ev_epics_frame.pv_map['LI20:LGPS:3091:BACT'].value))
             y_m12[counter]      = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT054'].value))
             y_m34[counter]      = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT055'].value))
+            y_E_img[counter]    = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT051'].value))
+            y_z_img[counter]    = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT053'].value))
+            y_z_obj[counter]    = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:CALCOUT052'].value))
             y_xcoract[counter]  = float(str(entry.event.ev_epics_frame.pv_map['LI20:XCOR:3276:BACT'].value))
             
             y_rad[counter]      = float(str(entry.event.ev_epics_frame.pv_map['RADM:LI20:1:CH01:MEAS'].value))
+            
             y_toro2040[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:2040:TMIT_PC'].value))
             y_toro2452[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:2452:TMIT_PC'].value))
             y_toro3163[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:3163:TMIT_PC'].value))
             y_toro3255[counter] = float(str(entry.event.ev_epics_frame.pv_map['TORO:LI20:3255:TMIT_PC'].value))
+            
             y_foilm1[counter]   = float(str(entry.event.ev_epics_frame.pv_map['XPS:LI20:MC05:M1.RBV'].value))
             y_foilm2[counter]   = float(str(entry.event.ev_epics_frame.pv_map['XPS:LI20:MC05:M2.RBV'].value))
+            
             y_yag[counter]      = float(str(entry.event.ev_epics_frame.pv_map['XPS:LI20:MC10:M1.RBV'].value))
+            
             y_pmt3060[counter]  = float(str(entry.event.ev_epics_frame.pv_map['PMT:LI20:3060:QDCRAW'].value))
             y_pmt3070[counter]  = float(str(entry.event.ev_epics_frame.pv_map['PMT:LI20:3070:QDCRAW'].value))
             y_pmt3179[counter]  = float(str(entry.event.ev_epics_frame.pv_map['PMT:LI20:3179:QDCRAW'].value))
             y_pmt3350[counter]  = float(str(entry.event.ev_epics_frame.pv_map['PMT:LI20:3350:QDCRAW'].value))
             y_pmt3360[counter]  = float(str(entry.event.ev_epics_frame.pv_map['PMT:LI20:3360:QDCRAW'].value))
+            
             y_bpm_pb_3156[counter] = float(str(entry.event.ev_epics_frame.pv_map['BPMS:LI20:3156:TMIT'].value))
             y_bpm_q0_3218[counter] = float(str(entry.event.ev_epics_frame.pv_map['BPMS:LI20:3218:TMIT'].value))
             y_bpm_q1_3265[counter] = float(str(entry.event.ev_epics_frame.pv_map['BPMS:LI20:3265:TMIT'].value))
             y_bpm_q2_3315[counter] = float(str(entry.event.ev_epics_frame.pv_map['BPMS:LI20:3315:TMIT'].value))
             
-            
             y_betax[counter] = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:AO395'].value))
             y_betay[counter] = float(str(entry.event.ev_epics_frame.pv_map['SIOC:SYS1:ML00:AO396'].value))
             # 'SIOC:SYS1:ML00:CA902', # Closest element in the beamline to the waist (name in ASCII numbers)
             
-            # # DTORT2
-            y_DTORT2_x[counter] = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:X'].value))
-            y_DTORT2_y[counter] = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:Y'].value))
+            y_DTORT2_x[counter]    = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:X'].value))
+            y_DTORT2_y[counter]    = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:Y'].value))
             y_DTORT2_xrms[counter] = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:XRMS'].value))
             y_DTORT2_yrms[counter] = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:YRMS'].value))
             y_DTORT2_cnts[counter] = float(str(entry.event.ev_epics_frame.pv_map['CAMR:LI20:107:SUM'].value))
@@ -384,15 +387,25 @@ if __name__ == "__main__":
             
             ###############
             ### 2D occupancy:
-            if(fillhits and nhits<20000):
+            # if(fillhits and nhits<20000):
+            if(fillhits and nhits<maxocc):
                 for ipix in range(nhits):
                     ix,iy = entry.event.st_ev_buffer[0].ch_ev_buffer[ichip].hits[ipix]
                     histos["h_pix_occ_2D_"+det].Fill(ix,iy)
     
-        ### important!!
-        counter += 1
-        print(f"counter: {counter}")
+        ###################
+        ### important!! ###
+        counter += 1 ######
+        ###################
+        print(f"counter: {counter}, trgn: {trgn}")
         
+
+    #######################
+    ### !! IMPORTANT !! ###
+    if(x_trg[0]!=0 and imin==0):
+        x_trg[0] = 0
+    #######################
+    
 
 
     ####################################################################
@@ -404,7 +417,7 @@ if __name__ == "__main__":
         arrsyR = [y_toro2040, y_toro2452, y_toro3163, y_toro3255]
         xmin   = xarr[0]
         xmax   = xarr[-1]
-        # plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytitleR="", colL="blue", colR="red", logyL=True, logyR=True, lstyleL="-", lstyleR="-"):
+        print(f"xmin={xmin}, xmax={xmax}, lenx={len(xarr)}")
         plotter(f'Toroids in Run {RunNum}', pdf, xarr, arryL, arrsyR, xmin, xmax, xtitle='EUDAQ BX number', ytitleL='Fired pixels in ALPIDE_0', ytitleR="Toroids [pC]", colL="black", colR="red", logyL=True, logyR=False)
 
     fmtpltlibname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_matplotloib_trigger_analysis_pmts.pdf")
@@ -414,7 +427,6 @@ if __name__ == "__main__":
         arrsyR = [y_pmt3060, y_pmt3070, y_pmt3179, y_pmt3350, y_pmt3360]
         xmin   = xarr[0]
         xmax   = xarr[-1]
-        # plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytitleR="", colL="blue", colR="red", logyL=True, logyR=True, lstyleL="-", lstyleR="-"):
         plotter(f'PMTs in Run {RunNum}', pdf, xarr, arryL, arrsyR, xmin, xmax, xtitle='EUDAQ BX number', ytitleL='Fired pixels in ALPIDE_0', ytitleR="PMTs [counts]", colL="black", colR="red", logyL=True, logyR=True)
 
     fmtpltlibname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_matplotloib_trigger_analysis_bpms.pdf")
@@ -424,7 +436,6 @@ if __name__ == "__main__":
         arrsyR = [y_bpm_pb_3156, y_bpm_q0_3218, y_bpm_q1_3265, y_bpm_q2_3315]
         xmin   = xarr[0]
         xmax   = xarr[-1]
-        # plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytitleR="", colL="blue", colR="red", logyL=True, logyR=True, lstyleL="-", lstyleR="-"):
         plotter(f'BPMs in Run {RunNum}', pdf, xarr, arryL, arrsyR, xmin, xmax, xtitle='EUDAQ BX number', ytitleL='Fired pixels in ALPIDE_0', ytitleR="BPMs [#electrons]", colL="black", colR="red", logyL=True, logyR=True)
     
     fmtpltlibname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_matplotloib_trigger_analysis_radmon.pdf")
@@ -434,7 +445,6 @@ if __name__ == "__main__":
         arrsyR = [y_rad]
         xmin   = xarr[0]
         xmax   = xarr[-1]
-        # plotter(name, pdf, arrx, arryL, arrsyR, xmin, xmax, xtitle, ytitleL="", ytitleR="", colL="blue", colR="red", logyL=True, logyR=True, lstyleL="-", lstyleR="-"):
         plotter(f'RadMon in Run {RunNum}', pdf, xarr, arryL, arrsyR, xmin, xmax, xtitle='EUDAQ BX number', ytitleL='Fired pixels in ALPIDE_0', ytitleR="RadMon [mRem/h]", colL="black", colR="red", logyL=True, logyR=True)
     ####################################################################
     ####################################################################
@@ -479,68 +489,101 @@ if __name__ == "__main__":
     # lines.update({"bpm_q2_3315":getLine(thr_bpm_q2_3315,x_trg)})
     
     
-    ### GOOD FOR COLLISIONS
+    # ### GOOD FOR COLLISIONS FOR MAY-NOV 2025
+    # thr_dn_toro2040,thr_up_toro2040 = getThr("toro2040",y_toro2040,direction="both",nsigma=5,frac=0.05)
+    # lines.update({"toro2040_dn":getLine(thr_dn_toro2040,x_trg)})
+    # lines.update({"toro2040_up":getLine(thr_up_toro2040,x_trg)})
+    # thr_dn_toro2452,thr_up_toro2452 = getThr("toro2452",y_toro2452,direction="both",nsigma=5,frac=0.05)
+    # lines.update({"toro2452_dn":getLine(thr_dn_toro2452,x_trg)})
+    # lines.update({"toro2452_up":getLine(thr_up_toro2452,x_trg)})
+    # thr_dn_toro3163,thr_up_toro3163 = getThr("toro3163",y_toro3163,direction="both",nsigma=5,frac=0.05)
+    # lines.update({"toro3163_dn":getLine(thr_dn_toro3163,x_trg)})
+    # lines.update({"toro3163_up":getLine(thr_up_toro3163,x_trg)})
+    # thr_dn_toro3255,thr_up_toro3255 = getThr("toro3255",y_toro3255,direction="both",nsigma=5,frac=0.05)
+    # lines.update({"toro3255_dn":getLine(thr_dn_toro3255,x_trg)})
+    # lines.update({"toro3255_up":getLine(thr_dn_toro3255,x_trg)})
+    # # thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=79.5,frac=0.01)
+    # thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"pmt3060_dn":getLine(thr_dn_pmt3060,x_trg)})
+    # lines.update({"pmt3060_up":getLine(thr_up_pmt3060,x_trg)})
+    # # thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction="up",nsigma=8.3,frac=0.2)
+    # thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"pmt3070_dn":getLine(thr_dn_pmt3070,x_trg)})
+    # lines.update({"pmt3070_up":getLine(thr_up_pmt3070,x_trg)})
+    # # thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction="up",nsigma=18,frac=0.01)
+    # thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"pmt3179_dn":getLine(thr_dn_pmt3179,x_trg)})
+    # lines.update({"pmt3179_up":getLine(thr_up_pmt3179,x_trg)})
+    # # thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction="up",nsigma=130,frac=0.01)
+    # thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"pmt3350_dn":getLine(thr_dn_pmt3350,x_trg)})
+    # lines.update({"pmt3350_up":getLine(thr_up_pmt3350,x_trg)})
+    # # thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=351.5,frac=0.01)
+    # thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"pmt3360_dn":getLine(thr_dn_pmt3360,x_trg)})
+    # lines.update({"pmt3360_up":getLine(thr_up_pmt3360,x_trg)})
+    # thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction="up",nsigma=5,frac=0.01)
+    # lines.update({"rad_dn":getLine(thr_dn_rad,x_trg)})
+    # lines.update({"rad_up":getLine(thr_up_rad,x_trg)})
+    # thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=3,frac=0.01)
+    # lines.update({"bpm_pb_3156_dn":getLine(thr_dn_bpm_pb_3156,x_trg)})
+    # lines.update({"bpm_pb_3156_up":getLine(thr_up_bpm_pb_3156,x_trg)})
+    # thr_dn_bpm_q0_3218,thr_up_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=3,frac=0.01)
+    # lines.update({"bpm_q0_3218_dn":getLine(thr_dn_bpm_q0_3218,x_trg)})
+    # lines.update({"bpm_q0_3218_up":getLine(thr_up_bpm_q0_3218,x_trg)})
+    # thr_dn_bpm_q1_3265,thr_up_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction="down",nsigma=3,frac=0.01)
+    # lines.update({"bpm_q1_3265_dn":getLine(thr_dn_bpm_q1_3265,x_trg)})
+    # lines.update({"bpm_q1_3265_up":getLine(thr_up_bpm_q1_3265,x_trg)})
+    # thr_dn_bpm_q2_3315,thr_up_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=3,frac=0.01)
+    # lines.update({"bpm_q2_3315_dn":getLine(thr_dn_bpm_q2_3315,x_trg)})
+    # lines.update({"bpm_q2_3315_up":getLine(thr_up_bpm_q2_3315,x_trg)})
+    
+    ### GOOD FOR COLLISIONS MAR 2026
     thr_dn_toro2040,thr_up_toro2040 = getThr("toro2040",y_toro2040,direction="both",nsigma=5,frac=0.05)
     lines.update({"toro2040_dn":getLine(thr_dn_toro2040,x_trg)})
-    lines.update({"toro2040_up":getLine(thr_up_toro2040,x_trg)})
-    
+    lines.update({"toro2040_up":getLine(thr_up_toro2040,x_trg)})   
     thr_dn_toro2452,thr_up_toro2452 = getThr("toro2452",y_toro2452,direction="both",nsigma=5,frac=0.05)
     lines.update({"toro2452_dn":getLine(thr_dn_toro2452,x_trg)})
     lines.update({"toro2452_up":getLine(thr_up_toro2452,x_trg)})
-    
     thr_dn_toro3163,thr_up_toro3163 = getThr("toro3163",y_toro3163,direction="both",nsigma=5,frac=0.05)
     lines.update({"toro3163_dn":getLine(thr_dn_toro3163,x_trg)})
     lines.update({"toro3163_up":getLine(thr_up_toro3163,x_trg)})
-    
     thr_dn_toro3255,thr_up_toro3255 = getThr("toro3255",y_toro3255,direction="both",nsigma=5,frac=0.05)
     lines.update({"toro3255_dn":getLine(thr_dn_toro3255,x_trg)})
     lines.update({"toro3255_up":getLine(thr_dn_toro3255,x_trg)})
-    
-    # thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=79.5,frac=0.01)
-    thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=5,frac=0.01)
+    thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction="up",nsigma=25,frac=0.001)
     lines.update({"pmt3060_dn":getLine(thr_dn_pmt3060,x_trg)})
     lines.update({"pmt3060_up":getLine(thr_up_pmt3060,x_trg)})
-    
-    # thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction="up",nsigma=8.3,frac=0.2)
-    thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction="up",nsigma=5,frac=0.01)
+    thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction="up",nsigma=25,frac=0.001)
     lines.update({"pmt3070_dn":getLine(thr_dn_pmt3070,x_trg)})
     lines.update({"pmt3070_up":getLine(thr_up_pmt3070,x_trg)})
-    
-    # thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction="up",nsigma=18,frac=0.01)
-    thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction="up",nsigma=5,frac=0.01)
+    thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction="up",nsigma=25,frac=0.001)
     lines.update({"pmt3179_dn":getLine(thr_dn_pmt3179,x_trg)})
     lines.update({"pmt3179_up":getLine(thr_up_pmt3179,x_trg)})
-    
-    
-    # thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction="up",nsigma=130,frac=0.01)
-    thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction="up",nsigma=5,frac=0.01)
+    thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction="up",nsigma=25,frac=0.001)
     lines.update({"pmt3350_dn":getLine(thr_dn_pmt3350,x_trg)})
     lines.update({"pmt3350_up":getLine(thr_up_pmt3350,x_trg)})
-    
-    # thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=351.5,frac=0.01)
-    thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=5,frac=0.01)
+    thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction="up",nsigma=25,frac=0.001)
     lines.update({"pmt3360_dn":getLine(thr_dn_pmt3360,x_trg)})
     lines.update({"pmt3360_up":getLine(thr_up_pmt3360,x_trg)})
-    
     thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction="up",nsigma=5,frac=0.01)
     lines.update({"rad_dn":getLine(thr_dn_rad,x_trg)})
     lines.update({"rad_up":getLine(thr_up_rad,x_trg)})
-    
-    thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=3,frac=0.01)
+    thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=25,frac=0.01)
     lines.update({"bpm_pb_3156_dn":getLine(thr_dn_bpm_pb_3156,x_trg)})
     lines.update({"bpm_pb_3156_up":getLine(thr_up_bpm_pb_3156,x_trg)})
-    
-    thr_dn_bpm_q0_3218,thr_up_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=3,frac=0.01)
+    thr_dn_bpm_q0_3218,thr_up_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=25,frac=0.01)
     lines.update({"bpm_q0_3218_dn":getLine(thr_dn_bpm_q0_3218,x_trg)})
     lines.update({"bpm_q0_3218_up":getLine(thr_up_bpm_q0_3218,x_trg)})
-    
-    thr_dn_bpm_q1_3265,thr_up_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction="down",nsigma=3,frac=0.01)
+    thr_dn_bpm_q1_3265,thr_up_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction="down",nsigma=25,frac=0.01)
     lines.update({"bpm_q1_3265_dn":getLine(thr_dn_bpm_q1_3265,x_trg)})
     lines.update({"bpm_q1_3265_up":getLine(thr_up_bpm_q1_3265,x_trg)})
-    
-    thr_dn_bpm_q2_3315,thr_up_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=3,frac=0.01)
+    thr_dn_bpm_q2_3315,thr_up_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=25,frac=0.01)
     lines.update({"bpm_q2_3315_dn":getLine(thr_dn_bpm_q2_3315,x_trg)})
     lines.update({"bpm_q2_3315_up":getLine(thr_up_bpm_q2_3315,x_trg)})
+    
+    
+    
     
     fltr_trgs = {}
     removed_triggers = []
@@ -591,8 +634,8 @@ if __name__ == "__main__":
         for det in cfg["detectors"]:
             if(not fail and (hits_vs_trg[det][i]>maxocc)):
                 fail = True
+                print(f"[{i}]: Failed MAXOCC for maxocc={maxocc} and hits_vs_trg[{det}][{i}]={hits_vs_trg[det][i]}")
                 break
-        if(fail): print(f"[{i}]: Failed MAXOCC for maxocc={maxocc}")
         ####################################
         
         ##########################
@@ -681,36 +724,17 @@ if __name__ == "__main__":
     
     
     for i,det in enumerate(detectors):
-        gname = f"hits_vs_ent_{det}"
-        graphs[gname].SetTitle(f"{det}: fired pixels per tree entry;Tree entry;Fired pixels")
-        graphs[gname].SetMaximum(maxhits*5)
-        graphs[gname].SetMinimum(0.9)
-        # graphs[gname].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
-        graphs[gname].GetXaxis().SetLimits(x_ent[0],x_ent[-1])
-        graphs[gname].SetLineColor(detcol[i])
-    for i,det in enumerate(detectors):
         gname = f"hits_vs_trg_{det}"
         graphs[gname].SetTitle(f"{det}: fired pixels per trigger;Trigger number;Fired pixels")
         graphs[gname].SetMaximum(maxhits*5)
         graphs[gname].SetMinimum(0.9)
-        # graphs[gname].GetXaxis().SetLimits(x_ent[0],x_ent[-1])
         graphs[gname].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
-        graphs[gname].SetLineColor(detcol[i])
-        
-    for i,det in enumerate(detectors):
-        gname = f"fltr_hits_vs_ent_{det}"
-        graphs[gname].SetTitle(f"{det}: fired pixels per tree entry after filter;Tree entry;Fired pixels after filter")
-        graphs[gname].SetMaximum(maxhits*5)
-        graphs[gname].SetMinimum(0.9)
-        # graphs[gname].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
-        graphs[gname].GetXaxis().SetLimits(x_ent[0],x_ent[-1])
         graphs[gname].SetLineColor(detcol[i])
     for i,det in enumerate(detectors):
         gname = f"fltr_hits_vs_trg_{det}"
         graphs[gname].SetTitle(f"{det}: fired pixels per trigger after filter;Trigger number;Fired pixels after filter")
         graphs[gname].SetMaximum(maxhits*5)
         graphs[gname].SetMinimum(0.9)
-        # graphs[gname].GetXaxis().SetLimits(x_ent[0],x_ent[-1])
         graphs[gname].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
         graphs[gname].SetLineColor(detcol[i])
     
@@ -779,57 +803,6 @@ if __name__ == "__main__":
     cnv.RedrawAxis()
     cnv.Update()
     cnv.SaveAs(f"{ftrgname}")
-
-
-    ################ TODO
-    cnv = ROOT.TCanvas("c1","",1200,500)
-    cnv.SetTicks(1,1)
-    cnv.SetLogy()
-    leg = ROOT.TLegend(0.4,0.2,0.7,0.5)
-    leg.SetFillStyle(4000) # will be transparent
-    leg.SetFillColor(0)
-    leg.SetTextFont(42)
-    leg.SetBorderSize(0)
-    mg = ROOT.TMultiGraph()
-    for i,det in enumerate(detectors):
-        gname = f"hits_vs_ent_{det}"
-        leg.AddEntry(graphs[gname],f"{det}","l")
-        mg.Add(graphs[gname])
-    mg.Draw("al")
-    leg.Draw("same")
-    mg.SetTitle(f";Entry number;Fired pixels")
-    mg.SetMaximum(maxhits*5)
-    mg.SetMinimum(0.9)
-    mg.GetXaxis().SetLimits(x_ent[0],x_ent[-1])
-    cnv.RedrawAxis()
-    cnv.Update()
-    cnv.SaveAs(f"{ftrgname}(")
-    
-    cnv = ROOT.TCanvas("c2","",1200,500)
-    cnv.SetTicks(1,1)
-    cnv.SetLogy()
-    leg = ROOT.TLegend(0.4,0.2,0.7,0.5)
-    leg.SetFillStyle(4000) # will be transparent
-    leg.SetFillColor(0)
-    leg.SetTextFont(42)
-    leg.SetBorderSize(0)
-    mg = ROOT.TMultiGraph()
-    for i,det in enumerate(detectors):
-        gname = f"fltr_hits_vs_ent_{det}"
-        leg.AddEntry(graphs[gname],f"{det}","l")
-        mg.Add(graphs[gname])
-    mg.Draw("al")
-    leg.Draw("same")
-    mg.SetTitle(f";Entry number;Fired pixels after filter")
-    mg.SetMaximum(maxhits*5)
-    mg.SetMinimum(0.9)
-    mg.GetXaxis().SetLimits(x_ent[0],x_ent[-1])
-    cnv.RedrawAxis()
-    cnv.Update()
-    cnv.SaveAs(f"{ftrgname}")
-    ################ TODO
-    
-    
     
     cnv = ROOT.TCanvas("c3","",1200,500)
     cnv.SetTicks(1,1)
@@ -1160,10 +1133,21 @@ if __name__ == "__main__":
                 print(f"First trigger for {det} is: {x_trg[i]}")
                 break
         
+    print("\n\n")
+    print(f"Dipole: {np.mean(y_dipole)} +/- {np.std(y_dipole)}")
+    print(f"Quad_0:  {np.mean(y_q0act)} +/- {np.std(y_q0act)}")
+    print(f"Quad_1:  {np.mean(y_q1act)} +/- {np.std(y_q1act)}")
+    print(f"Quad_2:  {np.mean(y_q2act)} +/- {np.std(y_q2act)}")
+    print(f"M_12:    {np.mean(y_m12)} +/- {np.std(y_m12)}")
+    print(f"M_34:    {np.mean(y_m34)} +/- {np.std(y_m34)}")
+    print(f"z_obj:   {np.mean(y_z_obj)} +/- {np.std(y_z_obj)}")
+    print(f"z_img:   {np.mean(y_z_img)} +/- {np.std(y_z_img)}")
+    print(f"E_img:   {np.mean(y_E_img)} +/- {np.std(y_E_img)}")
+    print(f"XCORR:   {np.mean(y_xcoract)} +/- {np.std(y_xcoract)}")
+
 
     print(f'\nRemoved triggers: {len(removed_triggers)}, which is {len(removed_triggers)/len(x_trg)*100:.2f}% of the total')
     print(f"x_trg[0]={x_trg[0]},  x_trg[-1]={x_trg[-1]}")
     print(f"imin={imin},  imax={imax}")
     
-
 
