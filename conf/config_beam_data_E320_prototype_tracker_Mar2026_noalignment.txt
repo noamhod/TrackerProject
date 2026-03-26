@@ -1,0 +1,389 @@
+[RUN]
+dbg              = 0
+isMC             = 0
+isFakeMC         = 0
+doVtx            = 0
+runtype          = beam
+checkbadtriggers = 1
+iszerosuppressed = 0
+skipclustering   = 0
+skiptracking     = 0
+doprintout       = 1
+saveprimitive    = 0
+nCPU             = 10
+nprintout        = 20
+skipmasking      = 1
+detevtlib        = 20260318
+
+
+##########################################################
+### dipole at 8 GeV --> 0.175 [T] (0.219 [T] for 10 GeV)
+### z image = 2009.5 m (tracker 1st layer)
+### z object = 1992.82 m (PICCENT)
+### E=2 GeV
+### XCORR at -0.065 kG*m
+##########################################################
+
+
+##########################################################
+### Mar 17 EOS out
+# ### run847 (bkg-only, foil out)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run847.root
+
+# ### run849 (foil in)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run849.root
+
+### run856 (foil in, Dip=10 GeV, E=2.5 GeV)
+first2process = 0
+nmax2process  = 0
+inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run856.root
+
+# ### run859 (bkg-only, foil out)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run859.root
+
+
+##########################################################
+### Mar 18, EOS in
+# ### run872 (Foil in before positrons)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run872.root
+
+# ### run874 (bkg-only before positrons)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run874.root
+
+# ### run875 (bkg-only, !!dark current!! before positrons)
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Mar2026_noalignment/runs/tree_Run875.root
+
+
+
+[MULTIRUN]
+runnums = 255
+
+
+[CLUSTERSMULT]
+cls_mult_low = 100
+cls_mult_mid = 1000
+cls_mult_hgh = 8000
+cls_mult_inf = 50000
+
+[SEED]
+seed_allow_negative_vertical_inclination = 0
+seed_allow_neigbours  = 1
+### this is the neighbours in the 4D rho-theta space
+seed_nmax_neigbours   = 1
+seed_nmiss_neigbours  = 5
+###
+seed_thetax_range_low = 0.6 2.5
+seed_rhox_range_low   = -72 +72
+seed_thetay_range_low = 0.3 2.8
+seed_rhoy_range_low   = -64 64
+###
+# seed_thetax_range_mid = 1.0 2.2
+# seed_rhox_range_mid   = -50 +50
+# seed_thetay_range_mid = 1.0 2.2
+# seed_rhoy_range_mid   = -50 50
+seed_thetax_range_mid = 0.6283185307179586 2.5132741228718345
+seed_rhox_range_mid   = -61.870507404703886 61.86576750442943
+seed_thetay_range_mid = 0.3141592653589793 2.827433388230814
+seed_rhoy_range_mid   = -76.66509418369621 76.65377907696791
+###
+seed_thetax_range_hgh = 0.6 2.5
+seed_rhox_range_hgh   = -72 +72
+seed_thetay_range_hgh = 0.3 2.8
+seed_rhoy_range_hgh   = -64 64
+###
+seed_thetax_range_inf = 0.6 2.5
+seed_rhox_range_inf   = -72 +72
+seed_thetay_range_inf = 0.3 2.8
+seed_rhoy_range_inf   = -64 64
+###
+seed_nbins_thetax_low = 650
+seed_nbins_thetay_low = 650
+seed_nbins_rhox_low   = 650
+seed_nbins_rhoy_low   = 650
+###
+### TIGHT seed_nbins_thetarho (after alignment)
+seed_nbins_thetax_mid = 1700
+seed_nbins_thetay_mid = 1700
+seed_nbins_rhox_mid   = 1700
+seed_nbins_rhoy_mid   = 1700
+### LOOSE seed_nbins_thetarho (use for alignment)
+# seed_nbins_thetax_mid = 650
+# seed_nbins_thetay_mid = 650
+# seed_nbins_rhox_mid   = 650
+# seed_nbins_rhoy_mid   = 650
+###
+seed_nbins_thetax_hgh = 1000
+seed_nbins_thetay_hgh = 1000
+seed_nbins_rhox_hgh   = 1000
+seed_nbins_rhoy_hgh   = 1000
+###
+seed_nbins_thetax_inf = 1000
+seed_nbins_thetay_inf = 1000
+seed_nbins_rhox_inf   = 1000
+seed_nbins_rhoy_inf   = 1000
+
+
+[LUT]
+lut_nbinsx_low = 2000
+lut_nbinsy_low = 4000
+###
+lut_nbinsx_mid = 2000
+lut_nbinsy_mid = 4000
+###
+lut_nbinsx_hgh = 3000
+lut_nbinsy_hgh = 6000
+###
+lut_nbinsx_inf = 4000
+lut_nbinsy_inf = 8000
+###
+lut_scaleX = 0.20
+lut_scaleY = 0.20
+
+
+[CUTS]
+cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX Geo Btrfly
+cut_chi2dof = 3
+# cut_chi2dof = 1000
+# cut_chi2dof = 20
+# only during alignment !!!
+cut_dk_algn       = 0
+cut_dk_algn_det   = ALPIDE_3
+cut_dk_algn_dxmin = 0.02
+cut_dk_algn_dxmax = 0.08
+cut_dk_algn_dymin = -0.07
+cut_dk_algn_dymax = -0.03
+cut_maxcls = 4
+cut_allow_shared_clusters = 0
+cut_allow_negative_yz_slope = 0
+cut_theta2     = 1
+cut_theta2_max = 1e-8
+cut_windowaprtr = 1
+cut_flangeaprtr = 1
+cut_dipoleaprtr = 1
+cut_strip         = 0
+cut_strip_xcenter = -2
+cut_strip_ycenter = -8
+cut_strip_xwidth  = 7
+cut_strip_ywidth  = 7
+cut_spot          = 0
+cut_spot_xcenter  = -2.2
+cut_spot_ycenter  = -7.9
+cut_spot_radius_x = 2
+cut_spot_radius_y = 10
+### elliptical RoI at the chips surface
+cut_RoI_spot           = 0
+cut_RoI_spot_xcenter   = 0
+cut_RoI_spot_ycenter   = 0
+cut_RoI_spot_radius_x  = 0
+cut_RoI_spot_radius_y  = 0
+cut_RoI_spot_theta_deg = 0
+### butterfly RoI at the chips surface
+cut_RoI_btrfly             = 1
+cut_RoI_btrfly_xcenter     = 335
+cut_RoI_btrfly_ycenter     = 80
+cut_RoI_btrfly_long_radius = 500
+cut_RoI_btrfly_shrt_radius = 35
+cut_RoI_btrfly_theta_deg   = 4
+cut_RoI_btrfly_theta_curv  = 300
+### full chip ROI, i.e. no cuts
+cut_ROI_xmin = 0
+cut_ROI_xmax = 1024
+cut_ROI_ymin = 0
+cut_ROI_ymax = 512
+### just the strip of the positrons of run 490 etc
+# cut_ROI_xmin = 850
+# cut_ROI_xmax = 1024
+# cut_ROI_ymin = 0
+# cut_ROI_ymax = 150
+
+
+[ALIGNMENT]
+### if the misalignment is zero, then use_large_clserr_for_algnmnt must be 1!!!
+use_large_clserr_for_algnmnt = 0
+minchi2align  = 0.01
+# minchi2align  = 13
+# maxchi2align  = 1000
+# maxchi2align  = 20
+maxchi2align  = 3
+axes2align    = xytheta
+naligniter    = 200
+alignmentbounds = dx:min=-0.5,max=+0.5 dy:min=-0.5,max=0.5 theta:min=-0.05,max=+0.05
+### with 0 it minimizes dabs=sqrt(dx^2+dy^2), while with 1 it minimizes dabs=sqrt((dx/ex)^2+(dy/ey)^2)
+alignmentwerr = 0
+### fast alignment fit (COBYLA is faster)
+# alignmentmethod = COBYLA
+# alignmentmethod = SLSQP
+alignmentmethod = Powell
+# alignmentmethod = least_squares
+alignmentmintrks = 25
+
+
+#####################################
+### DEFAULT MISALIGNMENT (before doing the alignment procedure):
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
+#####################################
+
+#####################################
+### USING MLE FITS WITH THETA2 CUTS BASED ON RUN 856
+### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)x(-0.07,-0.03), strip cut (-2,-8) 7x7, theta2<1e-8, 13<chi2inf<20 cut, 4344 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.09E-02,dy=2.67E-02,theta=-9.65E-04 ALPIDE_2:dx=2.00E-02,dy=-4.39E-02,theta=1.57E-03 ALPIDE_3:dx=6.61E-02,dy=-6.25E-02,theta=-1.31E-03 ALPIDE_4:dx=-2.37E-02,dy=2.55E-02,theta=4.89E-04
+# ----------------------------------------
+# Alignment axes: xytheta
+# Reference detectors: ['ALPIDE_0']
+# Events used: 1567 out of 2433
+# Tracks used: 4344
+# Success?     True
+# nll:     -62.889019 (original: -5.149794)
+# chi2:        94097.454480 (original: 352641.705059)
+# theta final: [-0.00096531  0.00157183 -0.00131002  0.00048906]
+# Parameters:  [-0.0109  0.0200   0.0661   -0.0237  0.0267   -0.0439  -0.0625  0.0255   -0.000965  0.00157  -0.00131 0.000489]
+# Errors:      [3.53e-04 5.42e-04 1.24e-03 1.43e-03 1.07e-03 1.29e-03 2.03e-03 2.97e-03 5.78e-05   1.86e-04 2.13e-04 3.19e-04]
+# ----------------------------------------
+### iteration 1 with the proper clusters errors, HT binning 1700^4, theta2<1e-8, chi2<5 cut, 1139 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.63E-02,dy=3.39E-02,theta=-1.15E-03 ALPIDE_2:dx=2.63E-02,dy=-5.30E-02,theta=1.93E-03 ALPIDE_3:dx=6.85E-02,dy=-6.46E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.54E-02,dy=2.74E-02,theta=5.12E-04
+### iteration 2 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1400 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.75E-02,dy=3.52E-02,theta=-1.17E-03 ALPIDE_2:dx=2.75E-02,dy=-5.47E-02,theta=2.03E-03 ALPIDE_3:dx=6.89E-02,dy=-6.47E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.57E-02,dy=2.77E-02,theta=5.13E-04
+### iteration 3 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1422 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.77E-02,dy=3.56E-02,theta=-1.18E-03 ALPIDE_2:dx=2.78E-02,dy=-5.51E-02,theta=2.05E-03 ALPIDE_3:dx=6.90E-02,dy=-6.48E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.14E-04
+### iteration 4 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1432 tracks
+misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.78E-02,dy=3.57E-02,theta=-1.19E-03 ALPIDE_2:dx=2.79E-02,dy=-5.52E-02,theta=2.06E-03 ALPIDE_3:dx=6.91E-02,dy=-6.49E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.13E-04
+
+
+
+[GLOBALALIGNMENT]
+global_corr_thetax = 0
+global_corr_thetay = 0
+global_corr_thetaz = 0
+global_corr_dx     = 0
+global_corr_dy     = 0
+global_corr_dz     = 0
+# global_corr_thetax = 0.172
+# global_corr_thetay = 0
+# global_corr_thetaz = 0
+# global_corr_dx     = 0
+# global_corr_dy     = 0
+# global_corr_dz     = 0
+
+
+[FIT]
+fit_method = MLE
+# fit_method = CHI2
+# fit_method = SVD
+fit_chi2_fast = 1
+fit_chi2_method0 = Powell
+fit_chi2_method1 = Nelder-Mead Powell
+
+
+[PLOT]
+plot_online_evtdisp  = 0
+plot_offline_evtdisp = 0
+
+
+
+####################
+####################
+####################
+### ~fixed parts ###
+####################
+####################
+####################
+
+
+[CHIP]
+npix_x = 1024
+npix_y = 512
+pix_x = 0.02924
+pix_y = 0.02688
+
+[VTX]
+xVtx  = 0
+yVtx  = 0
+zVtx  = 0
+exVtx = 1.0
+eyVtx = 1.0
+ezVtx = 0.05
+
+[CLUSTER]
+ezCls = 0.1
+allow_diagonals = 0
+
+[WORLD]
+worldbounds = x:-100,+100 y:0,250 z:0,+250
+
+[NOISE]
+pTrim    = 0.01
+zeroSupp = 1
+nSigma   = 25
+
+[DETECTOR]
+layers     = 5
+staves     = 0
+detectors  = ALPIDE_0 ALPIDE_1 ALPIDE_2 ALPIDE_3 ALPIDE_4
+det2stvchp = ALPIDE_0:0,8 ALPIDE_1:0,6 ALPIDE_2:0,4 ALPIDE_3:0,2 ALPIDE_4:0,0
+rdetectors = ALPIDE_0:0,0,0 ALPIDE_1:0,0,20 ALPIDE_2:0,0,40 ALPIDE_3:0,0,60 ALPIDE_4:0,0,80
+tandemlyrs = 0:ALPIDE_0 1:ALPIDE_1 2:ALPIDE_2 3:ALPIDE_3 4:ALPIDE_4
+
+
+[WINDOW]
+zWindow       = 0.
+xWindowWidth  = 50.038
+yWindowHeight = 119.888
+xWindow       = 0.
+yWindowMin    = 53.5
+
+####################################
+### the sizes that we align are: ###
+### 1. xOffset
+### 2. thetax
+### 3. yZero2PipeTop
+####################################
+
+[BEAMPIPE]
+Rpipe = 304.8
+yMidWin2PipeCenter = 244.094
+yZero2PipeTop = 51.65
+
+
+[DIPOLE]
+### this is wrt to the window which I set at z=0
+fDipoleTesla       = 0.219
+zDipoleLenghMeters = 0.914
+zDipoleExit        = -3032.155
+xDipoleExitMin     = -22.352
+xDipoleExitMax     = +22.352
+yDipoleExitMin     = -66.927
+yDipoleExitMax     = +34.927
+zFlangeExit        = -2772.115
+xFlangeMin         = -22.352
+xFlangeMax         = +22.352
+yFlangeMin         = -63.752
+yFlangeMax         = +31.752
+
+
+[TRANSFORMATIONS]
+### thetax/y are the angles in degrees ARROUND the x/y axis in real space, such that
+### thetax rotates the blob up/down vertically and thetay rotates the blob horizontally.
+### thetay in !!!degrees!!! is "found" from the dipole exit plane
+thetay = 0:0
+thetax = 0:0
+thetaz = 0:+90
+xOffset0 = 0
+yOffset0 = 0
+zOffset0 = 0
+### this is used for the Feb 2025 shifts: box is ~2mm above the beampipe (stage is at 86mm):
+yPipeTop2BoxBot = 1.525
+yMidChip2BoxBot = 36.85
+zWin2Box = 114.3
+zBox2chip = 10.5
