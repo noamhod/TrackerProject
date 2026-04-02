@@ -662,6 +662,12 @@ if __name__ == "__main__":
     dipole, flange, window = book_shapes()
     print(f"Done booking histos")
     
+    
+    ### count tracks per shot
+    trkpertrg = {"Good":[], "Acceptance":[], "Selected":[], "Butterfly":[]}
+    itrgcount = 0
+    
+    
     #################################
     ### prepare for eudaq writeup ###
     #################################
@@ -794,6 +800,13 @@ if __name__ == "__main__":
                     print(f"Skipping bad trigger: {int(pkl_event.trigger)}")
                     continue
                 histos["hTriggers"].Fill(1.5)
+                
+                ### count tracks per actual triggers
+                trkpertrg["Good"].append(0)
+                trkpertrg["Acceptance"].append(0)
+                trkpertrg["Selected"].append(0)
+                trkpertrg["Butterfly"].append(0)
+                itrgcount = len(trkpertrg["Good"])-1
                 
                 
                 tracks_triggers_dict["all"]["trgs"]["good"] += 1
@@ -1312,6 +1325,11 @@ if __name__ == "__main__":
                 ### fill the eudaq tree ###
                 if(weudaqout): tEUDAQout.Fill()
                 ###########################
+                
+                trkpertrg["Good"][itrgcount]       = len(good_tracks)
+                trkpertrg["Acceptance"][itrgcount] = len(acceptance_tracks)
+                trkpertrg["Selected"][itrgcount]   = len(selected_tracks)
+                trkpertrg["Butterfly"][itrgcount]  = n_butterfly_tracks
                 
                 print(f"Event[{nevents-1}], Trigger[{pkl_event.trigger}] --> Good tracks: {len(good_tracks)}, Acceptance tracks: {len(acceptance_tracks)}, Selected tracks: {len(selected_tracks)}, Butterfly tracks: {n_butterfly_tracks}")
 
@@ -2882,6 +2900,13 @@ if __name__ == "__main__":
     tracks_triggers_dict["odd"]["pix"]["good"] /= tracks_triggers_dict["odd"]["trgs"]["good"]
     tracks_triggers_dict["odd"]["cls"]["good"] /= tracks_triggers_dict["odd"]["trgs"]["good"]
     
+    
+    print(f"\n Mean and Stdev per trigger:")
+    print(f'   Good triggers: {len(trkpertrg["Good"])}')
+    print(f'   Good tracks mean and stdev: {np.mean(trkpertrg["Good"])} +- {np.std(trkpertrg["Good"], ddof=1)} --> SE={np.std(trkpertrg["Good"], ddof=1)/math.sqrt(len(trkpertrg["Good"]))}')
+    print(f'   Acceptance tracks mean and stdev: {np.mean(trkpertrg["Acceptance"])} +- {np.std(trkpertrg["Acceptance"], ddof=1)} --> SE={np.std(trkpertrg["Acceptance"], ddof=1)/math.sqrt(len(trkpertrg["Good"]))}')
+    print(f'   Selected tracks mean and stdev: {np.mean(trkpertrg["Selected"])} +- {np.std(trkpertrg["Selected"], ddof=1)} --> SE={np.std(trkpertrg["Selected"], ddof=1)/math.sqrt(len(trkpertrg["Good"]))}')
+    print(f'   Butterfly tracks mean and stdev: {np.mean(trkpertrg["Butterfly"])} +- {np.std(trkpertrg["Butterfly"], ddof=1)} --> SE={np.std(trkpertrg["Butterfly"], ddof=1)/math.sqrt(len(trkpertrg["Good"]))}')
     
     
     print(f"\ncounters before: {tracks_triggers_dict}")

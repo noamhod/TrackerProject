@@ -17,53 +17,37 @@ detevtlib        = 20260318
 
 
 ##########################################################
-### dipole at 8 GeV --> 0.175 [T] (0.219 [T] for 10 GeV)
+### dipole at 8/10 GeV --> 0.175 [T] (0.219 [T] for 10 GeV)
 ### z image = 2009.5 m (tracker 1st layer)
 ### z object = 1992.82 m (PICCENT)
-### E=2 GeV
-### XCORR at -0.065 kG*m
+### E=1.3/2.4 GeV (for 8 and 10 GeV dipole)
+### XCORR at -0.035 kG*m
+### detector moved to wall by ~6 mm (overall ~9 mm now)
+### detector at -82 mm in y from the top limit switch
 ##########################################################
 
 
 ##########################################################
-### Mar 17 EOS out
-# ### run847 (bkg-only, foil out)
+### Mar 31, Detector is moved to the wall, EOS out
+# ### run906 (Dipole=8 GeV, E_img=1.93 GeV, Foil in --> blob centered)
 # first2process = 0
 # nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run847.root
+# inputfile     = data/e320_prototype_beam_Mar312026/runs/tree_Run906.root
 
-# ### run849 (foil in)
+# ### run912 (Dipole=10 GeV, E_img=2.4 GeV, Foil in --> blob centered)
 # first2process = 0
 # nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run849.root
+# inputfile     = data/e320_prototype_beam_Mar312026/runs/tree_Run912.root
 
-### run856 (foil in, Dip=10 GeV, E=2.5 GeV)
+### run918 (Dipole=8 GeV, E_img=1.93 GeV, Foil out --> background only)
 first2process = 0
 nmax2process  = 0
-inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run856.root
+inputfile     = data/e320_prototype_beam_Mar312026/runs/tree_Run918.root
 
-# ### run859 (bkg-only, foil out)
+# ### run919 (Dipole=8 GeV, E_img=1.93 GeV, Foil out, beam UV is off --> dark current)
 # first2process = 0
 # nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run859.root
-
-
-##########################################################
-### Mar 18, EOS in
-# ### run872 (Foil in before positrons)
-# first2process = 0
-# nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run872.root
-
-# ### run874 (bkg-only before positrons)
-# first2process = 0
-# nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run874.root
-
-# ### run875 (bkg-only, !!dark current!! before positrons)
-# first2process = 0
-# nmax2process  = 0
-# inputfile     = data/e320_prototype_beam_Mar2026/runs/tree_Run875.root
+# inputfile     = data/e320_prototype_beam_Mar312026/runs/tree_Run919.root
 
 
 [MULTIRUN]
@@ -190,13 +174,11 @@ cut_RoI_spot_radius_y  = 0
 cut_RoI_spot_theta_deg = 0
 ### butterfly RoI at the chips surface
 cut_RoI_btrfly             = 1
-# cut_RoI_btrfly_xcenter   = 335
-# cut_RoI_btrfly_ycenter   = 80
-cut_RoI_btrfly_xcenter     = ALPIDE_0:335 ALPIDE_1:335 ALPIDE_2:335 ALPIDE_3:335 ALPIDE_4:335
-cut_RoI_btrfly_ycenter     = ALPIDE_0:80 ALPIDE_1:80 ALPIDE_2:80 ALPIDE_3:80 ALPIDE_4:80
+cut_RoI_btrfly_xcenter     = ALPIDE_0:500 ALPIDE_1:500 ALPIDE_2:500 ALPIDE_3:500 ALPIDE_4:500
+cut_RoI_btrfly_ycenter     = ALPIDE_0:235 ALPIDE_1:240 ALPIDE_2:242 ALPIDE_3:243 ALPIDE_4:240
 cut_RoI_btrfly_long_radius = 500
-cut_RoI_btrfly_shrt_radius = 35
-cut_RoI_btrfly_theta_deg   = 4
+cut_RoI_btrfly_shrt_radius = 27
+cut_RoI_btrfly_theta_deg   = 2
 cut_RoI_btrfly_theta_curv  = 300
 ### full chip ROI, i.e. no cuts
 cut_ROI_xmin = 0
@@ -265,18 +247,18 @@ misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.78
 
 
 [GLOBALALIGNMENT]
-# global_corr_thetax = 0
-# global_corr_thetay = 0
-# global_corr_thetaz = 0
-# global_corr_dx     = 0
-# global_corr_dy     = 0
-# global_corr_dz     = 0
-global_corr_thetax = 0.34
+global_corr_thetax = 0
 global_corr_thetay = 0
 global_corr_thetaz = 0
-global_corr_dx     = -1.3
-global_corr_dy     = +3.4
+global_corr_dx     = 0
+global_corr_dy     = 0
 global_corr_dz     = 0
+# global_corr_thetax = 0.34
+# global_corr_thetay = 0
+# global_corr_thetaz = 0
+# global_corr_dx     = -1.3
+# global_corr_dy     = +3.4
+# global_corr_dz     = 0
 
 
 [FIT]

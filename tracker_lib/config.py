@@ -83,6 +83,18 @@ class Config:
             sval = x[1]
             m.update({int(sval):name})
         return m
+    
+    ######################
+    def getMapS2F(self,section,var):
+        s = self.getS(section,var).split(" ")
+        m = {}
+        for x in s:
+            x = x.split(":")
+            name = x[0]
+            fval = x[1]
+            m.update({name:float(fval)})
+        return m
+    ######################
 
     def getMapI2F(self,section,var):
         s = self.getS(section,var).split(" ")
@@ -414,8 +426,10 @@ class Config:
         self.add("cut_RoI_spot_radius_y",  self.getF('CUTS','cut_RoI_spot_radius_y'))
         self.add("cut_RoI_spot_theta_deg", self.getF('CUTS','cut_RoI_spot_theta_deg'))
         self.add("cut_RoI_btrfly", self.getB('CUTS','cut_RoI_btrfly'))
-        self.add("cut_RoI_btrfly_xcenter", self.getF('CUTS','cut_RoI_btrfly_xcenter'))
-        self.add("cut_RoI_btrfly_ycenter", self.getF('CUTS','cut_RoI_btrfly_ycenter'))
+        # self.add("cut_RoI_btrfly_xcenter", self.getF('CUTS','cut_RoI_btrfly_xcenter'))
+        # self.add("cut_RoI_btrfly_ycenter", self.getF('CUTS','cut_RoI_btrfly_ycenter'))
+        self.add("cut_RoI_btrfly_xcenter", self.getMapS2F('CUTS','cut_RoI_btrfly_xcenter'))
+        self.add("cut_RoI_btrfly_ycenter", self.getMapS2F('CUTS','cut_RoI_btrfly_ycenter'))
         self.add("cut_RoI_btrfly_long_radius", self.getF('CUTS','cut_RoI_btrfly_long_radius'))
         self.add("cut_RoI_btrfly_shrt_radius", self.getF('CUTS','cut_RoI_btrfly_shrt_radius'))
         self.add("cut_RoI_btrfly_theta_deg", self.getF('CUTS','cut_RoI_btrfly_theta_deg'))

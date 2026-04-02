@@ -40,8 +40,8 @@ def tilted_butterfly_RoI_cut(track):
     c  = cfg["cut_RoI_btrfly_theta_curv"]    ### opening curvature. Smaller c = wider "wings". (Physically similar to the Rayleigh length or beta*)
     ### start calculate
     for det,cluster in track.trkcls.items():
-        dx = cluster.x - X0
-        dy = cluster.y - Y0
+        dx = cluster.x - X0[det]
+        dy = cluster.y - Y0[det]
         ### rotate to align with beam axis (x', y') where x' is along the beam, y' is perpendicular (waist)
         x_prime =  dx * math.cos(t) + dy * math.sin(t)
         y_prime = -dx * math.sin(t) + dy * math.cos(t)
