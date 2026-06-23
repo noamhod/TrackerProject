@@ -300,6 +300,11 @@ def book_histos():
     
     theta2arr = hists.GetLogBinning(100,1e-22,1e-3)
     ntheta2arr = len(theta2arr)-1
+
+    relerrarr_small  = hists.GetLogBinning(100,1e-3,100)
+    nrelerrarr_small = len(relerrarr_small)-1
+    relerrarr_large  = hists.GetLogBinning(100,1,200)
+    nrelerrarr_large = len(relerrarr_large)-1
     
     histos.update({ "hTriggers": ROOT.TH1D("hTriggers",";;Triggers",2,0,2)})
     histos["hTriggers"].GetXaxis().SetBinLabel(1,"All")
@@ -325,6 +330,13 @@ def book_histos():
     histos.update( { "h_nTracks_btrfly_full"  : ROOT.TH1D("h_nTracks_btrfly_full",";N_{tracks}/Event;Events",2000,0,20000) } )
     histos.update( { "h_nTracks_btrfly_mid"   : ROOT.TH1D("h_nTracks_btrfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
     histos.update( { "h_nTracks_btrfly_zoom"  : ROOT.TH1D("h_nTracks_btrfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
+    
+    parNames = ["x_{0}", "m_{x}", "y_{0}", "m_{y}", "log#theta^{2}"]
+    nParMLEfit = 4
+    for i in range(nParMLEfit+1):
+        if(i<4): histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_small,relerrarr_small) } )
+        else:    histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_large,relerrarr_large) } )
+        
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
@@ -591,7 +603,7 @@ if __name__ == "__main__":
     #############################################
     
     
-    B  = cfg["fDipoleTesla"]
+    B  = cfg["fDipoleTesla"] ###TODO: read from epics frame!!!
     LB = cfg["zDipoleLenghMeters"]
     
     
@@ -1224,7 +1236,13 @@ if __name__ == "__main__":
                             # print(f"itrk[{itrk}]: chpid={chpid} --> trkpixels={trkpixels}")
                     ###########################
                     
-
+                    ### check relative parameter errors
+                    for i in range(len(track.params)):
+                        parrelerr = abs(track.paramerr[i]/track.params[i])*100
+                        # print(f"[{i}] {parrelerr:.1f}")
+                        # if(parrelerr>100): parrelerr = 100
+                        histos[f"hParRelErr_{i}"].Fill(parrelerr)
+                    
                     histos["hChi2DoF_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_full_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_mid_zeroshrcls"].Fill(track.chi2ndof)
@@ -1236,7 +1254,7 @@ if __name__ == "__main__":
                     histos["hChi2_mid_zeroshrcls"].Fill(track.chisq)
                     histos["hChi2_zoom_zeroshrcls"].Fill(track.chisq)
                     histos["hChi2_small_zeroshrcls"].Fill(track.chisq)
-                    # for det in cfg["detectors"]:
+                    
                     for det in track.detectors:
                         dx,dy = utils.res_track2cluster(det,track.detectors,track.points,track.direction,track.centroid)
                         

@@ -17,10 +17,12 @@ ROOT.gStyle.SetPadBottomMargin(0.15)
 ROOT.gStyle.SetPadLeftMargin(0.13)
 ROOT.gStyle.SetPadRightMargin(0.16)
 
-
-### FOR RUN 906 (Dipole at 8 GeV, E_img=1.93 GeV)
-X0 = {"ALPIDE_0":500,"ALPIDE_1":500,"ALPIDE_2":500,"ALPIDE_3":500,"ALPIDE_4":500} ### x center
-Y0 = {"ALPIDE_0":235,"ALPIDE_1":240,"ALPIDE_2":242,"ALPIDE_3":243,"ALPIDE_4":240} ### y center
+### FOR RUN 1160 (Dipole at 14.8 GeV, E_img=3 GeV)
+X0 = {"ALPIDE_0":520,"ALPIDE_1":520,"ALPIDE_2":520,"ALPIDE_3":520,"ALPIDE_4":520} ### x center
+Y0 = {"ALPIDE_0":220,"ALPIDE_1":225,"ALPIDE_2":227,"ALPIDE_3":228,"ALPIDE_4":225} ### y center
+# ### FOR RUN 906 (Dipole at 8 GeV, E_img=1.93 GeV)
+# X0 = {"ALPIDE_0":500,"ALPIDE_1":500,"ALPIDE_2":500,"ALPIDE_3":500,"ALPIDE_4":500} ### x center
+# Y0 = {"ALPIDE_0":235,"ALPIDE_1":240,"ALPIDE_2":242,"ALPIDE_3":243,"ALPIDE_4":240} ### y center
 # ### FOR RUN 912 (Dipole at 10 GeV, E_img=2.4 GeV)
 # X0 = {"ALPIDE_0":510,"ALPIDE_1":510,"ALPIDE_2":510,"ALPIDE_3":510,"ALPIDE_4":510} ### x center
 # Y0 = {"ALPIDE_0":223,"ALPIDE_1":230,"ALPIDE_2":230,"ALPIDE_3":232,"ALPIDE_4":228} ### y center
@@ -110,8 +112,9 @@ if __name__ == "__main__":
     # fInName = "data/e320_prototype_beam_Nov2025/runs/run_0000729/tree_Run729_multiprocess_histograms_notrk.root"
     # fInName = "data/e320_prototype_beam_Mar2026/runs/run_0000872/tree_Run872_multiprocess_histograms_notrk.root"
     # fInName = "data/e320_prototype_beam_Mar2026/runs/run_0000872/beam_quality/tree_Run872_trigger_analysis.root"
-    fInName = "data/e320_prototype_beam_Mar312026/runs/run_0000906/beam_quality/tree_Run906_trigger_analysis.root"
+    # fInName = "data/e320_prototype_beam_Mar312026/runs/run_0000906/beam_quality/tree_Run906_trigger_analysis.root"
     # fInName = "data/e320_prototype_beam_Mar312026/runs/run_0000912/beam_quality/tree_Run912_trigger_analysis.root"
+    fInName = "data/e320_prototype_beam_Jun222026_noalignment/runs/run_0001160/beam_quality/tree_Run1160_trigger_analysis.root"
     fOutName = fInName.replace(".root","_replot.pdf")
     fIn = ROOT.TFile(fInName,"READ")
 

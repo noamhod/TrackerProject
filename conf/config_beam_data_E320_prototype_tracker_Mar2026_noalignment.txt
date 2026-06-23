@@ -191,8 +191,10 @@ cut_RoI_spot_radius_y  = 0
 cut_RoI_spot_theta_deg = 0
 ### butterfly RoI at the chips surface
 cut_RoI_btrfly             = 1
-cut_RoI_btrfly_xcenter     = 335
-cut_RoI_btrfly_ycenter     = 80
+# cut_RoI_btrfly_xcenter     = 335
+# cut_RoI_btrfly_ycenter     = 80
+cut_RoI_btrfly_xcenter     = ALPIDE_0:335 ALPIDE_1:335 ALPIDE_2:335 ALPIDE_3:335 ALPIDE_4:335
+cut_RoI_btrfly_ycenter     = ALPIDE_0:80 ALPIDE_1:80 ALPIDE_2:80 ALPIDE_3:80 ALPIDE_4:80
 cut_RoI_btrfly_long_radius = 500
 cut_RoI_btrfly_shrt_radius = 35
 cut_RoI_btrfly_theta_deg   = 4

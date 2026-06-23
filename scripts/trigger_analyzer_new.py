@@ -79,6 +79,7 @@ def getLine(thr,xaxis):
     line = ROOT.TLine(xaxis[0],thr,xaxis[-1],thr)
     line.SetLineColor(ROOT.kViolet)
     line.SetLineStyle(2)
+    line.SetLineWidth(2)
     return line
 
 def trimArr(arr,direction,frac):
@@ -108,7 +109,10 @@ def trimArr(arr,direction,frac):
 #     return thr
 
 
-def getThr(name,arr,direction,nsigma=3,frac=0.):
+def getThr(name,arr,direction,applyit=1,nsigma=3,frac=0.):
+    ###########################################
+    if(int(applyit)==0): return -1e20,+1e20 ###
+    ###########################################
     arr0 = arr.copy()
     if(frac>0.): arr0 = trimArr(arr,direction,frac)
     avg = np.average(arr0)
@@ -583,6 +587,7 @@ if __name__ == "__main__":
     # lines.update({"bpm_q2_3315_up":getLine(thr_up_bpm_q2_3315,x_trg)})
     
     
+    '''
     ### GOOD FOR COLLISIONS MAR 31 2026
     thr_dn_toro2040,thr_up_toro2040 = getThr("toro2040",y_toro2040,direction="both",nsigma=5,frac=0.05)
     lines.update({"toro2040_dn":getLine(thr_dn_toro2040,x_trg)})
@@ -614,7 +619,8 @@ if __name__ == "__main__":
     thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction="up",nsigma=3,frac=0.01)
     lines.update({"rad_dn":getLine(thr_dn_rad,x_trg)})
     lines.update({"rad_up":getLine(thr_up_rad,x_trg)})
-    thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=25,frac=0.01)
+    # thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm pb 3156",y_bpm_pb_3156,direction="down",nsigma=25,frac=0.01)
+    thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm_pb_3156",y_bpm_pb_3156,direction="down",nsigma=25,frac=0.01)
     lines.update({"bpm_pb_3156_dn":getLine(thr_dn_bpm_pb_3156,x_trg)})
     lines.update({"bpm_pb_3156_up":getLine(thr_up_bpm_pb_3156,x_trg)})
     thr_dn_bpm_q0_3218,thr_up_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction="down",nsigma=25,frac=0.01)
@@ -624,6 +630,51 @@ if __name__ == "__main__":
     lines.update({"bpm_q1_3265_dn":getLine(thr_dn_bpm_q1_3265,x_trg)})
     lines.update({"bpm_q1_3265_up":getLine(thr_up_bpm_q1_3265,x_trg)})
     thr_dn_bpm_q2_3315,thr_up_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction="down",nsigma=25,frac=0.01)
+    lines.update({"bpm_q2_3315_dn":getLine(thr_dn_bpm_q2_3315,x_trg)})
+    lines.update({"bpm_q2_3315_up":getLine(thr_up_bpm_q2_3315,x_trg)})
+    '''
+    
+    ### GOOD FOR COLLISIONS MAR 31 2026
+    thr_dn_toro2040,thr_up_toro2040 = getThr("toro2040",y_toro2040,direction=cfg["toro_direction"],applyit=cfg["toro2040"][0],nsigma=cfg["toro2040"][1],frac=cfg["toro2040"][2])
+    lines.update({"toro2040_dn":getLine(thr_dn_toro2040,x_trg)})
+    lines.update({"toro2040_up":getLine(thr_up_toro2040,x_trg)})   
+    thr_dn_toro2452,thr_up_toro2452 = getThr("toro2452",y_toro2452,direction=cfg["toro_direction"],applyit=cfg["toro2452"][0],nsigma=cfg["toro2452"][1],frac=cfg["toro2452"][2])
+    lines.update({"toro2452_dn":getLine(thr_dn_toro2452,x_trg)})
+    lines.update({"toro2452_up":getLine(thr_up_toro2452,x_trg)})
+    thr_dn_toro3163,thr_up_toro3163 = getThr("toro3163",y_toro3163,direction=cfg["toro_direction"],applyit=cfg["toro3163"][0],nsigma=cfg["toro3163"][1],frac=cfg["toro3163"][2])
+    lines.update({"toro3163_dn":getLine(thr_dn_toro3163,x_trg)})
+    lines.update({"toro3163_up":getLine(thr_up_toro3163,x_trg)})
+    thr_dn_toro3255,thr_up_toro3255 = getThr("toro3255",y_toro3255,direction=cfg["toro_direction"],applyit=cfg["toro3255"][0],nsigma=cfg["toro3255"][1],frac=cfg["toro3255"][2])
+    lines.update({"toro3255_dn":getLine(thr_dn_toro3255,x_trg)})
+    lines.update({"toro3255_up":getLine(thr_dn_toro3255,x_trg)})
+    thr_dn_pmt3060,thr_up_pmt3060 = getThr("pmt3060",y_pmt3060,direction=cfg["pmt_direction"],applyit=cfg["pmt3060"][0],nsigma=cfg["pmt3060"][1],frac=cfg["pmt3060"][2])
+    lines.update({"pmt3060_dn":getLine(thr_dn_pmt3060,x_trg)})
+    lines.update({"pmt3060_up":getLine(thr_up_pmt3060,x_trg)})
+    thr_dn_pmt3070,thr_up_pmt3070 = getThr("pmt3070",y_pmt3070,direction=cfg["pmt_direction"],applyit=cfg["pmt3070"][0],nsigma=cfg["pmt3070"][1],frac=cfg["pmt3070"][2])
+    lines.update({"pmt3070_dn":getLine(thr_dn_pmt3070,x_trg)})
+    lines.update({"pmt3070_up":getLine(thr_up_pmt3070,x_trg)})
+    thr_dn_pmt3179,thr_up_pmt3179 = getThr("pmt3179",y_pmt3179,direction=cfg["pmt_direction"],applyit=cfg["pmt3179"][0],nsigma=cfg["pmt3179"][1],frac=cfg["pmt3179"][2])
+    lines.update({"pmt3179_dn":getLine(thr_dn_pmt3179,x_trg)})
+    lines.update({"pmt3179_up":getLine(thr_up_pmt3179,x_trg)})
+    thr_dn_pmt3350,thr_up_pmt3350 = getThr("pmt3350",y_pmt3350,direction=cfg["pmt_direction"],applyit=cfg["pmt3350"][0],nsigma=cfg["pmt3350"][1],frac=cfg["pmt3350"][2])
+    lines.update({"pmt3350_dn":getLine(thr_dn_pmt3350,x_trg)})
+    lines.update({"pmt3350_up":getLine(thr_up_pmt3350,x_trg)})
+    thr_dn_pmt3360,thr_up_pmt3360 = getThr("pmt3360",y_pmt3360,direction=cfg["pmt_direction"],applyit=cfg["pmt3360"][0],nsigma=cfg["pmt3360"][1],frac=cfg["pmt3360"][2])
+    lines.update({"pmt3360_dn":getLine(thr_dn_pmt3360,x_trg)})
+    lines.update({"pmt3360_up":getLine(thr_up_pmt3360,x_trg)})
+    thr_dn_rad,thr_up_rad = getThr("rad",y_rad,direction=cfg["radmon_direction"],applyit=cfg["radmon"][0],nsigma=cfg["radmon"][1],frac=cfg["radmon"][2])
+    lines.update({"rad_dn":getLine(thr_dn_rad,x_trg)})
+    lines.update({"rad_up":getLine(thr_up_rad,x_trg)})
+    thr_dn_bpm_pb_3156,thr_up_bpm_pb_3156 = getThr("bpm_pb_3156",y_bpm_pb_3156,direction=cfg["bpm_direction"],applyit=cfg["bpm_pb_3156"][0],nsigma=cfg["bpm_pb_3156"][1],frac=cfg["bpm_pb_3156"][2])
+    lines.update({"bpm_pb_3156_dn":getLine(thr_dn_bpm_pb_3156,x_trg)})
+    lines.update({"bpm_pb_3156_up":getLine(thr_up_bpm_pb_3156,x_trg)})
+    thr_dn_bpm_q0_3218,thr_up_bpm_q0_3218 = getThr("bpm_q0_3218",y_bpm_q0_3218,direction=cfg["bpm_direction"],applyit=cfg["bpm_q0_3218"][0],nsigma=cfg["bpm_q0_3218"][1],frac=cfg["bpm_q0_3218"][2])
+    lines.update({"bpm_q0_3218_dn":getLine(thr_dn_bpm_q0_3218,x_trg)})
+    lines.update({"bpm_q0_3218_up":getLine(thr_up_bpm_q0_3218,x_trg)})
+    thr_dn_bpm_q1_3265,thr_up_bpm_q1_3265 = getThr("bpm_q1_3265",y_bpm_q1_3265,direction=cfg["bpm_direction"],applyit=cfg["bpm_q1_3265"][0],nsigma=cfg["bpm_q1_3265"][1],frac=cfg["bpm_q1_3265"][2])
+    lines.update({"bpm_q1_3265_dn":getLine(thr_dn_bpm_q1_3265,x_trg)})
+    lines.update({"bpm_q1_3265_up":getLine(thr_up_bpm_q1_3265,x_trg)})
+    thr_dn_bpm_q2_3315,thr_up_bpm_q2_3315 = getThr("bpm_q2_3315",y_bpm_q2_3315,direction=cfg["bpm_direction"],applyit=cfg["bpm_q2_3315"][0],nsigma=cfg["bpm_q2_3315"][1],frac=cfg["bpm_q2_3315"][2])
     lines.update({"bpm_q2_3315_dn":getLine(thr_dn_bpm_q2_3315,x_trg)})
     lines.update({"bpm_q2_3315_up":getLine(thr_up_bpm_q2_3315,x_trg)})
     
@@ -934,6 +985,8 @@ if __name__ == "__main__":
     leg.Draw("same")
     for t in ["2040","2452","3163","3255"]:
         gname = f"toro{t}"
+        lines[f"{gname}_dn"].SetLineColor(graphs[gname].GetLineColor())
+        lines[f"{gname}_up"].SetLineColor(graphs[gname].GetLineColor())
         lines[f"{gname}_dn"].Draw("same")
         lines[f"{gname}_up"].Draw("same")
     mg.SetTitle(";Trigger number;Toroid charge [pC]")
@@ -961,6 +1014,8 @@ if __name__ == "__main__":
     leg.Draw("same")
     for t in ["3060","3070","3179","3350","3360"]:
         gname = f"pmt{t}"
+        lines[f"{gname}_dn"].SetLineColor(graphs[gname].GetLineColor())
+        lines[f"{gname}_up"].SetLineColor(graphs[gname].GetLineColor())
         lines[f"{gname}_dn"].Draw("same")
         lines[f"{gname}_up"].Draw("same")
     mg.SetTitle(";Trigger number;PMT [counts]")
@@ -997,6 +1052,8 @@ if __name__ == "__main__":
     graphs["rad"].Draw("al")
     graphs["rad"].SetTitle(";Trigger number;RadMon [mRem/h]")
     graphs["rad"].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
+    lines["rad_dn"].SetLineColor(graphs["rad"].GetLineColor())
+    lines["rad_up"].SetLineColor(graphs["rad"].GetLineColor())
     lines["rad_dn"].Draw("same")
     lines["rad_up"].Draw("same")
     cnv.RedrawAxis()
@@ -1018,6 +1075,9 @@ if __name__ == "__main__":
     graphs["bpm_pb_3156"].Draw("al")
     graphs["bpm_pb_3156"].SetTitle(";Trigger number;BPM PB [#electrons]")
     graphs["bpm_pb_3156"].GetXaxis().SetLimits(x_trg[0],x_trg[-1])
+    lines["bpm_pb_3156_dn"].SetLineColor(graphs["bpm_pb_3156"].GetLineColor())
+    lines["bpm_pb_3156_up"].SetLineColor(graphs["bpm_pb_3156"].GetLineColor())
+    lines["bpm_pb_3156_dn"].Draw("same")
     lines["bpm_pb_3156_up"].Draw("same")
     cnv.RedrawAxis()
     cnv.Update()
@@ -1040,6 +1100,8 @@ if __name__ == "__main__":
     leg.Draw("same")
     for t in ["q0_3218","q1_3265","q2_3315"]:
         gname = f"bpm_{t}"
+        lines[f"{gname}_dn"].SetLineColor(graphs[gname].GetLineColor())
+        lines[f"{gname}_up"].SetLineColor(graphs[gname].GetLineColor())
         lines[f"{gname}_dn"].Draw("same")
         lines[f"{gname}_up"].Draw("same")
     mg.SetTitle(";Trigger number;BPM quads [#electrons]")

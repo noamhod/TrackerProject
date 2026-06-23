@@ -107,6 +107,11 @@ def book_histos():
     histos.update( { "h_Chi2fit_res_trk2vtx_x" : ROOT.TH1D("h_Chi2fit_res_trk2vtx_x",";x_{trk}-x_{vtx} [mm];Events",nResBins,-absRes,+absRes) } )
     histos.update( { "h_Chi2fit_res_trk2vtx_y" : ROOT.TH1D("h_Chi2fit_res_trk2vtx_y",";y_{trk}-y_{vtx} [mm];Events",nResBins,-absRes,+absRes) } )
     
+    histos.update( { "h_nPixels_even"         : ROOT.TH1D("h_nPixels_even",";N_{pixels}/detector;Events",200,0,200) } )
+    histos.update( { "h_nPixels_odd"          : ROOT.TH1D("h_nPixels_odd",";N_{pixels}/detector;Events",200,0,200) } )
+    histos.update( { "h_nClusters_even"       : ROOT.TH1D("h_nClusters_even",";N_{clusters}/detector;Events",100,0,100) } )
+    histos.update( { "h_nClusters_odd"        : ROOT.TH1D("h_nClusters_odd",";N_{clusters}/detector;Events",100,0,100) } )
+    
     histos.update( { "h_nStaves"              : ROOT.TH1D("h_nStaves",";N_{staves}/Event;Events",len(cfg["staves"]),+0.5,len(cfg["staves"])+0.5) } )
     histos.update( { "h_nDetectors"           : ROOT.TH1D("h_nDetectors",";N_{detectors}/Event;Events",len(cfg["detectors"]),0.5,len(cfg["detectors"])+0.5) } )
     histos.update( { "h_nTandemLayers"        : ROOT.TH1D("h_nTandemLayers",";N_{layers}/Event;Events",cfg["layers"],0.5,cfg["layers"]+0.5) } )
@@ -180,6 +185,11 @@ def book_histos():
         histos.update( { "h_errors_"+det : ROOT.TH1D("h_errors_"+det,";;Events",len(errors.ERRORS),0,len(errors.ERRORS)) } )
         for b in range(1,len(errors.ERRORS)+1):
             histos["h_errors_"+det].GetXaxis().SetBinLabel(b,errors.ERRORS[b-1])
+        
+        histos.update( { "h_nPixels_even_"+det        : ROOT.TH1D("h_nPixels_even_"+det,";N_{pixels};Events",200,0,200) } )
+        histos.update( { "h_nClusters_even_"+det      : ROOT.TH1D("h_nClusters_even_"+det,";N_{clusters};Events",100,0,100) } )
+        histos.update( { "h_nPixels_odd_"+det         : ROOT.TH1D("h_nPixels_odd_"+det,";N_{pixels};Events",200,0,200) } )
+        histos.update( { "h_nClusters_odd_"+det       : ROOT.TH1D("h_nClusters_odd_"+det,";N_{clusters};Events",100,0,100) } )
         
         histos.update( { "h_pix_occ_1D_"+det        : ROOT.TH1D("h_pix_occ_1D_"+det,";Pixel;Hits",cfg["npix_x"]*cfg["npix_y"],1,cfg["npix_x"]*cfg["npix_y"]+1) } )
         histos.update( { "h_pix_occ_1D_masked_"+det : ROOT.TH1D("h_pix_occ_1D_masked_"+det,";Pixel;Hits",cfg["npix_x"]*cfg["npix_y"],1,cfg["npix_x"]*cfg["npix_y"]+1) } )

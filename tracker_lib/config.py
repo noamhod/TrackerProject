@@ -182,7 +182,32 @@ class Config:
         self.add("inputfile", self.getS('RUN','inputfile'))
         self.add("detevtlib", self.getS('RUN','detevtlib'))
         
-        self.add("runnums", self.getArrI('MULTIRUN','runnums'))
+        
+        self.add("toro_direction", self.getS('BEAMQUALITY','toro_direction'))
+        self.add("toro2040", self.getArrF('BEAMQUALITY','toro2040'))
+        self.add("toro2452", self.getArrF('BEAMQUALITY','toro2452'))
+        self.add("toro3163", self.getArrF('BEAMQUALITY','toro3163'))
+        self.add("toro3255", self.getArrF('BEAMQUALITY','toro3255'))
+        
+        self.add("pmt_direction", self.getS('BEAMQUALITY','pmt_direction'))
+        self.add("pmt3060", self.getArrF('BEAMQUALITY','pmt3060'))
+        self.add("pmt3070", self.getArrF('BEAMQUALITY','pmt3070'))
+        self.add("pmt3179", self.getArrF('BEAMQUALITY','pmt3179'))
+        self.add("pmt3350", self.getArrF('BEAMQUALITY','pmt3350'))
+        self.add("pmt3360", self.getArrF('BEAMQUALITY','pmt3360'))
+        self.add("pmt3360", self.getArrF('BEAMQUALITY','pmt3360'))
+        
+        self.add("radmon_direction", self.getS('BEAMQUALITY','radmon_direction'))
+        self.add("radmon", self.getArrF('BEAMQUALITY','radmon'))
+        
+        self.add("bpm_direction", self.getS('BEAMQUALITY','bpm_direction'))
+        self.add("bpm_pb_3156", self.getArrF('BEAMQUALITY','bpm_pb_3156'))
+        self.add("bpm_q0_3218", self.getArrF('BEAMQUALITY','bpm_q0_3218'))
+        self.add("bpm_q1_3265", self.getArrF('BEAMQUALITY','bpm_q1_3265'))
+        self.add("bpm_q2_3315", self.getArrF('BEAMQUALITY','bpm_q2_3315'))        
+        
+        
+        self.add("runnums", self.getArrI('MULTIRUN','runnums'))        
 
         self.add("npix_x", self.getI('CHIP','npix_x'))
         self.add("npix_y", self.getI('CHIP','npix_y'))
@@ -242,7 +267,6 @@ class Config:
         self.add("seed_nbins_rhox_inf",   self.getI('SEED','seed_nbins_rhox_inf'))
         self.add("seed_nbins_rhoy_inf",   self.getI('SEED','seed_nbins_rhoy_inf'))
 
-        
         self.add("lut_nbinsx_low", self.getI('LUT','lut_nbinsx_low'))
         self.add("lut_nbinsy_low", self.getI('LUT','lut_nbinsy_low'))
         self.add("lut_nbinsx_mid", self.getI('LUT','lut_nbinsx_mid'))
