@@ -57,37 +57,37 @@ detevtlib        = 20260318
 # bpm_q1_3265 = 1 25 0.01
 # bpm_q2_3315 = 1 25 0.01
 
-##########################################################
-### run1161
-### background with Magnet settings 5; 3.5 GeV.
-### dipole at 14.8 GeV
-### E=3 GeV
-### XCORR at -0.065 kG*m
-first2process = 0
-nmax2process  = 0
-inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1161.root
-[BEAMQUALITY]
-toro_direction = both
-toro2040 = 1 5 0.05
-toro2452 = 1 5 0.05
-toro3163 = 1 5 0.05
-toro3255 = 0 5 0.05
-###
-pmt_direction = up
-pmt3060 = 1 15 0.01
-pmt3070 = 1 5 0.01
-pmt3179 = 0 5 0.01
-pmt3350 = 1 5 0.01
-pmt3360 = 0 5 0.01
-###
-radmon_direction = up
-radmon = 1 3 0.05
-###
-bpm_direction = down
-bpm_pb_3156 = 1 25 0.01
-bpm_q0_3218 = 1 25 0.01
-bpm_q1_3265 = 1 25 0.01
-bpm_q2_3315 = 1 25 0.01
+# ##########################################################
+# ### run1161
+# ### background with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1161.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.05
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
 
 # ##########################################################
 # ### run1162
@@ -122,6 +122,390 @@ bpm_q2_3315 = 1 25 0.01
 # bpm_q2_3315 = 1 25 0.01
 
 
+# ##########################################################
+# ### run1163
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1163.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.05
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1165
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1165.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.05
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1166
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1166.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 1 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.03
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 2 0.05
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1167
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1167.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.03
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1168
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1168.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 5 0.01
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1169
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1169.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.02
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1170
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1170.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 3 0.05
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1171
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1171.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 5 0.01
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1172
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1172.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 5 0.01
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1173
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1173.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 5 0.01
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+# ##########################################################
+# ### run1174
+# ### positrons with Magnet settings 5; 3.5 GeV.
+# ### dipole at 14.8 GeV
+# ### E=3 GeV
+# ### XCORR at -0.065 kG*m
+# first2process = 0
+# nmax2process  = 0
+# inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1174.root
+# [BEAMQUALITY]
+# toro_direction = both
+# toro2040 = 1 5 0.05
+# toro2452 = 1 5 0.05
+# toro3163 = 1 5 0.05
+# toro3255 = 0 5 0.05
+# ###
+# pmt_direction = up
+# pmt3060 = 1 15 0.01
+# pmt3070 = 1 5 0.01
+# pmt3179 = 0 5 0.01
+# pmt3350 = 1 5 0.01
+# pmt3360 = 0 5 0.01
+# ###
+# radmon_direction = up
+# radmon = 1 5 0.01
+# ###
+# bpm_direction = down
+# bpm_pb_3156 = 1 25 0.01
+# bpm_q0_3218 = 1 25 0.01
+# bpm_q1_3265 = 1 25 0.01
+# bpm_q2_3315 = 1 25 0.01
+
+
+##########################################################
+### run1175
+### Background run: magnet setting 5, counts around ~60 (almost an hour run)
+### dipole at 14.8 GeV
+### E=3 GeV
+### XCORR at -0.065 kG*m
+first2process = 0
+nmax2process  = 0
+inputfile     = data/e320_prototype_beam_Jun222026_noalignment/runs/tree_Run1175.root
+[BEAMQUALITY]
+toro_direction = both
+toro2040 = 1 5 0.05
+toro2452 = 1 5 0.05
+toro3163 = 1 5 0.05
+toro3255 = 1 5 0.05
+###
+pmt_direction = up
+pmt3060 = 1 15 0.01
+pmt3070 = 1 5 0.01
+pmt3179 = 0 5 0.01
+pmt3350 = 1 5 0.01
+pmt3360 = 0 5 0.01
+###
+radmon_direction = up
+radmon = 1 2 0.01
+###
+bpm_direction = down
+bpm_pb_3156 = 1 25 0.01
+bpm_q0_3218 = 1 25 0.01
+bpm_q1_3265 = 1 25 0.01
+bpm_q2_3315 = 1 25 0.01
 
 
 
@@ -172,15 +556,15 @@ seed_nbins_rhox_low   = 650
 seed_nbins_rhoy_low   = 650
 ###
 ### TIGHT seed_nbins_thetarho (after alignment)
-# seed_nbins_thetax_mid = 1700
-# seed_nbins_thetay_mid = 1700
-# seed_nbins_rhox_mid   = 1700
-# seed_nbins_rhoy_mid   = 1700
+seed_nbins_thetax_mid = 1700
+seed_nbins_thetay_mid = 1700
+seed_nbins_rhox_mid   = 1700
+seed_nbins_rhoy_mid   = 1700
 ### LOOSE seed_nbins_thetarho (use for alignment)
-seed_nbins_thetax_mid = 650
-seed_nbins_thetay_mid = 650
-seed_nbins_rhox_mid   = 650
-seed_nbins_rhoy_mid   = 650
+# seed_nbins_thetax_mid = 650
+# seed_nbins_thetay_mid = 650
+# seed_nbins_rhox_mid   = 650
+# seed_nbins_rhoy_mid   = 650
 ###
 seed_nbins_thetax_hgh = 1000
 seed_nbins_thetay_hgh = 1000
@@ -213,8 +597,8 @@ lut_scaleY = 0.20
 [CUTS]
 cuts = All BeamQC 0Err Non-empty N_{hits/lyr}>0 N_{hits/lyr}^{ROI}>0 N_{cls/lyr}>0 N_{seeds}>0 Fitted #chi^{2}/N_{DoF}#leqX Geo Btrfly
 # cut_chi2dof = 3
-# cut_chi2dof = 20
-cut_chi2dof = 1000
+cut_chi2dof = 20
+# cut_chi2dof = 1000
 # only during alignment !!!
 cut_dk_algn       = 0
 cut_dk_algn_det   = ALPIDE_3
@@ -225,7 +609,7 @@ cut_dk_algn_dymax = -0.03
 cut_maxcls = 4
 cut_allow_shared_clusters = 0
 cut_allow_negative_yz_slope = 0
-cut_theta2     = 0
+cut_theta2     = 1
 cut_theta2_max = 1e-8
 cut_windowaprtr = 1
 cut_flangeaprtr = 1
@@ -269,11 +653,11 @@ cut_ROI_ymax = 512
 
 [ALIGNMENT]
 ### if the misalignment is zero, then use_large_clserr_for_algnmnt must be 1!!!
-use_large_clserr_for_algnmnt = 1
+use_large_clserr_for_algnmnt = 0
 minchi2align  = 0.01
 # minchi2align  = 13
-maxchi2align  = 1000
-# maxchi2align  = 20
+# maxchi2align  = 1000
+maxchi2align  = 20
 # maxchi2align  = 3
 axes2align    = xytheta
 naligniter    = 200
@@ -290,33 +674,33 @@ alignmentmintrks = 25
 
 #####################################
 ### DEFAULT MISALIGNMENT (before doing the alignment procedure):
-misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
+# misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0 ALPIDE_4:dx=0,dy=0,theta=0
 #####################################
 
-# #####################################
-# ### USING MLE FITS WITH THETA2 CUTS BASED ON RUN 856
-# ### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)x(-0.07,-0.03), strip cut (-2,-8) 7x7, theta2<1e-8, 13<chi2inf<20 cut, 4344 tracks
-# # misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.09E-02,dy=2.67E-02,theta=-9.65E-04 ALPIDE_2:dx=2.00E-02,dy=-4.39E-02,theta=1.57E-03 ALPIDE_3:dx=6.61E-02,dy=-6.25E-02,theta=-1.31E-03 ALPIDE_4:dx=-2.37E-02,dy=2.55E-02,theta=4.89E-04
-# # ----------------------------------------
-# # Alignment axes: xytheta
-# # Reference detectors: ['ALPIDE_0']
-# # Events used: 1567 out of 2433
-# # Tracks used: 4344
-# # Success?     True
-# # nll:     -62.889019 (original: -5.149794)
-# # chi2:        94097.454480 (original: 352641.705059)
-# # theta final: [-0.00096531  0.00157183 -0.00131002  0.00048906]
-# # Parameters:  [-0.0109  0.0200   0.0661   -0.0237  0.0267   -0.0439  -0.0625  0.0255   -0.000965  0.00157  -0.00131 0.000489]
-# # Errors:      [3.53e-04 5.42e-04 1.24e-03 1.43e-03 1.07e-03 1.29e-03 2.03e-03 2.97e-03 5.78e-05   1.86e-04 2.13e-04 3.19e-04]
-# # ----------------------------------------
-# ### iteration 1 with the proper clusters errors, HT binning 1700^4, theta2<1e-8, chi2<5 cut, 1139 tracks
-# # misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.63E-02,dy=3.39E-02,theta=-1.15E-03 ALPIDE_2:dx=2.63E-02,dy=-5.30E-02,theta=1.93E-03 ALPIDE_3:dx=6.85E-02,dy=-6.46E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.54E-02,dy=2.74E-02,theta=5.12E-04
-# ### iteration 2 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1400 tracks
-# # misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.75E-02,dy=3.52E-02,theta=-1.17E-03 ALPIDE_2:dx=2.75E-02,dy=-5.47E-02,theta=2.03E-03 ALPIDE_3:dx=6.89E-02,dy=-6.47E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.57E-02,dy=2.77E-02,theta=5.13E-04
-# ### iteration 3 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1422 tracks
-# # misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.77E-02,dy=3.56E-02,theta=-1.18E-03 ALPIDE_2:dx=2.78E-02,dy=-5.51E-02,theta=2.05E-03 ALPIDE_3:dx=6.90E-02,dy=-6.48E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.14E-04
-# ### iteration 4 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1432 tracks
-# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.78E-02,dy=3.57E-02,theta=-1.19E-03 ALPIDE_2:dx=2.79E-02,dy=-5.52E-02,theta=2.06E-03 ALPIDE_3:dx=6.91E-02,dy=-6.49E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.13E-04
+#####################################
+### USING MLE FITS WITH THETA2 CUTS BASED ON RUN 856
+### iteration 0 with the large cls errors, HT binning 650^4, dk cut at (0.02,0.08)x(-0.07,-0.03), strip cut (-2,-8) 7x7, theta2<1e-8, 13<chi2inf<20 cut, 4344 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.09E-02,dy=2.67E-02,theta=-9.65E-04 ALPIDE_2:dx=2.00E-02,dy=-4.39E-02,theta=1.57E-03 ALPIDE_3:dx=6.61E-02,dy=-6.25E-02,theta=-1.31E-03 ALPIDE_4:dx=-2.37E-02,dy=2.55E-02,theta=4.89E-04
+# ----------------------------------------
+# Alignment axes: xytheta
+# Reference detectors: ['ALPIDE_0']
+# Events used: 1567 out of 2433
+# Tracks used: 4344
+# Success?     True
+# nll:     -62.889019 (original: -5.149794)
+# chi2:        94097.454480 (original: 352641.705059)
+# theta final: [-0.00096531  0.00157183 -0.00131002  0.00048906]
+# Parameters:  [-0.0109  0.0200   0.0661   -0.0237  0.0267   -0.0439  -0.0625  0.0255   -0.000965  0.00157  -0.00131 0.000489]
+# Errors:      [3.53e-04 5.42e-04 1.24e-03 1.43e-03 1.07e-03 1.29e-03 2.03e-03 2.97e-03 5.78e-05   1.86e-04 2.13e-04 3.19e-04]
+# ----------------------------------------
+### iteration 1 with the proper clusters errors, HT binning 1700^4, theta2<1e-8, chi2<5 cut, 1139 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.63E-02,dy=3.39E-02,theta=-1.15E-03 ALPIDE_2:dx=2.63E-02,dy=-5.30E-02,theta=1.93E-03 ALPIDE_3:dx=6.85E-02,dy=-6.46E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.54E-02,dy=2.74E-02,theta=5.12E-04
+### iteration 2 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1400 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.75E-02,dy=3.52E-02,theta=-1.17E-03 ALPIDE_2:dx=2.75E-02,dy=-5.47E-02,theta=2.03E-03 ALPIDE_3:dx=6.89E-02,dy=-6.47E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.57E-02,dy=2.77E-02,theta=5.13E-04
+### iteration 3 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1422 tracks
+# misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.77E-02,dy=3.56E-02,theta=-1.18E-03 ALPIDE_2:dx=2.78E-02,dy=-5.51E-02,theta=2.05E-03 ALPIDE_3:dx=6.90E-02,dy=-6.48E-02,theta=-1.46E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.14E-04
+### iteration 4 with the proper cls errors, HT binning 1700^4, theta2<1e-8, chi2<3 cut, 1432 tracks
+misalignment = ALPIDE_0:dx=0.00E+00,dy=0.00E+00,theta=0.00E+00 ALPIDE_1:dx=-1.78E-02,dy=3.57E-02,theta=-1.19E-03 ALPIDE_2:dx=2.79E-02,dy=-5.52E-02,theta=2.06E-03 ALPIDE_3:dx=6.91E-02,dy=-6.49E-02,theta=-1.45E-03 ALPIDE_4:dx=-2.58E-02,dy=2.78E-02,theta=5.13E-04
 
 
 

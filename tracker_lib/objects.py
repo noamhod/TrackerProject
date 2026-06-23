@@ -239,14 +239,18 @@ class Magnets:
 
 class Event:
     # Explicitly define allowed attributes to save memory
-    __slots__ = ('saveprimitive', 'meta', 'trigger', 'timestamp_bgn', 'timestamp_end', 'magnets', 'errors',
+    __slots__ = ('saveprimitive', 'meta', 'trigger', 'epics_pulseid', 'epics_realpid', 'epics_parity', 'epics_shutter', 'timestamp_bgn', 'timestamp_end', 'magnets', 'errors',
                  'pixels', 'npixels', 'clusters', 'nclusters', 'ntunnels', 'hough_space',
                  'seeds', 'tracks', 'misalignment')
-    def __init__(self,meta,trigger,timestamp_bgn,timestamp_end,magnets,saveprimitive=True):
+    def __init__(self,meta,trigger,epics_pulseid,epics_realpid,epics_parity,epics_shutter,timestamp_bgn,timestamp_end,magnets,saveprimitive=True):
         cfg = config.Config().map 
         self.saveprimitive   = saveprimitive
         self.meta            = meta
         self.trigger         = trigger
+        self.epics_pulseid   = epics_pulseid
+        self.epics_realpid   = epics_realpid
+        self.epics_parity    = epics_parity
+        self.epics_shutter   = epics_shutter
         self.timestamp_bgn   = timestamp_bgn
         self.timestamp_end   = timestamp_end
         self.magnets         = magnets

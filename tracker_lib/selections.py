@@ -54,6 +54,28 @@ def tilted_butterfly_RoI_cut(track):
     return True
 
 
+def tilted_butterfly_RoI_cut_from_xy(x,y,det):
+    cfg = config.Config().map
+    X0 = cfg["cut_RoI_btrfly_xcenter"]       ### x center
+    Y0 = cfg["cut_RoI_btrfly_ycenter"]       ### y center
+    a  = cfg["cut_RoI_btrfly_long_radius"]   ### long radius
+    b  = cfg["cut_RoI_btrfly_shrt_radius"]   ### short radius  
+    t  = cfg["cut_RoI_btrfly_theta_deg"]*d2r ### angle wrt the x axis
+    c  = cfg["cut_RoI_btrfly_theta_curv"]    ### opening curvature. Smaller c = wider "wings". (Physically similar to the Rayleigh length or beta*)
+    ### start calculate
+    dx = x - X0[det]
+    dy = y - Y0[det]
+    ### rotate to align with beam axis (x', y') where x' is along the beam, y' is perpendicular (waist)
+    x_prime =  dx * math.cos(t) + dy * math.sin(t)
+    y_prime = -dx * math.sin(t) + dy * math.cos(t)
+    ### check hyperbolic width, with the equation: y' < b * sqrt(1 + (x'/c)^2)
+    boundary_y = b * math.sqrt(1 + (x_prime/c)**2)
+    # print(f"pix xy={pix.x,pix.y}, boundary_y={boundary_y}, y_prime={y_prime}")
+    if(abs(y_prime)>boundary_y):
+        # print("fail")
+        return False
+    return True
+
 
 def tilted_eliptic_RoI_cut(track):
     cfg = config.Config().map

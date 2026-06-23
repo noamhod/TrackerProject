@@ -64,13 +64,16 @@ pvList = [
 'PMT:LI20:3350:QDCRAW', # PMT_S20_3350
 'PMT:LI20:3360:QDCRAW', # PMT_S20_3360
 
-# Foil
+# RAD monitors
 'RADM:LI20:1:CH01:MEAS',
+'RADM:LI20:2:CH01:MEAS',
+
+# Foil
 'XPS:LI20:MC05:M1.RBV', # Vertical
 'XPS:LI20:MC05:M2.RBV', # Horizontal
 
 # Wire
-'WIRE:LI20:3179:MOTR.RBV', # IP wire scanner 
+'WIRE:LI20:3179:MOTR.RBV', # IP wire scanner
 
 # Beam charge
 'TORO:LI20:1988:TMIT_PC',
@@ -79,8 +82,36 @@ pvList = [
 'TORO:LI20:3163:TMIT_PC', # before the IP
 'TORO:LI20:3255:TMIT_PC', # after the IP
 
+# Laser
+'ADC:LA20:10:CALC:CH03', # Laser energy in S20 laser room
+'DO:LA20:10:Bo1', # laser shutter
+'PMTR:LA20:10:PWR', # power meter
+'XPS:LA20:LS24:M1', # waveplate
+'XPS:LA20:LS24:M2', # waveplate too
+'XPS:LA20:LS24:M8', # oscillator motor
+'OSC:LA20:10:FS_TGT_TIME', # vitara target time
+'OSC:LA20:10:FS_CTR_TIME', # counter target time
+'TRIG:LA20:LS25:TCTL', # sdg gate enable (pulse
+'TRIG:LA20:LS28:TDES', # saga timing
+'SIOC:SYS1:ML02:AO502', # long delay laser target time
+'TRIG:LT20:PM07:2:TDES', # Regen camera timing
+
+# YAG
 'XPS:LI20:MC10:M1.RBV', # Vertical YAG motor position in mm
 'MOTR:LI20:MC08:S6:CH2:MOTOR.RBV', # Horizontal YAG motor position
+'MOTR:LI20:MC08:S6:CH1:MOTOR.RBV', # YAH motor position along the focus
+
+# Al foil
+'XPS:LI20:MC05:M1.RBV', # Al foil vertical position
+'XPS:LI20:MC05:M2.RBV', # Al foil horizontal position
 
 'OSC:LA20:10:FS_TGT_TIME', # Laser timing relative to the beam
+
+# EOS
+'XPS:LI20:MC04:M4.RBV' # EOS motor position
+'XPS:LI20:MC02:M5.RBV' # EOS delay motor
+'XPS:LI20:MC01:M5.RBV' # Probe delay motor
+'SIOC:SYS1:ML01:AO906' # EOS time of arrival
+# dt(fs) = EOS_TOA - (EOS_DEL + PROBE_DEL) * 10^-3 / c0 * 10^15
+# c0 = 299792458 m/s
 ]

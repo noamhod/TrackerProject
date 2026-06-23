@@ -331,12 +331,20 @@ def book_histos():
     histos.update( { "h_nTracks_btrfly_mid"   : ROOT.TH1D("h_nTracks_btrfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
     histos.update( { "h_nTracks_btrfly_zoom"  : ROOT.TH1D("h_nTracks_btrfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
     
+    histos.update( { "h_nTracks_btrfly_even"  : ROOT.TH1D("h_nTracks_btrfly_even",";N_{tracks}/Event;Events",15,0,15) } )
+    histos.update( { "h_nTracks_btrfly_odd"   : ROOT.TH1D("h_nTracks_btrfly_odd",";N_{tracks}/Event;Events",15,0,15) } )
+    
     parNames = ["x_{0}", "m_{x}", "y_{0}", "m_{y}", "log#theta^{2}"]
     nParMLEfit = 4
     for i in range(nParMLEfit+1):
         if(i<4): histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_small,relerrarr_small) } )
         else:    histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_large,relerrarr_large) } )
         
+    
+    histos.update({ "hChi2DoF_zeroshrcls_even":       ROOT.TH1D("hChi2DoF_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
+    histos.update({ "hChi2DoF_zeroshrcls_odd":        ROOT.TH1D("hChi2DoF_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
+    histos.update({ "hChi2DoF_small_zeroshrcls_even": ROOT.TH1D("hChi2DoF_small_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
+    histos.update({ "hChi2DoF_small_zeroshrcls_odd":  ROOT.TH1D("hChi2DoF_small_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
@@ -369,6 +377,11 @@ def book_histos():
     histos.update({ "h_MLE_theta2_logx_before_cuts": ROOT.TH1D("h_MLE_theta2_logx_before_cuts",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
     histos.update({ "h_MLE_theta1_logx_after_cuts": ROOT.TH1D("h_MLE_theta1_logx_after_cuts",";#theta_{RMS} [rad];Tracks",ntheta1arr,theta1arr)})
     histos.update({ "h_MLE_theta2_logx_after_cuts": ROOT.TH1D("h_MLE_theta2_logx_after_cuts",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
+    
+    histos.update({ "h_MLE_theta1_logx_after_cuts_even": ROOT.TH1D("h_MLE_theta1_logx_after_cuts_even",";#theta_{RMS} [rad];Tracks",ntheta1arr,theta1arr)})
+    histos.update({ "h_MLE_theta1_logx_after_cuts_odd": ROOT.TH1D("h_MLE_theta1_logx_after_cuts_odd",";#theta_{RMS} [rad];Tracks",ntheta1arr,theta1arr)})
+    histos.update({ "h_MLE_theta2_logx_after_cuts_even": ROOT.TH1D("h_MLE_theta2_logx_after_cuts_even",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
+    histos.update({ "h_MLE_theta2_logx_after_cuts_odd": ROOT.TH1D("h_MLE_theta2_logx_after_cuts_odd",";MLE #theta^{2} [rad^{2}];Tracks",ntheta2arr,theta2arr)})
     
     histos.update({ "hPf_vs_dExit": ROOT.TH2D("hPf_vs_dExit",";d_{exit} [mm];p(#theta(fit)) [GeV];Tracks",50,0,+35, 50,0,10) })
     histos.update({ "hPd_vs_dExit": ROOT.TH2D("hPd_vs_dExit",";d_{exit} [mm];p(#theta(d_{exit}) [GeV];Tracks",50,0,+35, 50,0,10) })
@@ -1113,10 +1126,11 @@ if __name__ == "__main__":
                     
                     histos["hdExit"].Fill(dExit)
                     
-                    histos["h_MLE_theta1_logx_after_cuts"].Fill(math.sqrt(track.theta2))
-                    histos["h_MLE_theta2_logx_after_cuts"].Fill(track.theta2)
-                    histos["h_MLE_theta1_linx_after_cuts"].Fill(math.sqrt(track.theta2))
-                    histos["h_MLE_theta2_linx_after_cuts"].Fill(track.theta2)
+                    if(pkl_event.epics_shutter!=0):
+                        if(pkl_event.epics_parity==0): histos["h_MLE_theta1_logx_after_cuts_even"].Fill(track.chi2ndof)
+                        else:                          histos["h_MLE_theta1_logx_after_cuts_odd"].Fill(track.chi2ndof)
+                        if(pkl_event.epics_parity==0): histos["h_MLE_theta2_logx_after_cuts_even"].Fill(track.chi2ndof)
+                        else:                          histos["h_MLE_theta2_logx_after_cuts_odd"].Fill(track.chi2ndof)
                     
                     if(pf>0):
                         histos["hPf"].Fill(pf)
@@ -1183,6 +1197,11 @@ if __name__ == "__main__":
                 histos["h_nTracks_btrfly_full"].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
+                
+                if(pkl_event.epics_shutter!=0 and n_butterfly_tracks>0):
+                    if(pkl_event.epics_parity==0): histos["h_nTracks_btrfly_even"].Fill(n_butterfly_tracks)
+                    else:                          histos["h_nTracks_btrfly_odd"].Fill(n_butterfly_tracks)
+                
                 nbtrtrk += n_butterfly_tracks
                 
                 
@@ -1242,6 +1261,13 @@ if __name__ == "__main__":
                         # print(f"[{i}] {parrelerr:.1f}")
                         # if(parrelerr>100): parrelerr = 100
                         histos[f"hParRelErr_{i}"].Fill(parrelerr)
+                    
+                    
+                    if(pkl_event.epics_shutter!=0):
+                        if(pkl_event.epics_parity==0): histos["hChi2DoF_zeroshrcls_even"].Fill(track.chi2ndof)
+                        else:                          histos["hChi2DoF_zeroshrcls_odd"].Fill(track.chi2ndof)
+                        if(pkl_event.epics_parity==0): histos["hChi2DoF_small_zeroshrcls_even"].Fill(track.chi2ndof)
+                        else:                          histos["hChi2DoF_small_zeroshrcls_odd"].Fill(track.chi2ndof)
                     
                     histos["hChi2DoF_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_full_zeroshrcls"].Fill(track.chi2ndof)
