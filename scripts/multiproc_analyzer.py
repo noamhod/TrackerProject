@@ -158,11 +158,16 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         ### get the parity:
         epics_pulseid = int(float(str(ttree.event.ev_epics_frame.pv_map['PATT:SYS1:1:PULSEID'].value))) ### this is effectively like PULSEIDcurrent
         epics_realpid = round(((epics_pulseid-10)/36))
-        epics_parity  = epics_realpid%2
-        epics_shutter = epics_realpid%20
+        epics_parity  = (epics_realpid%2)
+        epics_shutter = (epics_realpid%20)
+        epics_time_s  = float(str(ttree.event.ev_epics_frame.pv_map['PATT:SYS1:1:SEC'].value))    # epics timestamp in sec
+        epics_time_ns = float(str(ttree.event.ev_epics_frame.pv_map['PATT:SYS1:1:NSEC'].value))   # epics timestamp in nsec
+        epics_run_num = int(float(str(ttree.event.ev_epics_frame.pv_map['SIOC:SYS1:ML02:AO400'].value))) # epics run number
 
         ### append the envent no-matter-what:
-        eventslist.append( objects.Event(meta,trigger,epics_pulseid,epics_realpid,epics_parity,epics_shutter,timestamp_begin,timestamp_end,magnets,saveprimitive=cfg["saveprimitive"]) )
+        eventslist.append( objects.Event(meta,trigger,
+                                         epics_pulseid,epics_realpid,epics_parity,epics_shutter,epics_time_s,epics_time_ns,epics_run_num,
+                                         timestamp_begin,timestamp_end,magnets,saveprimitive=cfg["saveprimitive"]) )
         out_event_index = len(eventslist)-1
         if(cfg["dbg"]): print("Start appending event list")
         
@@ -213,10 +218,17 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 for pix in pixels[det]:
                     if(cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut_from_xy(pix.x,pix.y,det)):
                         nbutterflypixels += 1
-                if(epics_parity==0): histos["h_nPixels_btrfly_even_"+det].Fill(nbutterflypixels)
-                else:                histos["h_nPixels_btrfly_odd_"+det].Fill(nbutterflypixels)
-                if(epics_parity==0): histos["h_nPixels_even_"+det].Fill(len(pixels[det]))
-                else:                histos["h_nPixels_odd_"+det].Fill(len(pixels[det]))
+                if(epics_parity==0):
+                    histos["h_nPixels_btrfly_even_"+det].Fill(nbutterflypixels)
+                    histos["h_nPixels_even_"+det].Fill(len(pixels[det]))
+                else:
+                    histos["h_nPixels_btrfly_odd_"+det].Fill(nbutterflypixels)
+                    histos["h_nPixels_odd_"+det].Fill(len(pixels[det]))               
+            else:
+                for pix in pixels[det]:
+                    if(cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut_from_xy(pix.x,pix.y,det)):
+                        nbutterflypixels += 1
+                
             npixels    += len(pixels[det])
             npixperdet += len(pixels[det])/len(cfg["detectors"])
             npixels_btrfly    += nbutterflypixels
@@ -225,6 +237,18 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
             hists.fillPixOcc(det,pixels[det],masked[det],histos) ### fill pixel occupancy
         if(cfg["dbg"]): print(sprnt)
         
+
+        if(epics_shutter!=0):
+            if(epics_parity==0):
+                histos["h_nPixels_all_even"].Fill(npixels/len(cfg["tandemlyrs"]))
+                histos["h_nPixels_all_btrfly_even"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+            else:
+                histos["h_nPixels_all_odd"].Fill(npixels/len(cfg["tandemlyrs"]))
+                histos["h_nPixels_all_btrfly_odd"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+        else:
+            histos["h_nPixels_all_shuttered"].Fill(npixels/len(cfg["tandemlyrs"]))
+            histos["h_nPixels_all_btrfly_shuttered"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+
 
         ### if skip clustering?
         if(cfg["skipclustering"]): continue
@@ -290,10 +314,16 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
                 for cl in det_clusters:
                     if(cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut_from_xy(cl.x,cl.y,det)):
                         nbutterflyclusters += 1
-                if(epics_parity==0): histos["h_nClusters_btrfly_even_"+det].Fill(nbutterflyclusters)
-                else:                histos["h_nClusters_btrfly_odd_"+det].Fill(nbutterflyclusters)
-                if(epics_parity==0): histos["h_nClusters_even_"+det].Fill(len(det_clusters))
-                else:                histos["h_nClusters_odd_"+det].Fill(len(det_clusters))
+                if(epics_parity==0):
+                    histos["h_nClusters_btrfly_even_"+det].Fill(nbutterflyclusters)
+                    histos["h_nClusters_even_"+det].Fill(len(det_clusters))
+                else:
+                    histos["h_nClusters_btrfly_odd_"+det].Fill(nbutterflyclusters)
+                    histos["h_nClusters_odd_"+det].Fill(len(det_clusters))              
+            else:
+                for cl in det_clusters:
+                    if(cfg["cut_RoI_btrfly"] and selections.tilted_butterfly_RoI_cut_from_xy(cl.x,cl.y,det)):
+                        nbutterflyclusters += 1
             # nclusters  += len(det_clusters)
             nclusters_btrfly  += nbutterflyclusters
             nclsperdet_btrfly += nbutterflyclusters/len(cfg["detectors"])
@@ -309,15 +339,21 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         
         
         if(epics_shutter!=0):
-            if(epics_parity==0): histos["h_nPixels_even"].Fill(npixels/len(cfg["tandemlyrs"]))
-            else:                histos["h_nPixels_odd"].Fill(npixels/len(cfg["tandemlyrs"]))
-            if(epics_parity==0): histos["h_nClusters_even"].Fill(nclusters/len(cfg["tandemlyrs"]))
-            else:                histos["h_nClusters_odd"].Fill(nclusters/len(cfg["tandemlyrs"]))
-            
-            if(epics_parity==0): histos["h_nPixels_btrfly_even"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
-            else:                histos["h_nPixels_btrfly_odd"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
-            if(epics_parity==0): histos["h_nClusters_btrfly_even"].Fill(nclusters_btrfly/len(cfg["tandemlyrs"]))
-            else:                histos["h_nClusters_btrfly_odd"].Fill(nclusters_btrfly/len(cfg["tandemlyrs"]))
+            if(epics_parity==0):
+                histos["h_nPixels_hitperlyr_even"].Fill(npixels/len(cfg["tandemlyrs"]))
+                histos["h_nClusters_hitperlyr_even"].Fill(nclusters/len(cfg["tandemlyrs"]))
+                histos["h_nPixels_hitperlyr_btrfly_even"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+                histos["h_nClusters_hitperlyr_btrfly_even"].Fill(nclusters_btrfly/len(cfg["tandemlyrs"]))
+            else:
+                histos["h_nPixels_hitperlyr_odd"].Fill(npixels/len(cfg["tandemlyrs"]))
+                histos["h_nClusters_hitperlyr_odd"].Fill(nclusters/len(cfg["tandemlyrs"]))
+                histos["h_nPixels_hitperlyr_btrfly_odd"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+                histos["h_nClusters_hitperlyr_btrfly_odd"].Fill(nclusters_btrfly/len(cfg["tandemlyrs"]))
+        else:
+            histos["h_nPixels_hitperlyr_shuttered"].Fill(npixels/len(cfg["tandemlyrs"]))
+            histos["h_nClusters_hitperlyr_shuttered"].Fill(nclusters/len(cfg["tandemlyrs"]))
+            histos["h_nPixels_hitperlyr_btrfly_shuttered"].Fill(npixels_btrfly/len(cfg["tandemlyrs"]))
+            histos["h_nClusters_hitperlyr_btrfly_shuttered"].Fill(nclusters_btrfly/len(cfg["tandemlyrs"]))
 
 
         #####################################
@@ -519,6 +555,8 @@ def analyze(configfile,tfilenamein,irange,evt_range,masked,badtrigs):
         if(epics_shutter!=0 and n_btterfly_tracks>0):
             if(epics_parity==0): histos["h_nTracks_even"].Fill(n_btterfly_tracks)
             else:                histos["h_nTracks_odd"].Fill(n_btterfly_tracks)
+        else:
+            histos["h_nTracks_shuttered"].Fill(n_btterfly_tracks)
         
         sout = f"Eventid={ievt}: Pix/det={int(npixperdet)}, Cls/det={int(nclsperdet)} -->  Tunnels={nTunnels}, Seeds={nSeeds}, AllTracks={n_tracks}, Success={n_successful_tracks}, GoodChi2={n_goodchi2_tracks}, Selected={n_selected_tracks}"
         sout += f", Butterfly={n_btterfly_tracks}" if(cfg["cut_RoI_btrfly"]) else ""
@@ -813,3 +851,5 @@ if __name__ == "__main__":
     # get the execution time
     elapsed_time = et - st
     print('Execution time:', elapsed_time, 'seconds')
+    
+    print(f"Wrote {tfilenameout}")

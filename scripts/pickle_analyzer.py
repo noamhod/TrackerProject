@@ -310,6 +310,20 @@ def book_histos():
     histos["hTriggers"].GetXaxis().SetBinLabel(1,"All")
     histos["hTriggers"].GetXaxis().SetBinLabel(2,"Good")
     
+    histos.update({ "hTriggersParity": ROOT.TH1D("hTriggersParity",";;Triggers",5,0,5)})
+    histos["hTriggersParity"].GetXaxis().SetBinLabel(1,"All")
+    histos["hTriggersParity"].GetXaxis().SetBinLabel(2,"Good")
+    histos["hTriggersParity"].GetXaxis().SetBinLabel(3,"Unshut")
+    histos["hTriggersParity"].GetXaxis().SetBinLabel(4,"Even")
+    histos["hTriggersParity"].GetXaxis().SetBinLabel(5,"Odd")
+    
+    histos.update( { "h_nPixels_even"         : ROOT.TH1D("h_nPixels_even",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_odd"          : ROOT.TH1D("h_nPixels_odd",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nClusters_even"       : ROOT.TH1D("h_nClusters_even",";N_{clusters}/layer;Events",100,0,100) } )
+    histos.update( { "h_nClusters_odd"        : ROOT.TH1D("h_nClusters_odd",";N_{clusters}/layer;Events",100,0,100) } )
+    histos.update( { "h_nPixels_shuttered"    : ROOT.TH1D("h_nPixels_shuttered",";N_{pixels}/layer;Events",50,0,50) } )
+    histos.update( { "h_nClusters_shuttered"  : ROOT.TH1D("h_nClusters_shuttered",";N_{clusters}/layer;Events",20,0,20) } )
+    
     histos.update( { "h_nTunnels"             : ROOT.TH1D("h_nTunnels",";N_{tunnels}/Event;Events",250,0,250) } )
     histos.update( { "h_nTunnels_log"         : ROOT.TH1D("h_nTunnels_log",";N_{tunnels}/Event;Events",ntrkarr,trkarr) } )
     histos.update( { "h_nTunnels_full"        : ROOT.TH1D("h_nTunnels_full",";N_{tunnels}/Event;Events",2000,0,20000) } )
@@ -331,20 +345,22 @@ def book_histos():
     histos.update( { "h_nTracks_btrfly_mid"   : ROOT.TH1D("h_nTracks_btrfly_mid",";N_{tracks}/Event;Events",100,0,100) } )
     histos.update( { "h_nTracks_btrfly_zoom"  : ROOT.TH1D("h_nTracks_btrfly_zoom",";N_{tracks}/Event;Events",40,0,40) } )
     
-    histos.update( { "h_nTracks_btrfly_even"  : ROOT.TH1D("h_nTracks_btrfly_even",";N_{tracks}/Event;Events",15,0,15) } )
-    histos.update( { "h_nTracks_btrfly_odd"   : ROOT.TH1D("h_nTracks_btrfly_odd",";N_{tracks}/Event;Events",15,0,15) } )
+    histos.update( { "h_nTracks_btrfly_even"      : ROOT.TH1D("h_nTracks_btrfly_even",";N_{tracks}/Event;Events",15,0,15) } )
+    histos.update( { "h_nTracks_btrfly_odd"       : ROOT.TH1D("h_nTracks_btrfly_odd",";N_{tracks}/Event;Events",15,0,15) } )
+    histos.update( { "h_nTracks_btrfly_shuttered" : ROOT.TH1D("h_nTracks_btrfly_shuttered",";N_{tracks}/Event;Events",15,0,15) } )
     
     parNames = ["x_{0}", "m_{x}", "y_{0}", "m_{y}", "log#theta^{2}"]
     nParMLEfit = 4
     for i in range(nParMLEfit+1):
         if(i<4): histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_small,relerrarr_small) } )
         else:    histos.update( { f"hParRelErr_{i}"  : ROOT.TH1D(f"hParRelErr_{i}",f";MLE fit: {parNames[i]} rel. error [%];N_{{tracks}}",nrelerrarr_large,relerrarr_large) } )
-        
     
-    histos.update({ "hChi2DoF_zeroshrcls_even":       ROOT.TH1D("hChi2DoF_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
-    histos.update({ "hChi2DoF_zeroshrcls_odd":        ROOT.TH1D("hChi2DoF_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
-    histos.update({ "hChi2DoF_small_zeroshrcls_even": ROOT.TH1D("hChi2DoF_small_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
-    histos.update({ "hChi2DoF_small_zeroshrcls_odd":  ROOT.TH1D("hChi2DoF_small_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
+    histos.update({ "hChi2DoF_zeroshrcls_even":            ROOT.TH1D("hChi2DoF_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
+    histos.update({ "hChi2DoF_zeroshrcls_odd":             ROOT.TH1D("hChi2DoF_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
+    histos.update({ "hChi2DoF_zeroshrcls_shuttered":       ROOT.TH1D("hChi2DoF_zeroshrcls_shuttered",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
+    histos.update({ "hChi2DoF_small_zeroshrcls_even":      ROOT.TH1D("hChi2DoF_small_zeroshrcls_even",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
+    histos.update({ "hChi2DoF_small_zeroshrcls_odd":       ROOT.TH1D("hChi2DoF_small_zeroshrcls_odd",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
+    histos.update({ "hChi2DoF_small_zeroshrcls_shuttered": ROOT.TH1D("hChi2DoF_small_zeroshrcls_shuttered",";#chi^{2}/N_{DoF};Tracks",100,0,20)})
     
     histos.update({ "hChi2DoF_alowshrcls": ROOT.TH1D("hChi2DoF_alowshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
     histos.update({ "hChi2DoF_zeroshrcls": ROOT.TH1D("hChi2DoF_zeroshrcls",";#chi^{2}/N_{DoF};Tracks",200,0,50)})
@@ -405,6 +421,12 @@ def book_histos():
     # histos.update({ "hD_after_cuts":  ROOT.TH2D("hD_after_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",120,-80,+80, 120,-70,+90) })
     histos.update({ "hD_before_cuts": ROOT.TH2D("hD_before_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
     histos.update({ "hD_after_cuts":  ROOT.TH2D("hD_after_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
+    
+    histos.update({ "hD_before_cuts_even": ROOT.TH2D("hD_before_cuts_even","Dipole exit plane: Pre-cuts, Even;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
+    histos.update({ "hD_after_cuts_even":  ROOT.TH2D("hD_after_cuts_even","Dipole exit plane: Post-cuts, Even;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
+    histos.update({ "hD_before_cuts_odd": ROOT.TH2D("hD_before_cuts_odd","Dipole exit plane: Pre-cuts, Odd;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
+    histos.update({ "hD_after_cuts_odd":  ROOT.TH2D("hD_after_cuts_odd","Dipole exit plane: Post-cuts, Odd;x [mm];y [mm];Extrapolated Tracks",200,-80,+80, 200,-70,+90) })
+
     histos.update({ "hD_zoomout_before_cuts": ROOT.TH2D("hD_zoomout_before_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",120,-1000,+1000, 120,-1000,+1000) })
     histos.update({ "hD_zoomout_after_cuts":  ROOT.TH2D("hD_zoomout_after_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",120,-1000,+1000, 120,-1000,+1000) })
     histos.update({ "hD_zoomin_before_cuts":  ROOT.TH2D("hD_zoomin_before_cuts","Dipole exit plane;x [mm];y [mm];Extrapolated Tracks",200,1.2*cfg["xDipoleExitMin"],1.2*cfg["xDipoleExitMax"], 200,1.1*cfg["yDipoleExitMin"],1.1*cfg["yDipoleExitMax"]) })
@@ -658,8 +680,7 @@ if __name__ == "__main__":
                 break
         if(isNon0Mislaignment): break
     
-    
-    
+
     ### bad triggers
     fpkltrgname = tfilenamein.replace("tree_","beam_quality/tree_").replace(".root","_BadTriggers.pkl")
     badtriggers = []
@@ -676,6 +697,10 @@ if __name__ == "__main__":
         print("----------------------------\n")
     nbadtrigs = len(badtriggers)
     
+    
+    ### text file with tracks
+    ftxtname = tfilenamein.replace(".root",f"_alltrks.txt")
+    ftxt = open(ftxtname, "w")
     
     
     ### counters
@@ -741,6 +766,7 @@ if __name__ == "__main__":
     arr_theta_yz_pass = []
     
     
+    
     print(f"Files:\n{files}")
     stop = False
     for fpkl in files:
@@ -750,7 +776,6 @@ if __name__ == "__main__":
             if(stop): break
             data = pickle.load(handle)
             for ievt,pkl_event in enumerate(data):
-                
                 
                 ########################################
                 ### nicely clear per event for eudaq ###
@@ -782,18 +807,36 @@ if __name__ == "__main__":
                 ### calculate the average occupancies
                 avgnpix = 0
                 avgncls = 0
-                if( len(pkl_event.npixels)==len(cfg["detectors"]) and len(pkl_event.nclusters)==len(cfg["detectors"])):
-                    for det in cfg["detectors"]:
-                        avgnpix += pkl_event.npixels[det]
-                        avgncls += pkl_event.nclusters[det]
-                    avgnpix /= len(cfg["detectors"])
-                    avgncls /= len(cfg["detectors"])
+                for det in cfg["detectors"]:
+                    if(det in pkl_event.npixels):   avgnpix += pkl_event.npixels[det]
+                    if(det in pkl_event.nclusters): avgncls += pkl_event.nclusters[det]
+                avgnpix /= len(cfg["tandemlyrs"])
+                avgncls /= len(cfg["tandemlyrs"])
+                # if( len(pkl_event.npixels)==len(cfg["detectors"]) and len(pkl_event.nclusters)==len(cfg["detectors"])):
+                #     for det in cfg["detectors"]:
+                #         avgnpix += pkl_event.npixels[det]
+                #         avgncls += pkl_event.nclusters[det]
+                #     avgnpix /= len(cfg["tandemlyrs"])
+                #     avgncls /= len(cfg["tandemlyrs"])
                 # else:
                 #     continue ### empty event
                 #     print("---------------------------------------------------------------------------------------")
                 #     print(f"Problem with length of pixels array {len(pkl_event.npixels)} or clusters array {len(pkl_event.nclusters)}")
                 #     print("---------------------------------------------------------------------------------------")
                 print(f"Reading event #{ievt}, trigger:{pkl_event.trigger}, ts:[{utils.get_human_timestamp_ns(pkl_event.timestamp_bgn)}, {utils.get_human_timestamp_ns(pkl_event.timestamp_end)}]")
+                
+                
+                ### fill some basic histos
+                if(pkl_event.epics_shutter!=0):
+                    if(len(pkl_event.npixels)==len(cfg["detectors"])):
+                        if(pkl_event.epics_parity==0): histos["h_nPixels_even"].Fill(avgnpix)
+                        else:                          histos["h_nPixels_odd"].Fill(avgnpix)
+                    if(len(pkl_event.nclusters)==len(cfg["detectors"])):
+                        if(pkl_event.epics_parity==0): histos["h_nClusters_even"].Fill(avgncls)
+                        else:                          histos["h_nClusters_odd"].Fill(avgncls)
+                else:
+                    if(len(pkl_event.npixels)==len(cfg["detectors"])):   histos["h_nPixels_shuttered"].Fill(avgnpix)
+                    if(len(pkl_event.nclusters)==len(cfg["detectors"])): histos["h_nClusters_shuttered"].Fill(avgncls)
                 
                 
                 ### some counters
@@ -811,6 +854,7 @@ if __name__ == "__main__":
                 ntrigs_actual += 1
                 nevents += 1
                 histos["hTriggers"].Fill(0.5)
+                histos["hTriggersParity"].Fill(0.5)
                 
                 
                 ### counters
@@ -825,6 +869,11 @@ if __name__ == "__main__":
                     print(f"Skipping bad trigger: {int(pkl_event.trigger)}")
                     continue
                 histos["hTriggers"].Fill(1.5)
+                histos["hTriggersParity"].Fill(1.5) ### good
+                if(pkl_event.epics_shutter!=0):
+                    histos["hTriggersParity"].Fill(2.5) ## non-shuttered
+                    if(pkl_event.epics_parity==0): histos["hTriggersParity"].Fill(3.5) ## non-shuttered even
+                    else:                          histos["hTriggersParity"].Fill(4.5) ## non-shuttered odd
                 
                 ### count tracks per actual triggers
                 trkpertrg["Good"].append(0)
@@ -1059,6 +1108,9 @@ if __name__ == "__main__":
                     ### fill histos before cuts
                     histos["hF_before_cuts"].Fill(rF[0],rF[1])
                     histos["hD_before_cuts"].Fill(rD[0],rD[1])
+                    if(pkl_event.epics_shutter!=0):
+                        if(pkl_event.epics_parity==0): histos["hD_before_cuts_even"].Fill(rD[0],rD[1])
+                        else:                          histos["hD_before_cuts_odd"].Fill(rD[0],rD[1])
                     histos["hD_zoomin_before_cuts"].Fill(rD[0],rD[1])
                     histos["hD_zoomout_before_cuts"].Fill(rD[0],rD[1])
                     histos["hW_before_cuts"].Fill(rW[0],rW[1])
@@ -1182,11 +1234,24 @@ if __name__ == "__main__":
                     n_butterfly_tracks += pass_butterfly
                     ### fill the track occupancies after the cuts
                     if(pass_butterfly):
+                        if(pkl_event.epics_shutter!=0):
+                            _,_,_,_,rD = utils.get_track_point_at_extremes(track,ismultiproc=False)
+                            if(pkl_event.epics_parity==0): histos["hD_after_cuts_even"].Fill(rD[0],rD[1])
+                            else:                          histos["hD_after_cuts_odd"].Fill(rD[0],rD[1])
                         for det in cfg["detectors"]:
                             if(det not in track.detectors): continue
                             histos[f"h_cls_occ_2D_{det}_after_cuts"].Fill(track.trkcls[det].xTnoGmm,track.trkcls[det].yTnoGmm)
                             xTnoG,yTnoG,zTnoG = utils.get_track_at_det_noG(det,track)
                             histos[f"h_trk_occ_2D_{det}_after_cuts"].Fill(xTnoG,yTnoG)
+                            
+                        # if(pkl_event.epics_shutter==0):
+                        #     print(f"-------------- runnum={runnum}, trigger={pkl_event.trigger}, pulseid={pkl_event.epics_pulseid}:")
+                        #     for det in cfg["detectors"]:
+                        #         print(f" N pixels: {pkl_event.npixels[det]}")
+                        #         print(f" N track.trkcls[{det}].pixels:")
+                        #         for ipix,pix in enumerate(track.trkcls[det].pixels):
+                        #             print(f"  [{det}][{ipix}] xy={pix.x,pix.y}")
+                                
                 
                 ##############################################################################
                 ### fill the last counter ####################################################
@@ -1198,11 +1263,37 @@ if __name__ == "__main__":
                 histos["h_nTracks_btrfly_mid" ].Fill(n_butterfly_tracks)
                 histos["h_nTracks_btrfly_zoom"].Fill(n_butterfly_tracks)
                 
-                if(pkl_event.epics_shutter!=0 and n_butterfly_tracks>0):
-                    if(pkl_event.epics_parity==0): histos["h_nTracks_btrfly_even"].Fill(n_butterfly_tracks)
-                    else:                          histos["h_nTracks_btrfly_odd"].Fill(n_butterfly_tracks)
+                if(n_butterfly_tracks>0):
+                    if(pkl_event.epics_shutter!=0):
+                        if(pkl_event.epics_parity==0): histos["h_nTracks_btrfly_even"].Fill(n_butterfly_tracks)
+                        else:                          histos["h_nTracks_btrfly_odd"].Fill(n_butterfly_tracks)
+                    else:
+                        histos["h_nTracks_btrfly_shuttered"].Fill(n_butterfly_tracks)
+                    
                 
                 nbtrtrk += n_butterfly_tracks
+                
+                
+                for itrk,trk in enumerate(selected_tracks):
+                    trk_in_btrfly = 1 if(butterfly_tracks_mask[itrk]) else 0
+                    epics_shutter = 1 if(pkl_event.epics_shutter==0)  else 0
+                    txtline = f"eudaq_run_num={runnum},\
+                                eudaq_trigger={pkl_event.trigger},\
+                                eudaq_ts_begin={pkl_event.timestamp_bgn},\
+                                eudaq_ts_end={pkl_event.timestamp_end},\
+                                track_index={itrk},\
+                                trk_in_btrfly={trk_in_btrfly},\
+                                trk_chi2ndof={trk.chi2ndof},\
+                                epics_pulseid={pkl_event.epics_pulseid},\
+                                epics_realpid={pkl_event.epics_realpid},\
+                                epics_parity={pkl_event.epics_parity},\
+                                epics_shutter={epics_shutter},\
+                                epics_time_s={int(pkl_event.epics_time_s)},\
+                                epics_time_ns={int(pkl_event.epics_time_ns)},\
+                                epics_run_num={pkl_event.epics_run_num}\n"
+                    txtline = txtline.replace(" ","").replace(",",", ")
+                    ftxt.write(txtline)
+                    
                 
                 
                 ### event displays
@@ -1264,10 +1355,16 @@ if __name__ == "__main__":
                     
                     
                     if(pkl_event.epics_shutter!=0):
-                        if(pkl_event.epics_parity==0): histos["hChi2DoF_zeroshrcls_even"].Fill(track.chi2ndof)
-                        else:                          histos["hChi2DoF_zeroshrcls_odd"].Fill(track.chi2ndof)
-                        if(pkl_event.epics_parity==0): histos["hChi2DoF_small_zeroshrcls_even"].Fill(track.chi2ndof)
-                        else:                          histos["hChi2DoF_small_zeroshrcls_odd"].Fill(track.chi2ndof)
+                        if(pkl_event.epics_parity==0):
+                            histos["hChi2DoF_zeroshrcls_even"].Fill(track.chi2ndof)
+                            histos["hChi2DoF_small_zeroshrcls_even"].Fill(track.chi2ndof)
+                        else:
+                            histos["hChi2DoF_zeroshrcls_odd"].Fill(track.chi2ndof)
+                            histos["hChi2DoF_small_zeroshrcls_odd"].Fill(track.chi2ndof)
+                    else:
+                        histos["hChi2DoF_zeroshrcls_shuttered"].Fill(track.chi2ndof)
+                        histos["hChi2DoF_small_zeroshrcls_shuttered"].Fill(track.chi2ndof)
+
                     
                     histos["hChi2DoF_zeroshrcls"].Fill(track.chi2ndof)
                     histos["hChi2DoF_full_zeroshrcls"].Fill(track.chi2ndof)
@@ -1386,6 +1483,10 @@ if __name__ == "__main__":
     counters.counters_x_trg[0] = counters.counters_x_trg[0] if(counters.counters_x_trg[0]!=0 and cfg["first2process"]!=0) else 0
     fmultpdfname = tfilenamein.replace(".root",f"_multiplicities_vs_triggers.pdf")
     counters.plot_counters(fmultpdfname,runnum)
+
+    
+    ### close the text file of the tracks 
+    ftxt.close()
 
 
     ### plot the geometry distributions
@@ -2964,9 +3065,10 @@ if __name__ == "__main__":
     tracks_triggers_dict = convert_all_to_ints(tracks_triggers_dict)
     print(f"\ncounters: {tracks_triggers_dict}")
     
-    
     # get the end time
     et = time.time()
     # get the execution time
     elapsed_time = et - st
     print(f'ֿֿ\nExecution time: {elapsed_time} seconds')
+    
+    print(f"Finished run {runnum}")

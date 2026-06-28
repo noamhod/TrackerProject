@@ -107,19 +107,31 @@ def book_histos():
     histos.update( { "h_Chi2fit_res_trk2vtx_x" : ROOT.TH1D("h_Chi2fit_res_trk2vtx_x",";x_{trk}-x_{vtx} [mm];Events",nResBins,-absRes,+absRes) } )
     histos.update( { "h_Chi2fit_res_trk2vtx_y" : ROOT.TH1D("h_Chi2fit_res_trk2vtx_y",";y_{trk}-y_{vtx} [mm];Events",nResBins,-absRes,+absRes) } )
     
+    histos.update( { "h_nPixels_all_even"   : ROOT.TH1D("h_nPixels_all_even",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_all_odd"    : ROOT.TH1D("h_nPixels_all_odd",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_all_btrfly_even"   : ROOT.TH1D("h_nPixels_all_btrfly_even",";N_{pixels}/layer;Events",50,0,50) } )
+    histos.update( { "h_nPixels_all_btrfly_odd"    : ROOT.TH1D("h_nPixels_all_btrfly_odd",";N_{pixels}/layer;Events",50,0,50) } )
+
+    histos.update( { "h_nPixels_all_shuttered"          : ROOT.TH1D("h_nPixels_all_shuttered",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_all_btrfly_shuttered"   : ROOT.TH1D("h_nPixels_all_btrfly_shuttered",";N_{pixels}/layer;Events",50,0,50) } )
     
-    histos.update( { "h_nPixels_even"          : ROOT.TH1D("h_nPixels_even",";N_{pixels}/detector;Events",200,0,200) } )
-    histos.update( { "h_nPixels_odd"           : ROOT.TH1D("h_nPixels_odd",";N_{pixels}/detector;Events",200,0,200) } )
-    histos.update( { "h_nClusters_even"        : ROOT.TH1D("h_nClusters_even",";N_{clusters}/detector;Events",100,0,100) } )
-    histos.update( { "h_nClusters_odd"         : ROOT.TH1D("h_nClusters_odd",";N_{clusters}/detector;Events",100,0,100) } )
-    
-    histos.update( { "h_nPixels_btrfly_even"   : ROOT.TH1D("h_nPixels_btrfly_even",";N_{pixels}/detector;Events",50,0,50) } )
-    histos.update( { "h_nPixels_btrfly_odd"    : ROOT.TH1D("h_nPixels_btrfly_odd",";N_{pixels}/detector;Events",50,0,50) } )
-    histos.update( { "h_nClusters_btrfly_even" : ROOT.TH1D("h_nClusters_btrfly_even",";N_{clusters}/detector;Events",20,0,20) } )
-    histos.update( { "h_nClusters_btrfly_odd"  : ROOT.TH1D("h_nClusters_btrfly_odd",";N_{clusters}/detector;Events",20,0,20) } )
+    histos.update( { "h_nPixels_hitperlyr_even"   : ROOT.TH1D("h_nPixels_hitperlyr_even",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_hitperlyr_odd"    : ROOT.TH1D("h_nPixels_hitperlyr_odd",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nClusters_hitperlyr_even" : ROOT.TH1D("h_nClusters_hitperlyr_even",";N_{clusters}/layer;Events",100,0,100) } )
+    histos.update( { "h_nClusters_hitperlyr_odd"  : ROOT.TH1D("h_nClusters_hitperlyr_odd",";N_{clusters}/layer;Events",100,0,100) } )
+    histos.update( { "h_nPixels_hitperlyr_btrfly_even"   : ROOT.TH1D("h_nPixels_hitperlyr_btrfly_even",";N_{pixels}/layer;Events",50,0,50) } )
+    histos.update( { "h_nPixels_hitperlyr_btrfly_odd"    : ROOT.TH1D("h_nPixels_hitperlyr_btrfly_odd",";N_{pixels}/layer;Events",50,0,50) } )
+    histos.update( { "h_nClusters_hitperlyr_btrfly_even" : ROOT.TH1D("h_nClusters_hitperlyr_btrfly_even",";N_{clusters}/layer;Events",20,0,20) } )
+    histos.update( { "h_nClusters_hitperlyr_btrfly_odd"  : ROOT.TH1D("h_nClusters_hitperlyr_btrfly_odd",";N_{clusters}/layer;Events",20,0,20) } )
+
+    histos.update( { "h_nPixels_hitperlyr_shuttered"          : ROOT.TH1D("h_nPixels_hitperlyr_shuttered",";N_{pixels}/layer;Events",200,0,200) } )
+    histos.update( { "h_nPixels_hitperlyr_btrfly_shuttered"   : ROOT.TH1D("h_nPixels_hitperlyr_btrfly_shuttered",";N_{pixels}/layer;Events",50,0,50) } )
+    histos.update( { "h_nClusters_hitperlyr_shuttered"        : ROOT.TH1D("h_nClusters_hitperlyr_shuttered",";N_{clusters}/layer;Events",100,0,100) } )
+    histos.update( { "h_nClusters_hitperlyr_btrfly_shuttered" : ROOT.TH1D("h_nClusters_hitperlyr_btrfly_shuttered",";N_{clusters}/layer;Events",20,0,20) } )
     
     histos.update( { "h_nTracks_even"          : ROOT.TH1D("h_nTracks_even",";N_{tracks};Events",15,0,15) } )
     histos.update( { "h_nTracks_odd"           : ROOT.TH1D("h_nTracks_odd",";N_{tracks};Events",15,0,15) } )
+    histos.update( { "h_nTracks_shuttered"     : ROOT.TH1D("h_nTracks_shuttered",";N_{tracks};Events",15,0,15) } )
     
     
     histos.update( { "h_nStaves"               : ROOT.TH1D("h_nStaves",";N_{staves}/Event;Events",len(cfg["staves"]),+0.5,len(cfg["staves"])+0.5) } )

@@ -239,10 +239,12 @@ class Magnets:
 
 class Event:
     # Explicitly define allowed attributes to save memory
-    __slots__ = ('saveprimitive', 'meta', 'trigger', 'epics_pulseid', 'epics_realpid', 'epics_parity', 'epics_shutter', 'timestamp_bgn', 'timestamp_end', 'magnets', 'errors',
+    __slots__ = ('saveprimitive', 'meta', 'trigger',
+                 'epics_pulseid', 'epics_realpid', 'epics_parity', 'epics_shutter', 'epics_time_s', 'epics_time_ns', 'epics_run_num',
+                 'timestamp_bgn', 'timestamp_end', 'magnets', 'errors',
                  'pixels', 'npixels', 'clusters', 'nclusters', 'ntunnels', 'hough_space',
                  'seeds', 'tracks', 'misalignment')
-    def __init__(self,meta,trigger,epics_pulseid,epics_realpid,epics_parity,epics_shutter,timestamp_bgn,timestamp_end,magnets,saveprimitive=True):
+    def __init__(self,meta,trigger,epics_pulseid,epics_realpid,epics_parity,epics_shutter,epics_time_s,epics_time_ns,epics_run_num,timestamp_bgn,timestamp_end,magnets,saveprimitive=True):
         cfg = config.Config().map 
         self.saveprimitive   = saveprimitive
         self.meta            = meta
@@ -251,6 +253,9 @@ class Event:
         self.epics_realpid   = epics_realpid
         self.epics_parity    = epics_parity
         self.epics_shutter   = epics_shutter
+        self.epics_time_s    = epics_time_s
+        self.epics_time_ns   = epics_time_ns
+        self.epics_run_num   = epics_run_num
         self.timestamp_bgn   = timestamp_bgn
         self.timestamp_end   = timestamp_end
         self.magnets         = magnets

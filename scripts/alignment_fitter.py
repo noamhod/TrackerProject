@@ -321,14 +321,26 @@ if __name__ == "__main__":
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
         print(f"Opening file {suff}")
         with open(fpkl,'rb') as handle:
-            data = pickle.load(handle)
+            data = pickle.load(handle)            
             for event in data:
                 if(allevents%50==0 and allevents>0): print(f"Reading event #{allevents} with {ngoodtracks} good tracks")
                 allevents += 1
                 alltracks += len(event.tracks)
                 evtgoodtracks = 0
                 
-                selected_tracks = get_selected_tracks(event)
+                # #######################################
+                # ### randomize the track selection such
+                # ### that for every run we will have the
+                # ### same number of tracks in the case
+                # ### of multirun...
+                # #######################################
+                # selected_tracks0 = get_selected_tracks(event)
+                # selected_tracks  = selected_tracks0
+                # if(ismutirun):
+                #     random.seed(42)
+                #     selected_tracks = random.sample(selected_tracks0,nrndtrks)
+                # #######################################
+                
                 for track in selected_tracks:
                     t_dets = []
                     t_coords = [] # [x, y, z, ex, ey]

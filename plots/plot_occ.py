@@ -18,8 +18,8 @@ ROOT.gStyle.SetPadLeftMargin(0.13)
 ROOT.gStyle.SetPadRightMargin(0.16)
 
 ### FOR RUN 1160 (Dipole at 14.8 GeV, E_img=3 GeV)
-X0 = {"ALPIDE_0":520,"ALPIDE_1":520,"ALPIDE_2":520,"ALPIDE_3":520,"ALPIDE_4":520} ### x center
-Y0 = {"ALPIDE_0":220,"ALPIDE_1":225,"ALPIDE_2":227,"ALPIDE_3":228,"ALPIDE_4":225} ### y center
+X0 = {"ALPIDE_0":512,"ALPIDE_1":517,"ALPIDE_2":523,"ALPIDE_3":528,"ALPIDE_4":532} ### x center
+Y0 = {"ALPIDE_0":223,"ALPIDE_1":230,"ALPIDE_2":232,"ALPIDE_3":233,"ALPIDE_4":228} ### y center
 # ### FOR RUN 906 (Dipole at 8 GeV, E_img=1.93 GeV)
 # X0 = {"ALPIDE_0":500,"ALPIDE_1":500,"ALPIDE_2":500,"ALPIDE_3":500,"ALPIDE_4":500} ### x center
 # Y0 = {"ALPIDE_0":235,"ALPIDE_1":240,"ALPIDE_2":242,"ALPIDE_3":243,"ALPIDE_4":240} ### y center
@@ -114,7 +114,8 @@ if __name__ == "__main__":
     # fInName = "data/e320_prototype_beam_Mar2026/runs/run_0000872/beam_quality/tree_Run872_trigger_analysis.root"
     # fInName = "data/e320_prototype_beam_Mar312026/runs/run_0000906/beam_quality/tree_Run906_trigger_analysis.root"
     # fInName = "data/e320_prototype_beam_Mar312026/runs/run_0000912/beam_quality/tree_Run912_trigger_analysis.root"
-    fInName = "data/e320_prototype_beam_Jun222026_noalignment/runs/run_0001160/beam_quality/tree_Run1160_trigger_analysis.root"
+    # fInName = "data/e320_prototype_beam_Jun222026_noalignment/runs/run_0001160/beam_quality/tree_Run1160_trigger_analysis.root"
+    fInName = "data/e320_prototype_beam_Jun242026_noalignment/runs/run_0001207/beam_quality/tree_Run1207_trigger_analysis.root"
     fOutName = fInName.replace(".root","_replot.pdf")
     fIn = ROOT.TFile(fInName,"READ")
 
